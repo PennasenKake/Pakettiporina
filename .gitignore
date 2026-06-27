@@ -1,0 +1,46 @@
+# Unity .gitignore — Pakettipörinä
+
+# Unityn luomat kansiot (eivät versionhallintaan)
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Asset-meta-tiedostot tyhjille kansioille (jätetään pois)
+/[Aa]ssets/[Aa]ssetStoreTools*
+
+# Visual Studio / Rider / IDE
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.tmp
+
+# Build-tulokset
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Käyttöjärjestelmä
+.DS_Store
+Thumbs.db
+
+# Crashlogs
+sysinfo.txt
+crashlytics-build.properties
+
+# HUOM: Unityn .meta-tiedostot KUULUVAT versionhallintaan — älä jätä niitä pois.
