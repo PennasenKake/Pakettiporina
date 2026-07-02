@@ -1,0 +1,210 @@
+<h2 class="sr-only">Paranneltu interaktiivinen mockup lasten autopelistä Pakettipörinä, opashahmo Vilkun kanssa: koti, paketin valinta, halli, ajo ja maalijuhla. Käyttäjä voi navigoida vaiheiden välillä, vaihtaa auton värin, kytkeä ominaisuuksia ja poksauttaa ilmapalloja.</h2>
+<svg width="0" height="0" style="position:absolute"><symbol id="vilkku" viewBox="0 0 60 60">
+  <ellipse cx="30" cy="55" rx="15" ry="3.5" fill="#000" opacity=".08"/>
+  <circle cx="30" cy="32" r="20" fill="#EF9F27"/>
+  <path d="M11 23 Q30 5 49 23 Z" fill="#D85A30"/><circle cx="30" cy="8" r="3" fill="#993C1D"/>
+  <circle cx="23" cy="31" r="5" fill="#fff"/><circle cx="24.5" cy="32" r="2.4" fill="#2C2C2A"/>
+  <circle cx="37" cy="31" r="5" fill="#fff"/><circle cx="38.5" cy="32" r="2.4" fill="#2C2C2A"/>
+  <path d="M24 41 Q30 47 36 41" stroke="#993C1D" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <circle cx="17" cy="39" r="2.6" fill="#F0997B"/><circle cx="43" cy="39" r="2.6" fill="#F0997B"/>
+</symbol></svg>
+<style>
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.pp-phone{max-width:300px;margin:0 auto;background:#2C2C2A;border-radius:34px;padding:8px}
+.pp-screen{position:relative;overflow:hidden;border-radius:27px;height:566px;display:flex;flex-direction:column;font-family:var(--font-sans);color:#2C2C2A;background:#fff}
+.pp-top{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#fff;border-bottom:1px solid #F1EFE8;z-index:5}
+.pp-stage{flex:1;position:relative;overflow:hidden}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;padding:16px}
+.dot{width:8px;height:8px;border-radius:50%;background:#D3D1C7;transition:all .2s}
+.dot.on{background:#7F77DD;width:22px;border-radius:5px}
+.iconbtn{border:none;background:#F1EFE8;width:34px;height:34px;border-radius:12px;cursor:pointer;color:#5F5E5A;font-size:18px}
+.cta{border:none;border-radius:18px;padding:15px;font-size:17px;font-weight:500;font-family:inherit;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s}
+.cta:active{transform:scale(.96)}
+.chip{border:2px solid #D3D1C7;background:#fff;border-radius:16px;padding:9px 6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:#5F5E5A;transition:transform .1s}
+.chip i{font-size:21px}
+.chip.on{border-color:#639922;background:#EAF3DE;color:#3B6D11}
+.chip:active{transform:scale(.94)}
+.bubble{background:#fff;border:2px solid #EEEDFE;border-radius:16px;border-bottom-left-radius:4px;padding:9px 12px;font-size:13px;line-height:1.4;color:#3C3489;flex:1}
+.jobcard{border:2px solid #E8E6DE;background:#fff;border-radius:18px;padding:12px;cursor:pointer;transition:transform .1s;text-align:left}
+.jobcard.on{border-color:#7F77DD;background:#EEEDFE}
+.jobcard:active{transform:scale(.98)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:11px;font-weight:500}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff;cursor:pointer;box-sizing:border-box}
+.sw.on{outline:3px solid #EF9F27;outline-offset:1px}
+.statbar{height:8px;border-radius:5px;background:#E8E6DE;overflow:hidden}
+.statbar>span{display:block;height:100%;transition:width .35s}
+.bal{position:absolute;bottom:-90px;cursor:pointer;animation:rise linear infinite}
+.bal-b{width:40px;height:50px;border-radius:50% 50% 47% 47%;transition:transform .25s,opacity .25s;position:relative}
+.bal-b:after{content:"";position:absolute;left:50%;top:100%;width:1px;height:38px;background:rgba(0,0,0,.22);transform:translateX(-50%)}
+.bal.pop .bal-b{transform:scale(0);opacity:0}
+@keyframes rise{to{transform:translateY(-640px)}}
+</style>
+<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:20px">
+<div class="pp-phone"><div class="pp-screen">
+  <div class="pp-top">
+    <button class="iconbtn" id="backBtn" onclick="go(window.cur-1)" aria-label="takaisin" style="visibility:hidden"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+    <div style="display:flex;gap:6px;flex:1;justify-content:center" id="dots">
+      <span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <span style="display:flex;align-items:center;gap:5px;background:#FAEEDA;color:#633806;padding:5px 10px;border-radius:14px;font-size:13px;font-weight:500"><i class="ti ti-coin" aria-hidden="true"></i>240</span>
+  </div>
+  <div class="pp-stage">
+
+    <div class="scr" style="background:#B5D4F4;align-items:center;justify-content:center;text-align:center">
+      <div style="position:absolute;top:18px;right:22px;width:44px;height:44px;border-radius:50%;background:#FAC775"></div>
+      <div style="position:absolute;top:50px;left:20px;width:58px;height:18px;border-radius:12px;background:#fff;opacity:.9"></div>
+      <svg width="92" height="92"><use href="#vilkku"/></svg>
+      <div style="font-size:31px;font-weight:500;color:#993C1D;line-height:1.05;margin:6px 0 2px">Paketti<br>pörinä</div>
+      <div style="font-size:13px;color:#185FA5;margin-bottom:22px">Kaupungin hupsuin lähetti</div>
+      <button class="cta" style="background:#EF9F27;color:#633806;max-width:200px" onclick="go(1)"><i class="ti ti-player-play" aria-hidden="true"></i> Pelaa</button>
+      <div style="display:flex;gap:12px;margin-top:14px">
+        <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#185FA5"><span class="iconbtn" style="background:#fff;color:#993C1D"><i class="ti ti-tools" aria-hidden="true"></i></span>Halli</span>
+        <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#185FA5"><span class="iconbtn" style="background:#fff;color:#993C1D"><i class="ti ti-stars" aria-hidden="true"></i></span>Tarrat</span>
+      </div>
+    </div>
+
+    <div class="scr" style="background:#F1EFE8;display:none">
+      <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:12px">
+        <svg width="46" height="46"><use href="#vilkku"/></svg>
+        <div class="bubble">Valitse paketti ja lue mitä se tarvitsee!</div>
+      </div>
+      <div class="jobcard on" onclick="selectJob(this,'jouset','pehmeät jouset','Munakori')">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-weight:500;font-size:15px"><i class="ti ti-egg" aria-hidden="true"></i> Munakori</b><span style="font-size:12px;color:#854F0B"><i class="ti ti-coin" aria-hidden="true"></i> 30</span></div>
+        <div style="margin-top:8px"><span class="tag" style="background:#FBEAF0;color:#993556"><i class="ti ti-alert-triangle" aria-hidden="true"></i> särkyvä</span> <span class="tag" style="background:#E1F5EE;color:#0F6E56"><i class="ti ti-arrows-down" aria-hidden="true"></i> pehmeät jouset</span></div>
+      </div>
+      <div class="jobcard" style="margin-top:11px" onclick="selectJob(this,'kyla','kylmälaatikko','Jättijäätelö')">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-weight:500;font-size:15px"><i class="ti ti-ice-cream" aria-hidden="true"></i> Jättijäätelö</b><span style="font-size:12px;color:#854F0B"><i class="ti ti-coin" aria-hidden="true"></i> 50</span></div>
+        <div style="margin-top:8px"><span class="tag" style="background:#E6F1FB;color:#185FA5"><i class="ti ti-snowflake" aria-hidden="true"></i> kylmä</span> <span class="tag" style="background:#E1F5EE;color:#0F6E56"><i class="ti ti-box" aria-hidden="true"></i> kylmälaatikko</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="cta" style="background:#7F77DD;color:#fff" onclick="go(2)">Hallin pajalle <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="scr" style="background:#F1EFE8;display:none">
+      <div id="jobChip" style="background:#EEEDFE;color:#3C3489;border-radius:12px;padding:7px 11px;font-size:12px;margin-bottom:8px"><b style="font-weight:500">Keikka:</b> Munakori — tarvitsee pehmeät jouset</div>
+      <div style="background:#E6F1FB;border-radius:16px;padding:8px 0;display:flex;justify-content:center;margin-bottom:10px">
+        <svg viewBox="0 0 220 116" width="180" role="img" aria-label="muokattava auto">
+          <ellipse cx="110" cy="103" rx="84" ry="7" fill="#185FA5" opacity=".12"/>
+          <path d="M60 62 L84 38 Q90 32 100 32 L150 32 Q162 32 168 44 L176 62 Z" id="cb2" fill="#E24B4A"/>
+          <rect x="18" y="60" width="184" height="28" rx="13" id="cb1" fill="#E24B4A"/>
+          <path d="M74 60 L90 42 L132 42 L150 60 Z" fill="#9FE1CB"/>
+          <circle cx="62" cy="90" r="18" fill="#2C2C2A"/><circle cx="62" cy="90" r="8" fill="#D3D1C7"/>
+          <circle cx="158" cy="90" r="18" fill="#2C2C2A"/><circle cx="158" cy="90" r="8" fill="#D3D1C7"/>
+          <circle cx="197" cy="68" r="5" fill="#FAC775"/>
+        </svg>
+      </div>
+      <div style="display:flex;gap:7px;justify-content:center;margin-bottom:12px" id="sws">
+        <span class="sw on" data-c="#E24B4A" style="background:#E24B4A"></span>
+        <span class="sw" data-c="#378ADD" style="background:#378ADD"></span>
+        <span class="sw" data-c="#1D9E75" style="background:#1D9E75"></span>
+        <span class="sw" data-c="#EF9F27" style="background:#EF9F27"></span>
+        <span class="sw" data-c="#D4537E" style="background:#D4537E"></span>
+        <span class="sw" data-c="#7F77DD" style="background:#7F77DD"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+        <button class="chip" data-up="teho" onclick="toggleChip(this,'teho')"><i class="ti ti-bolt" aria-hidden="true"></i>Lisäteho</button>
+        <button class="chip" data-up="jouset" onclick="toggleChip(this,'jouset')"><i class="ti ti-arrows-down" aria-hidden="true"></i>Pehmeät jouset</button>
+        <button class="chip" data-up="kyla" onclick="toggleChip(this,'kyla')"><i class="ti ti-snowflake" aria-hidden="true"></i>Kylmälaatikko</button>
+      </div>
+      <div id="fitPill" style="background:#FAEEDA;color:#854F0B;border-radius:14px;padding:10px;text-align:center;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px"><i class="ti ti-alert-circle" aria-hidden="true"></i> Tarvitsee: pehmeät jouset</div>
+      <div style="flex:1"></div>
+      <button class="cta" style="background:#1D9E75;color:#fff" onclick="go(3)">Aja keikka <i class="ti ti-steering-wheel" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="scr" style="display:none;padding:0">
+      <svg viewBox="0 0 300 360" preserveAspectRatio="xMidYMax slice" style="position:absolute;inset:0;width:100%;height:100%" role="img" aria-label="ajonäkymä kaupungissa">
+        <rect width="300" height="220" fill="#B5D4F4"/>
+        <circle cx="252" cy="44" r="26" fill="#FAC775"/>
+        <rect x="14" y="110" width="52" height="110" fill="#F0997B"/><rect x="24" y="124" width="13" height="13" fill="#FAEEDA"/><rect x="44" y="124" width="13" height="13" fill="#FAEEDA"/>
+        <rect x="84" y="86" width="48" height="134" fill="#7F77DD"/><rect x="94" y="100" width="12" height="12" fill="#EEEDFE"/><rect x="112" y="100" width="12" height="12" fill="#EEEDFE"/>
+        <rect x="210" y="100" width="58" height="120" fill="#5DCAA5"/><rect x="222" y="114" width="13" height="13" fill="#E1F5EE"/><rect x="244" y="114" width="13" height="13" fill="#E1F5EE"/>
+        <rect y="216" width="300" height="144" fill="#888780"/>
+        <path d="M130 216 L46 360 L262 360 L182 216 Z" fill="#5F5E5A"/>
+        <path d="M156 222 L154 252 M152 280 L148 320" stroke="#FAEEDA" stroke-width="6" stroke-dasharray="20 20"/>
+        <polygon points="200,250 206,236 212,250" fill="#EF9F27"/><polygon points="200,250 206,264 212,250" fill="#BA7517"/>
+        <ellipse cx="128" cy="320" rx="56" ry="6" fill="#000" opacity=".12"/>
+        <path d="M92 286 L104 264 Q108 259 116 259 L146 259 Q156 259 161 268 L168 286 Z" fill="#E24B4A"/>
+        <rect x="68" y="284" width="120" height="22" rx="11" fill="#E24B4A"/>
+        <path d="M104 284 L114 266 L146 266 L158 284 Z" fill="#9FE1CB"/>
+        <circle cx="100" cy="308" r="13" fill="#2C2C2A"/><circle cx="156" cy="308" r="13" fill="#2C2C2A"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:14px">
+        <div style="display:flex;justify-content:space-between">
+          <div style="display:flex;gap:6px">
+            <span style="background:#fff;border-radius:12px;padding:4px 9px;font-size:12px;color:#BA7517;font-weight:500">⭐ 3/5</span>
+            <span style="background:#fff;border-radius:12px;padding:4px 9px;font-size:12px;color:#A32D2D;font-weight:500"><i class="ti ti-clock" aria-hidden="true"></i> 0:45</span>
+          </div>
+          <span style="background:#fff;border-radius:12px;padding:4px 9px;font-size:12px;color:#633806;font-weight:500"><i class="ti ti-coin" aria-hidden="true"></i> 240</span>
+        </div>
+        <div style="margin-top:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#04342C;margin-bottom:3px"><span>Lähtö</span><span>Maali <i class="ti ti-flag" aria-hidden="true"></i></span></div>
+          <div class="statbar" style="background:rgba(255,255,255,.7)"><span id="prog" style="width:35%;background:#1D9E75"></span></div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <span style="background:rgba(255,255,255,.9);border-radius:14px;padding:7px 11px;font-size:11px;color:#5F5E5A"><i class="ti ti-device-mobile-rotated" aria-hidden="true"></i> Kallista ohjataksesi</span>
+          <button onclick="boost()" style="width:60px;height:60px;border-radius:50%;border:none;background:#EF9F27;color:#633806;font-size:25px;cursor:pointer"><i class="ti ti-rocket" aria-hidden="true"></i></button>
+        </div>
+        <button class="cta" id="maaliBtn" style="background:#7F77DD;color:#fff;margin-top:12px" onclick="go(4)">Maaliin <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+    <div class="scr" id="maaliScr" style="background:#EEEDFE;display:none;align-items:center;text-align:center">
+      <div class="bal" style="left:6%;animation-duration:7s;animation-delay:-1s" onclick="popBal(this)"><div class="bal-b" style="background:#E24B4A"></div></div>
+      <div class="bal" style="left:24%;animation-duration:8.5s;animation-delay:-4s" onclick="popBal(this)"><div class="bal-b" style="background:#378ADD"></div></div>
+      <div class="bal" style="left:44%;animation-duration:6.5s;animation-delay:-2s" onclick="popBal(this)"><div class="bal-b" style="background:#1D9E75"></div></div>
+      <div class="bal" style="left:62%;animation-duration:9s;animation-delay:-5s" onclick="popBal(this)"><div class="bal-b" style="background:#EF9F27"></div></div>
+      <div class="bal" style="left:80%;animation-duration:7.5s;animation-delay:-3s" onclick="popBal(this)"><div class="bal-b" style="background:#D4537E"></div></div>
+      <div class="bal" style="left:34%;animation-duration:10s;animation-delay:-6s" onclick="popBal(this)"><div class="bal-b" style="background:#7F77DD"></div></div>
+      <svg width="76" height="76" style="position:relative;margin-top:8px"><use href="#vilkku"/></svg>
+      <div style="position:relative;font-size:27px;font-weight:500;color:#534AB7;margin-top:4px">Maalissa!</div>
+      <div style="position:relative;font-size:13px;color:#3C3489">Poksauta ilmapallot <i class="ti ti-hand-finger" aria-hidden="true"></i></div>
+      <div style="flex:1"></div>
+      <div style="position:relative;background:#fff;border-radius:18px;padding:13px 16px;width:100%;box-sizing:border-box">
+        <div style="font-size:12px;color:#5F5E5A">Poksautettu</div>
+        <div id="popCount" style="font-size:26px;font-weight:500;color:#534AB7">0</div>
+        <div style="display:flex;justify-content:space-around;margin-top:8px;font-size:13px">
+          <span style="color:#BA7517">⭐ 3/5</span><span style="color:#854F0B"><i class="ti ti-coin" aria-hidden="true"></i> +50</span><span style="color:#0F6E56"><i class="ti ti-gift" aria-hidden="true"></i> uusi osa</span>
+        </div>
+      </div>
+      <button class="cta" style="background:#EF9F27;color:#633806;margin-top:12px;position:relative" onclick="go(1)"><i class="ti ti-refresh" aria-hidden="true"></i> Uusi keikka</button>
+    </div>
+
+  </div>
+</div></div>
+</div>
+<script>
+(function(){
+  var scrs=Array.prototype.slice.call(document.querySelectorAll('.scr'));
+  var dots=Array.prototype.slice.call(document.querySelectorAll('#dots .dot'));
+  var back=document.getElementById('backBtn');
+  window.cur=0;
+  window.go=function(i){ if(i<0||i>=scrs.length)return; window.cur=i;
+    scrs.forEach(function(s,k){s.style.display=k===i?'flex':'none'});
+    dots.forEach(function(d,k){d.className='dot'+(k===i?' on':'')});
+    back.style.visibility=i===0?'hidden':'visible';
+  };
+  window.req='jouset'; window.reqLabel='pehmeät jouset';
+  var chipState={teho:false,jouset:false,kyla:false};
+  window.selectJob=function(el,req,label,name){
+    document.querySelectorAll('.jobcard').forEach(function(c){c.classList.remove('on')});
+    el.classList.add('on'); window.req=req; window.reqLabel=label;
+    document.getElementById('jobChip').innerHTML='<b style="font-weight:500">Keikka:</b> '+name+' — tarvitsee '+label;
+    updateFit();
+  };
+  var sws=document.getElementById('sws');
+  sws.addEventListener('click',function(e){var t=e.target.closest('.sw');if(!t)return;var c=t.getAttribute('data-c');
+    document.getElementById('cb1').setAttribute('fill',c);document.getElementById('cb2').setAttribute('fill',c);
+    sws.querySelectorAll('.sw').forEach(function(s){s.classList.remove('on')});t.classList.add('on');});
+  window.toggleChip=function(el,id){chipState[id]=!chipState[id];el.classList.toggle('on',chipState[id]);updateFit();};
+  function updateFit(){var ok=chipState[window.req];var p=document.getElementById('fitPill');
+    if(ok){p.style.background='#EAF3DE';p.style.color='#3B6D11';p.innerHTML='<i class="ti ti-check"></i> Sopii keikkaan!';}
+    else{p.style.background='#FAEEDA';p.style.color='#854F0B';p.innerHTML='<i class="ti ti-alert-circle"></i> Tarvitsee: '+window.reqLabel;}}
+  var progress=35;
+  window.boost=function(){progress=Math.min(100,progress+22);document.getElementById('prog').style.width=progress+'%';
+    if(progress>=100){var b=document.getElementById('maaliBtn');b.style.background='#1D9E75';b.innerHTML='Maaliin! <i class="ti ti-flag"></i>';}};
+  var n=0,out=document.getElementById('popCount');
+  window.popBal=function(el){if(el.classList.contains('pop'))return;el.classList.add('pop');n++;if(out)out.textContent=n;
+    setTimeout(function(){el.classList.remove('pop')},1100);};
+})();
+</script>
