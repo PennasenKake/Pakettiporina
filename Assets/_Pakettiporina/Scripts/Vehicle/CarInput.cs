@@ -4,55 +4,58 @@ using UnityEngine;
 
 namespace Pakettiporina
 {
-    // Lukee pelaajan syotteen ja tarjoaa sen autokontrollerille yhdessa paikassa.
-    // Tukee kolmea tilaa: Keyboard (testaus editorissa), Tilt (puhelimen kallistus),
-    // AutoDrive (kaasu aina pohjassa -> mobiilissa lapsi vain ohjaa).
+    // Lukee ohjauksen kahdesta lahteesta yhtaaikaa:
+    //  - Nappaimisto (WSAD/nuolet) -> koneella testaus
+    //  - Kosketusnapit (kaasu / vasen / oikea) -> mobiilissa (TouchButton asettaa)
+    // Autokontrolleri lukee Throttle- ja Steer-arvot.
     public class CarInput : MonoBehaviour
     {
-        public enum Mode { Keyboard, Tilt, AutoDrive }
-
-        [Header("Syotetila")]
-        [Tooltip("Keyboard = editoritestaus, Tilt = puhelimen kallistus, AutoDrive = kaasu aina pohjassa")]
-        public Mode mode = Mode.Keyboard;
-
-        [Header("Kallistus (Tilt-tila)")]
-        [Tooltip("Kallistuksen herkkyys")]
+        [Header("Kallistus (valinnainen lisa)")]
+        public bool useTilt = false;
         public float tiltSensitivity = 2.5f;
-        [Tooltip("Kuollut alue, ettei auto reagoi pieneen tarinaan")]
         public float tiltDeadzone = 0.05f;
 
-        // Autokontrolleri lukee namaa joka ruudussa.
-        public float Throttle { get; private set; } // -1..1 (kaasu / jarru)
-        public float Steer { get; private set; }     // -1..1 (vasen / oikea)
+        [Header("Automaattikaasu (valinnainen)")]
+        [Tooltip("Kaasu aina pohjassa. Ei tarvita jos kaytat kaasunappia.")]
+        public bool autoThrottle = false;
+
+        // Kosketusnappien tila — TouchButton asettaa nama.
+        [HideInInspector] public bool touchGas;
+        [HideInInspector] public bool touchBrake;
+        [HideInInspector] public bool touchLeft;
+        [HideInInspector] public bool touchRight;
+
+        public float Throttle { get; private set; } // -1..1
+        public float Steer { get; private set; }     // -1..1
 
         void Awake()
         {
-            // Kerro consoleen heti kaynnistyksessa mika syotetila on kaytossa.
-            Debug.Log($"[CarInput] Syotetila kaytossa: {mode}");
+            Debug.Log($"[CarInput] Valmis. Nappaimisto: WSAD/nuolet + kosketusnapit (kaasu/vasen/oikea). Tilt={useTilt}, AutoThrottle={autoThrottle}");
         }
 
         void Update()
         {
-            // Lasketaan syote kerran per ruutu ja talletetaan se ominaisuuksiin.
-            Throttle = ReadThrottle();
-            Steer = ReadSteer();
-        }
+            // 1) Nappaimisto (editorissa)
+            float kbThrottle = Input.GetAxis("Vertical");
+            float kbSteer = Input.GetAxis("Horizontal");
 
-        float ReadThrottle()
-        {
-            if (mode == Mode.AutoDrive) return 1f;  // kaasu aina pohjassa
-            return Input.GetAxis("Vertical");       // W/S tai nuolet ylos/alas
-        }
+            // 2) Kosketusnapit (mobiilissa)
+            float touchThrottle = (touchGas ? 1f : 0f) - (touchBrake ? 1f : 0f);
+            float touchSteer = (touchRight ? 1f : 0f) - (touchLeft ? 1f : 0f);
 
-        float ReadSteer()
-        {
-            if (mode == Mode.Tilt)
+            // 3) Valinnainen kallistus
+            float tiltSteer = 0f;
+            if (useTilt)
             {
                 float t = Input.acceleration.x * tiltSensitivity;
-                if (Mathf.Abs(t) < tiltDeadzone) t = 0f; // suodata pieni tarina pois
-                return Mathf.Clamp(t, -1f, 1f);
+                if (Mathf.Abs(t) < tiltDeadzone) t = 0f;
+                tiltSteer = Mathf.Clamp(t, -1f, 1f);
             }
-            return Input.GetAxis("Horizontal");     // A/D tai nuolet sivulle
+
+            // Yhdista lahteet (nappaimisto TAI kosketus toimii)
+            float throttle = autoThrottle ? 1f : (kbThrottle + touchThrottle);
+            Throttle = Mathf.Clamp(throttle, -1f, 1f);
+            Steer = Mathf.Clamp(kbSteer + touchSteer + tiltSteer, -1f, 1f);
         }
     }
 }
