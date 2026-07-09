@@ -1,26 +1,23 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Pakettiporina
 {
     // Pitaa valitut osat kategorioittain ja laskee niista auton ominaisuudet (CarStats).
-    // M3.4:ssa halli-UI kutsuu SelectPartia; nyt voit testata ContextMenu-napilla.
+    // M3.4:ssa halli-UI kutsuu SelectPartia; nyt voit testata ContextMenu-napeilla.
     public class CarBuilder : MonoBehaviour
     {
         [Header("Perusarvot (auto ilman osia)")]
         public CarStats baseStats = new CarStats { voima = 40, pito = 45, keveys = 50, kestavyys = 45, kylmyys = 0 };
 
-        // Valitut osat: yksi per kategoria.
         readonly Dictionary<PartCategory, PartData> selected = new Dictionary<PartCategory, PartData>();
 
-        // Lasketut ominaisuudet (paivittyy kun osa vaihtuu).
         public CarStats Current { get; private set; }
         public IReadOnlyDictionary<PartCategory, PartData> Selected => selected;
 
         void Awake() { Recalculate(); }
 
-        // Valitse osa (korvaa saman kategorian aiemman valinnan).
         public void SelectPart(PartData part)
         {
             if (part == null) return;
@@ -29,19 +26,25 @@ namespace Pakettiporina
             Recalculate();
         }
 
-        // Poista kategorian valinta (esim. Lisat pois).
         public void ClearCategory(PartCategory category)
         {
             if (selected.Remove(category))
                 Recalculate();
         }
 
+        // Onko autossa juuri tama osa valittuna? (FitChecker kayttaa tata)
+        public bool HasPart(PartData part)
+        {
+            if (part == null) return false;
+            return selected.TryGetValue(part.category, out var sel) && sel == part;
+        }
+
         void Recalculate()
         {
-            CarStats s = baseStats; // struct kopioituu -> baseStats ei muutu
+            CarStats s = baseStats;
             foreach (var part in selected.Values)
             {
-                if (part == null || part.cosmeticOnly) continue; // koriste ei muuta ominaisuuksia
+                if (part == null || part.cosmeticOnly) continue;
                 s.voima += part.voima;
                 s.pito += part.pito;
                 s.keveys += part.keveys;
@@ -54,14 +57,22 @@ namespace Pakettiporina
         }
 
         // ---- Testaus editorissa ilman UI:ta ----
-        [Header("Testaus (veda tahan muutama osa)")]
+        [Header("Testaus (veda tahan osat ja valinnainen paketti)")]
         public PartData[] testParts;
+        public PackageData testPackage;
 
         [ContextMenu("Testaa: valitse testParts ja laske")]
         void TestSelect()
         {
             selected.Clear();
             foreach (var p in testParts) SelectPart(p);
+        }
+
+        [ContextMenu("Testaa sopivuus (testPackage)")]
+        void TestFit()
+        {
+            var r = FitChecker.Check(this, testPackage);
+            Debug.Log($"[Fit] {r.message} (sopii={r.fits})");
         }
     }
 }
