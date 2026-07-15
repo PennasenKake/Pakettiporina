@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24163804efebd164c81007e8c412834b, type: 3}
   m_Name: Maastorenkaat
   m_EditorClassIdentifier: 
-  displayName: Uusi osa
-  category: 0
+  displayName: Maastorenkaat
+  category: 1
   voima: 0
-  pito: 0
-  keveys: 0
+  pito: 20
+  keveys: -10
   kestavyys: 0
   kylmyys: 0
-  cosmeticOnly: 0
+  cosmeticOnly: 1
   color: {r: 1, g: 1, b: 1, a: 1}
   unlockPoints: 0

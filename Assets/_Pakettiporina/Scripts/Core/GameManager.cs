@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Pakettiporina
 {
-    // Pelin keskussingleton: pitaa pisteet ja pelin vaiheen. Sailyy scenejen yli.
+    // Pelin keskussingleton: pitaa pisteet, pelin vaiheen seka valitun paketin ja auton.
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
@@ -13,9 +11,12 @@ namespace Pakettiporina
         public Phase CurrentPhase { get; private set; } = Phase.Menu;
         public int Points { get; private set; }
 
+        // Hallissa tehty valinta, jonka keikka lukee.
+        public PackageData SelectedPackage { get; private set; }
+        public CarStats SelectedStats { get; private set; }
+
         void Awake()
         {
-            // Singleton: vain yksi saa olla olemassa.
             if (Instance != null && Instance != this)
             {
                 Debug.LogWarning("[GameManager] Toinen GameManager loytyi — tuhotaan duplikaatti.");
@@ -23,7 +24,7 @@ namespace Pakettiporina
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject); // sailyy kun scenet vaihtuvat
+            DontDestroyOnLoad(gameObject);
             Debug.Log($"[GameManager] Valmis. Pisteet: {Points}");
         }
 
@@ -37,6 +38,15 @@ namespace Pakettiporina
         {
             Points += amount;
             Debug.Log($"[GameManager] +{amount} pistetta. Yhteensa: {Points}");
+        }
+
+        // Hallin "Aja keikka" tallentaa valinnan tanne ennen scenen vaihtoa.
+        public void SetSelection(PackageData pkg, CarStats stats)
+        {
+            SelectedPackage = pkg;
+            SelectedStats = stats;
+            string n = pkg != null ? pkg.displayName : "ei pakettia";
+            Debug.Log($"[GameManager] Valinta tallennettu: paketti={n}, auto=({stats})");
         }
     }
 }

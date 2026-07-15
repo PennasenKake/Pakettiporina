@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48c7cf538139d064c9dbd55d249224c1, type: 3}
   m_Name: Kivipaasi
   m_EditorClassIdentifier: 
-  displayName: Uusi paketti
-  tags: []
-  requiredPart: {fileID: 0}
-  mass: 5
-  rewardPoints: 30
+  displayName: Kivipaasi
+  tags:
+  - Painava
+  requiredPart: {fileID: 11400000, guid: d3fbf08d2ac75c3449f38e80922e9eb2, type: 2}
+  mass: 25
+  rewardPoints: 45
   meltTime: 0

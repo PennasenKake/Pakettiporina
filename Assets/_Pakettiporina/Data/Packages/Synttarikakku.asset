@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48c7cf538139d064c9dbd55d249224c1, type: 3}
   m_Name: Synttarikakku
   m_EditorClassIdentifier: 
-  displayName: Uusi paketti
-  tags: []
-  requiredPart: {fileID: 0}
-  mass: 5
-  rewardPoints: 30
+  displayName: Synttarikakku
+  tags:
+  - Sarkyva
+  - Iso
+  requiredPart: {fileID: 11400000, guid: 5ee238d698c4eea40848caf7f4ff7d9c, type: 2}
+  mass: 10
+  rewardPoints: 45
   meltTime: 0

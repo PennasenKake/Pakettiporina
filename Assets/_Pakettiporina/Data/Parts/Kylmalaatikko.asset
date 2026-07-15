@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24163804efebd164c81007e8c412834b, type: 3}
   m_Name: Kylmalaatikko
   m_EditorClassIdentifier: 
-  displayName: Uusi osa
-  category: 0
+  displayName: Kylmalaatikko
+  category: 4
   voima: 0
   pito: 0
   keveys: 0
-  kestavyys: 0
-  kylmyys: 0
+  kestavyys: -5
+  kylmyys: 80
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}
   unlockPoints: 0

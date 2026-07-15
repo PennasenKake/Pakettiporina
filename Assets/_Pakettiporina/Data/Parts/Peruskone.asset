@@ -9,14 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48c7cf538139d064c9dbd55d249224c1, type: 3}
-  m_Name: Jattijaatelo
+  m_Script: {fileID: 11500000, guid: 24163804efebd164c81007e8c412834b, type: 3}
+  m_Name: Peruskone
   m_EditorClassIdentifier: 
-  displayName: Jattijaatelo
-  tags:
-  - kylma
-  - painava
-  requiredPart: {fileID: 11400000, guid: 3801cdbc943e5b84185c844e87e80d48, type: 2}
-  mass: 20
-  rewardPoints: 50
-  meltTime: 40
+  displayName: Peruskone
+  category: 2
+  voima: 12
+  pito: 0
+  keveys: 0
+  kestavyys: 0
+  kylmyys: 0
+  cosmeticOnly: 0
+  color: {r: 1, g: 1, b: 1, a: 1}
+  unlockPoints: 0

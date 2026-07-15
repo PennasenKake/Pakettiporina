@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: f684656bfdec40449bf71b80f389eaec, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0.8383672, g: 1.1499975, b: 1.4084977, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -886,6 +886,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 195489686}
   m_CullTransparentMesh: 1
+--- !u!1 &216107552
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 216107554}
+  - component: {fileID: 216107553}
+  m_Layer: 0
+  m_Name: CarBuilder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &216107553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216107552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8172b6f04e652d439051fb7a8177bac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseStats:
+    voima: 40
+    pito: 45
+    keveys: 50
+    kestavyys: 45
+    kylmyys: 0
+  testParts:
+  - {fileID: 11400000, guid: 3801cdbc943e5b84185c844e87e80d48, type: 2}
+  - {fileID: 11400000, guid: 20dc89c0201dd1645b9368dfefa3500d, type: 2}
+  - {fileID: 11400000, guid: d3fbf08d2ac75c3449f38e80922e9eb2, type: 2}
+  testPackage: {fileID: 11400000, guid: eb43ac19fdaf71f4d85a0f221a1c6208, type: 2}
+--- !u!4 &216107554
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216107552}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &231418299
 GameObject:
   m_ObjectHideFlags: 0
@@ -4279,3 +4334,4 @@ SceneRoots:
   - {fileID: 2065211113}
   - {fileID: 1348055122}
   - {fileID: 68650740}
+  - {fileID: 216107554}
