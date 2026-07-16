@@ -413,7 +413,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 110952877}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1220718961}
+        m_TargetAssemblyTypeName: Pakettiporina.GarageScreen, Pakettiporina
+        m_MethodName: SetCategory
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &110952877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1171,14 +1183,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1220718956}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 1
+      - m_Target: {fileID: 1220718961}
+        m_TargetAssemblyTypeName: Pakettiporina.GarageScreen, Pakettiporina
+        m_MethodName: SetCategory
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -1496,7 +1508,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 565563647}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1220718961}
+        m_TargetAssemblyTypeName: Pakettiporina.GarageScreen, Pakettiporina
+        m_MethodName: SetCategory
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &565563647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2285,7 +2309,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1122001741}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1220718961}
+        m_TargetAssemblyTypeName: Pakettiporina.GarageScreen, Pakettiporina
+        m_MethodName: SetCategory
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 4
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1122001741
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2722,7 +2758,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3801cdbc943e5b84185c844e87e80d48, type: 2}
   - {fileID: 11400000, guid: e6131adeb6a69334ea7e1c24b3e18047, type: 2}
   - {fileID: 11400000, guid: 20dc89c0201dd1645b9368dfefa3500d, type: 2}
-  - {fileID: 11400000, guid: 5ee238d698c4eea40848caf7f4ff7d9c, type: 2}
+  - {fileID: 11400000, guid: 3fc9195466667c744b56096fc875e7ae, type: 2}
   - {fileID: 11400000, guid: 6c3b11a1ea4bf444c98d793c37b7024b, type: 2}
   - {fileID: 11400000, guid: ca42431617318fa438c4ae5434e373ca, type: 2}
   - {fileID: 11400000, guid: 39987ba38728f6a4eb0c2ff326f524cc, type: 2}
@@ -4147,9 +4183,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 420615890}
   - {fileID: 110952875}
   - {fileID: 565563645}
+  - {fileID: 420615890}
   - {fileID: 2003029648}
   - {fileID: 1122001739}
   - {fileID: 2020242952}
@@ -4354,7 +4390,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 300}
+  m_AnchoredPosition: {x: 0, y: 600}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1922166037
@@ -4536,7 +4572,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2003029650}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1220718961}
+        m_TargetAssemblyTypeName: Pakettiporina.GarageScreen, Pakettiporina
+        m_MethodName: SetCategory
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 3
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2003029650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4657,7 +4705,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2020242954}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1220718961}
+        m_TargetAssemblyTypeName: Pakettiporina.GarageScreen, Pakettiporina
+        m_MethodName: SetCategory
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 5
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2020242954
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4829,7 +4889,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 300, y: 60}
+  m_AnchoredPosition: {x: 300, y: 80}
   m_SizeDelta: {x: 300, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2114789364
@@ -4924,10 +4984,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 44.75
+  m_fontSize: 36
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
