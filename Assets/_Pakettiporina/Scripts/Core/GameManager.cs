@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Pakettiporina
 {
-    // Pelin keskussingleton: pitaa pisteet, pelin vaiheen seka valitun paketin ja auton.
+    // Pelin keskussingleton: pisteet, vaihe, valittu paketti, valitut osat ja lasketut mittarit.
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
@@ -11,9 +12,11 @@ namespace Pakettiporina
         public Phase CurrentPhase { get; private set; } = Phase.Menu;
         public int Points { get; private set; }
 
-        // Hallissa tehty valinta, jonka keikka lukee.
+        // Hallin valinta, joka sailyy scenejen yli (DontDestroyOnLoad).
         public PackageData SelectedPackage { get; private set; }
         public CarStats SelectedStats { get; private set; }
+        // Valitut osat: nailla halli rakentaa saman auton uudelleen.
+        public List<PartData> SelectedParts { get; private set; } = new List<PartData>();
 
         void Awake()
         {
@@ -40,13 +43,14 @@ namespace Pakettiporina
             Debug.Log($"[GameManager] +{amount} pistetta. Yhteensa: {Points}");
         }
 
-        // Hallin "Aja keikka" tallentaa valinnan tanne ennen scenen vaihtoa.
-        public void SetSelection(PackageData pkg, CarStats stats)
+        // Hallin "Aja keikka" tallentaa taalle: paketti, mittarit JA valitut osat.
+        public void SetSelection(PackageData pkg, CarStats stats, List<PartData> parts)
         {
             SelectedPackage = pkg;
             SelectedStats = stats;
+            SelectedParts = new List<PartData>(parts); // kopio talteen
             string n = pkg != null ? pkg.displayName : "ei pakettia";
-            Debug.Log($"[GameManager] Valinta tallennettu: paketti={n}, auto=({stats})");
+            Debug.Log($"[GameManager] Valinta tallennettu: paketti={n}, osia={SelectedParts.Count}, auto=({stats})");
         }
     }
 }
