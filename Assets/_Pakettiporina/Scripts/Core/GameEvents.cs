@@ -1,17 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using System;
 using UnityEngine;
 
 namespace Pakettiporina
 {
-    // Kevyt tapahtumavayla: pelin osat ilmoittavat tapahtumista toisilleen
-    // tuntematta toisiaan suoraan. Tilaa OnEnablessa, peru OnDisablessa.
+    // Kevyt tapahtumavayla: pelin osat ilmoittavat tapahtumista toisilleen.
     public static class GameEvents
     {
         public static event Action OnRaceStart;
         public static event Action OnFinish;
-        public static event Action<int> OnStarCollected; // parametri = tahtien kokonaismaara
+        public static event Action<int> OnStarCollected;
+        public static event Action<int> OnCountdown;   // lahtolaskenta: 3, 2, 1
+        public static event Action OnGo;               // "AJA!"
 
         public static void RaceStart()
         {
@@ -29,6 +28,17 @@ namespace Pakettiporina
         {
             Debug.Log($"[Events] StarCollected ({total})");
             OnStarCollected?.Invoke(total);
+        }
+
+        public static void Countdown(int n)
+        {
+            OnCountdown?.Invoke(n);
+        }
+
+        public static void Go()
+        {
+            Debug.Log("[Events] Go");
+            OnGo?.Invoke();
         }
     }
 }

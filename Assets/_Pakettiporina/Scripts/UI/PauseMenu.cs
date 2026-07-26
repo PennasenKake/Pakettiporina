@@ -1,64 +1,92 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 namespace Pakettiporina
 {
-    // Tauko: pysayttaa pelin ja nayttaa taukopaneelin.
-    // Esc (kone) tai Android-takaisinnappi avaa/sulkee tauon.
+    // Tauko: pysayttaa pelin, piilottaa ajonapit, vaihtaa napin kuvan pause<->play.
+    // Ei salli taukoa lahtolaskennan aikana.
     public class PauseMenu : MonoBehaviour
     {
         [Header("Viittaukset")]
-        [Tooltip("Taukopaneeli (piilota oletuksena)")]
         public GameObject pausePanel;
+        [Tooltip("Ajonappien vanhempiobjekti (Controls) — piilotetaan tauolla")]
+        public GameObject controls;
+
+        [Header("Tauko/jatka-napin kuva (valinnainen)")]
+        public Image toggleIcon;
+        public Sprite pauseSprite;   // nakyy kun peli kay
+        public Sprite playSprite;    // nakyy kun tauolla
 
         [Header("Scenet")]
         public string mainMenuScene = "MainMenu";
 
-        bool paused;
+        public bool IsPaused { get; private set; }
 
         void Start()
         {
+            IsPaused = false;
+            Time.timeScale = 1f;
             if (pausePanel != null) pausePanel.SetActive(false);
-            Time.timeScale = 1f; // varmista normaali nopeus scenen alkaessa
+            UpdateIcon();
         }
 
         void Update()
         {
-            // Esc kannella, Android-takaisinnappi puhelimessa -> avaa/sulkee tauon.
-            if (Input.GetKeyDown(KeyCode.Escape)) TogglePause();
+            if (Input.GetKeyDown(KeyCode.Escape))
+                Toggle();
         }
 
-        public void TogglePause()
+        public void Toggle()
         {
-            if (paused) Resume(); else Pause();
+            if (IsPaused) Resume();
+            else Pause();
         }
 
-        // "Tauko"-napin OnClick.
         public void Pause()
         {
-            paused = true;
-            Time.timeScale = 0f; // pysayttaa fysiikan ja liikkeen (Update jatkaa, UI toimii)
+            var race = RaceManager.Instance;
+            if (race != null && race.IsCountingDown)
+            {
+                Debug.Log("[Pause] Ei taukoa lahtolaskennan aikana.");
+                return;
+            }
+            if (race != null && !race.IsRacing)
+            {
+                Debug.Log("[Pause] Ei taukoa (ei ajossa).");
+                return;
+            }
+
+            IsPaused = true;
+            Time.timeScale = 0f;
             if (pausePanel != null) pausePanel.SetActive(true);
-            Debug.Log("[Pause] Peli tauolla.");
+            if (controls != null) controls.SetActive(false);   // ajonapit piiloon
+            UpdateIcon();
+            Debug.Log("[Pause] Tauko — ajonapit piilotettu.");
         }
 
-        // "Jatka"-napin OnClick.
         public void Resume()
         {
-            paused = false;
+            IsPaused = false;
             Time.timeScale = 1f;
             if (pausePanel != null) pausePanel.SetActive(false);
-            Debug.Log("[Pause] Peli jatkuu.");
+            if (controls != null) controls.SetActive(true);    // ajonapit takaisin
+            UpdateIcon();
+            Debug.Log("[Pause] Jatketaan — ajonapit takaisin.");
         }
 
-        // "Paavalikko"-napin OnClick (taukopaneelissa).
         public void GoToMainMenu()
         {
-            Time.timeScale = 1f; // TARKEAA: nollaa ennen scenen vaihtoa
-            Debug.Log("[Pause] Palataan paavalikkoon: " + mainMenuScene);
+            Time.timeScale = 1f;
+            Debug.Log("[Pause] Paavalikkoon: " + mainMenuScene);
             SceneManager.LoadScene(mainMenuScene);
+        }
+
+        void UpdateIcon()
+        {
+            if (toggleIcon == null) return;
+            if (IsPaused && playSprite != null) toggleIcon.sprite = playSprite;
+            else if (!IsPaused && pauseSprite != null) toggleIcon.sprite = pauseSprite;
         }
     }
 }

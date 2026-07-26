@@ -1,145 +1,124 @@
-/*
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Pakettiporina
 {
-    // Lukee ohjauksen kahdesta lahteesta yhtaaikaa:
-    //  - Nappaimisto (WSAD/nuolet) -> koneella testaus
-    //  - Kosketusnapit (kaasu / vasen / oikea) -> mobiilissa (TouchButton asettaa)
-    // Autokontrolleri lukee Throttle- ja Steer-arvot.
+    // OHJAUS:
+    //  - Auto ajaa ITSESTAAN eteenpain (nopeus tulee auton ominaisuuksista).
+    //  - Keskinappi = JARRU. Pidettaessa auto hidastaa ja alkaa pakittaa.
+    //  - Ohjaus: napit, puhelimen kallistus, tai molemmat (valittavissa).
+    //  - Kallistus KALIBROIDAAN lahtolaskennan lopussa: se asento, jossa lasta
+    //    pitaa puhelinta AJA!-hetkella, on "suoraan".
+    //  - Nappaimisto (A/D ohjaa, S jarruttaa) toimii aina editoritestausta varten.
     public class CarInput : MonoBehaviour
     {
-        [Header("Kallistus (valinnainen lisa)")]
-        public bool useTilt = false;
-        public float tiltSensitivity = 2.5f;
-        public float tiltDeadzone = 0.05f;
+        public enum ControlMode { Napit, Kallistus, Molemmat }
 
-        [Header("Automaattikaasu (valinnainen)")]
-        [Tooltip("Kaasu aina pohjassa. Ei tarvita jos kaytat kaasunappia.")]
-        public bool autoThrottle = false;
+        [Header("Ohjaustapa")]
+        public ControlMode controlMode = ControlMode.Molemmat;
 
-        // Kosketusnappien tila — TouchButton asettaa nama.
-        [HideInInspector] public bool touchGas;
-        [HideInInspector] public bool touchBrake;
-        [HideInInspector] public bool touchLeft;
-        [HideInInspector] public bool touchRight;
-
-        public float Throttle { get; private set; } // -1..1
-        public float Steer { get; private set; }     // -1..1
-
-        void Awake()
-        {
-            Debug.Log($"[CarInput] Valmis. Nappaimisto: WSAD/nuolet + kosketusnapit (kaasu/vasen/oikea). Tilt={useTilt}, AutoThrottle={autoThrottle}");
-        }
-
-        void Update()
-        {
-            // 1) Nappaimisto (editorissa)
-            float kbThrottle = Input.GetAxis("Vertical");
-            float kbSteer = Input.GetAxis("Horizontal");
-
-            // 2) Kosketusnapit (mobiilissa)
-            float touchThrottle = (touchGas ? 1f : 0f) - (touchBrake ? 1f : 0f);
-            float touchSteer = (touchRight ? 1f : 0f) - (touchLeft ? 1f : 0f);
-
-            // 3) Valinnainen kallistus
-            float tiltSteer = 0f;
-            if (useTilt)
-            {
-                float t = Input.acceleration.x * tiltSensitivity;
-                if (Mathf.Abs(t) < tiltDeadzone) t = 0f;
-                tiltSteer = Mathf.Clamp(t, -1f, 1f);
-            }
-
-            // Yhdista lahteet (nappaimisto TAI kosketus toimii)
-            float throttle = autoThrottle ? 1f : (kbThrottle + touchThrottle);
-            Throttle = Mathf.Clamp(throttle, -1f, 1f);
-            Steer = Mathf.Clamp(kbSteer + touchSteer + tiltSteer, -1f, 1f);
-        }
-    }
-}
-*/
-
-using UnityEngine;
-
-namespace Pakettiporina
-{
-    public class CarInput : MonoBehaviour
-    {
-        [HideInInspector] public bool touchBrake;
-
-        [Header("Ohjaustavat")]
-        public bool useKeyboard = true;           // Editorissa
-        public bool useTouchButtons = true;       // Mobiili
-        public bool useTilt = false;              // Kallistus (valinnainen)
-
-        [Header("Smoothing (tärkeä mobiilissa!)")]
-        public float throttleSmoothTime = 0.15f;  // Kaasun pehmennys
-        public float steerSmoothTime = 0.12f;     // Kääntymisen pehmennys
+        [Header("Automaattiajo")]
+        [Tooltip("Auto liikkuu itsestaan eteenpain")]
+        public bool autoDrive = true;
 
         [Header("Kallistus")]
-        public float tiltSensitivity = 2.8f;
-        public float tiltDeadzone = 0.08f;
+        [Tooltip("Kuinka paljon puhelinta pitaa kallistaa taysille ohjaukselle (pienempi = herkempi)")]
+        [Range(0.1f, 0.8f)] public float maxTiltAngle = 0.35f;
+        [Tooltip("Pieni kuollut alue, ettei auto reagoi tarinaan")]
+        [Range(0f, 0.15f)] public float tiltDeadzone = 0.04f;
+        [Tooltip("Pehmennys: isompi = nopeampi reagointi")]
+        public float tiltSmoothing = 10f;
 
-        // TouchButtonit asettavat nämä
+        // Kosketusnapit — TouchButton asettaa nama.
+        // HUOM: touchGas toimii JARRUNA (vanha nappikytkenta kelpaa sellaisenaan).
         [HideInInspector] public bool touchGas;
+        [HideInInspector] public bool touchBrake;
         [HideInInspector] public bool touchLeft;
         [HideInInspector] public bool touchRight;
 
-        public float Throttle { get; private set; }
-        public float Steer { get; private set; }
+        public float Throttle { get; private set; }  // -1 (pakki) .. 1 (eteen)
+        public float Steer { get; private set; }     // -1 .. 1
+        public bool IsBraking { get; private set; }
+        public bool TiltAvailable { get; private set; }
 
-        private float currentThrottleVelocity;
-        private float currentSteerVelocity;
-
-        public void SetBrake(bool active) => touchBrake = active;
+        // Kalibroitu "suoraan"-asento. Oletus: puhelin kadessa n. 45 asteen kulmassa.
+        Vector3 tiltNeutral = new Vector3(0f, -0.7f, -0.7f);
+        float smoothedTilt;
 
         void Awake()
         {
-            Debug.Log("[CarInput] Käynnistetty - Mobiiliystävällinen versio");
+            TiltAvailable = SystemInfo.supportsAccelerometer;
+            Debug.Log($"[CarInput] Valmis. Tila={controlMode}, automaattiajo={autoDrive}, kiihtyvyysanturi={TiltAvailable}");
+        }
+
+        void OnEnable() { GameEvents.OnGo += CalibrateTilt; }
+        void OnDisable() { GameEvents.OnGo -= CalibrateTilt; }
+
+        void Start() { CalibrateTilt(); }
+
+        // Ottaa nykyisen puhelimen asennon "suoraksi". Kutsutaan AJA!-hetkella.
+        public void CalibrateTilt()
+        {
+            if (!TiltAvailable) return;
+            Vector3 a = Input.acceleration;
+            if (a.sqrMagnitude > 0.01f)
+            {
+                tiltNeutral = a;
+                smoothedTilt = 0f;
+                Debug.Log($"[CarInput] Kallistus kalibroitu (neutraali x={a.x:F2}).");
+            }
         }
 
         void Update()
         {
-            float targetThrottle = 0f;
-            float targetSteer = 0f;
-
-            // 1. Näppäimistö (editori)
-            if (useKeyboard)
+            // Lahtolaskennan aikana ei ohjata eika liikuta.
+            bool racing = RaceManager.Instance == null || RaceManager.Instance.IsRacing;
+            if (!racing)
             {
-                targetThrottle += Input.GetAxis("Vertical");
-                targetSteer += Input.GetAxis("Horizontal");
+                Throttle = 0f; Steer = 0f; IsBraking = false;
+                smoothedTilt = 0f;
+                return;
             }
 
-            // 2. Kosketusnapit
-            if (useTouchButtons)
-            {
-                if (touchGas) targetThrottle = 1f;
-                if (touchLeft) targetSteer -= 1f;
-                if (touchRight) targetSteer += 1f;
-            }
+            float kbV = Input.GetAxis("Vertical");
+            float kbH = Input.GetAxis("Horizontal");
 
-            // 3. Kallistus (mobiili)
-            if (useTilt)
-            {
-                float tilt = Input.acceleration.x * tiltSensitivity;
-                if (Mathf.Abs(tilt) < tiltDeadzone) tilt = 0f;
-                targetSteer += Mathf.Clamp(tilt, -1f, 1f);
-            }
+            // --- Jarru ---
+            IsBraking = touchGas || touchBrake || kbV < -0.1f;
+            float forward = autoDrive ? 1f : Mathf.Max(0f, kbV);
+            Throttle = IsBraking ? -1f : forward;
 
-            // Smoothaus (tärkein mobiiliparannus!)
-            Throttle = Mathf.SmoothDamp(Throttle, targetThrottle, ref currentThrottleVelocity, throttleSmoothTime);
-            Steer = Mathf.SmoothDamp(Steer, targetSteer, ref currentSteerVelocity, steerSmoothTime);
+            // --- Ohjaus ---
+            float steer = kbH;   // nappaimisto aina mukana (editoritestaus)
 
-            Throttle = Mathf.Clamp(Throttle, -1f, 1f);
-            Steer = Mathf.Clamp(Steer, -1f, 1f);
+            if (controlMode == ControlMode.Napit || controlMode == ControlMode.Molemmat)
+                steer += (touchRight ? 1f : 0f) - (touchLeft ? 1f : 0f);
+
+            if ((controlMode == ControlMode.Kallistus || controlMode == ControlMode.Molemmat) && TiltAvailable)
+                steer += ReadTilt();
+
+            Steer = Mathf.Clamp(steer, -1f, 1f);
         }
 
-        // TouchButtonit kutsuvat näitä
-        public void SetGas(bool active) => touchGas = active;
-        public void SetLeft(bool active) => touchLeft = active;
-        public void SetRight(bool active) => touchRight = active;
+        float ReadTilt()
+        {
+            // Ero kalibroituun neutraaliin — nain puhelinta saa pitaa missa asennossa tahansa.
+            float raw = Input.acceleration.x - tiltNeutral.x;
+
+            // Kuollut alue, ja sen jalkeen pehmea aloitus (ei hyppaysta)
+            if (Mathf.Abs(raw) < tiltDeadzone) raw = 0f;
+            else raw -= Mathf.Sign(raw) * tiltDeadzone;
+
+            float target = Mathf.Clamp(raw / Mathf.Max(0.05f, maxTiltAngle), -1f, 1f);
+            smoothedTilt = Mathf.Lerp(smoothedTilt, target, Time.deltaTime * tiltSmoothing);
+            return smoothedTilt;
+        }
+
+        // Kytke halutessasi asetusnappeihin (0=Napit, 1=Kallistus, 2=Molemmat)
+        public void SetControlMode(int mode)
+        {
+            controlMode = (ControlMode)Mathf.Clamp(mode, 0, 2);
+            CalibrateTilt();
+            Debug.Log("[CarInput] Ohjaustapa: " + controlMode);
+        }
     }
 }
