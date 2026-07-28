@@ -1499,7 +1499,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 322638046}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 135}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1524,7 +1524,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &332671947
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2522,12 +2522,6 @@ RectTransform:
   m_AnchoredPosition: {x: 400, y: 781.3844}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 1, y: 1}
---- !u!4 &670275309 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7342424402321827726, guid: 870f7e8d3d9f0274581593999ee8a447,
-    type: 3}
-  m_PrefabInstance: {fileID: 399574636}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &721643879
 GameObject:
   m_ObjectHideFlags: 0
@@ -2596,7 +2590,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   car: {fileID: 1044871571}
-  startPoint: {fileID: 670275309}
+  startPoint: {fileID: 1869718515}
   fallY: -5
   countdownSeconds: 3
   pointsPerStar: 10
@@ -3614,17 +3608,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 399a5d525e47d614f80c204b02086cc3,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 399a5d525e47d614f80c204b02086cc3,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 399a5d525e47d614f80c204b02086cc3,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -90
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 399a5d525e47d614f80c204b02086cc3,
         type: 3}
@@ -6075,6 +6069,37 @@ MonoBehaviour:
   spinSpeed: 90
   bobHeight: 0.25
   bobSpeed: 2
+--- !u!1 &1869718514
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1869718515}
+  m_Layer: 0
+  m_Name: StartPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1869718515
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1869718514}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -135}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1950370965
 GameObject:
   m_ObjectHideFlags: 0
@@ -6876,3 +6901,4 @@ SceneRoots:
   - {fileID: 280080593}
   - {fileID: 109837419}
   - {fileID: 1103955627}
+  - {fileID: 1869718515}
