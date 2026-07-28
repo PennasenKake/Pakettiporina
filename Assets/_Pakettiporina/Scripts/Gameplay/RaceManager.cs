@@ -3,39 +3,41 @@ using UnityEngine;
 
 namespace Pakettiporina
 {
-    // Orkesteroi yhden keikan: LAHTOLASKENTA -> ajossa -> maali.
+    // Orkesteroi yhden keikan: LAHTOLASKENTA -> ajossa -> maali -> palkkio.
     public class RaceManager : MonoBehaviour
     {
         public static RaceManager Instance { get; private set; }
 
         [Header("Viittaukset")]
-        [Tooltip("Auton Rigidbody")] public Rigidbody car;
-        [Tooltip("Tyhja objekti, johon auto asetetaan lahdossa")] public Transform startPoint;
+        public Rigidbody car;
+        public Transform startPoint;
 
         [Header("Asetukset")]
-        [Tooltip("Jos auto putoaa taman Y-korkeuden alle, se palautetaan lahtoon")]
         public float fallY = -5f;
-        [Tooltip("Lahtolaskennan pituus sekunteina (3 = 3,2,1 AJA!)")]
         public int countdownSeconds = 3;
+
+        [Header("Palkkio")]
+        public int pointsPerStar = 10;
 
         public bool IsRacing { get; private set; }
         public bool IsCountingDown { get; private set; }
         public int Stars { get; private set; }
         public float Elapsed { get; private set; }
 
+        public int LastReward { get; private set; }
+        public int LastStars { get; private set; }
+        public bool LastFit { get; private set; }
+
         void Awake() { Instance = this; }
 
-        void OnEnable() { GameEvents.OnFinish += HandleFinish; }
-        void OnDisable() { GameEvents.OnFinish -= HandleFinish; }
-
+        // HUOM: EI enaa kuuntele GameEvents.OnFinish — FinishTrigger kutsuu FinishRace() suoraan,
+        // jotta palkkio lasketaan ENNEN kuin HUD paivittaa maali-paneelin.
         void Start() { StartRace(); }
 
         public void StartRace()
         {
             StopAllCoroutines();
-            Stars = 0;
-            Elapsed = 0f;
-            IsRacing = false;
+            Stars = 0; Elapsed = 0f; IsRacing = false;
             ResetCar();
             StartCoroutine(CountdownRoutine());
         }
@@ -43,16 +45,14 @@ namespace Pakettiporina
         IEnumerator CountdownRoutine()
         {
             IsCountingDown = true;
-            FreezeCar(true);                 // auto pysyy paikallaan
-            GameEvents.RaceStart();          // HUD nollaa mittarit ja piilottaa paneelit
-
+            FreezeCar(true);
+            GameEvents.RaceStart();
             for (int i = countdownSeconds; i > 0; i--)
             {
                 Debug.Log($"[Race] Lahtolaskenta: {i}");
                 GameEvents.Countdown(i);
                 yield return new WaitForSeconds(1f);
             }
-
             Debug.Log("[Race] AJA!");
             GameEvents.Go();
             FreezeCar(false);
@@ -65,7 +65,6 @@ namespace Pakettiporina
         {
             if (!IsRacing) return;
             Elapsed += Time.deltaTime;
-
             if (car != null && car.position.y < fallY)
             {
                 Debug.Log("[Race] Auto putosi kentalta — palautetaan lahtoon.");
@@ -81,19 +80,36 @@ namespace Pakettiporina
             GameEvents.StarCollected(Stars);
         }
 
-        void HandleFinish()
+        // Kutsutaan FinishTriggerista, kun auto osuu maaliin.
+        public void FinishRace()
         {
             if (!IsRacing) return;
             IsRacing = false;
-            if (GameManager.Instance != null) GameManager.Instance.SetPhase(GameManager.Phase.Finished);
-            Debug.Log($"[Race] MAALI! Aika {Elapsed:F1} s, tahdet {Stars}.");
+
+            // 1) laske palkkio ENSIN
+            var gm = GameManager.Instance;
+            var pkg = gm != null ? gm.SelectedPackage : null;
+
+            int packageReward = pkg != null ? pkg.rewardPoints : 0;
+            int starReward = Stars * pointsPerStar;
+
+            bool fits = true;
+            if (pkg != null && pkg.requiredPart != null && gm != null && gm.SelectedParts != null)
+                fits = gm.SelectedParts.Contains(pkg.requiredPart);
+            if (!fits) packageReward = packageReward / 2;
+
+            int total = packageReward + starReward;
+            LastReward = total; LastStars = Stars; LastFit = fits;
+
+            if (gm != null) { gm.AddPoints(total); gm.SetPhase(GameManager.Phase.Finished); }
+
+            Debug.Log($"[Race] MAALI! Aika {Elapsed:F1} s | tahdet {Stars} (+{starReward}) | paketti +{packageReward} (sopii={fits}) | yhteensa +{total}");
+
+            // 2) VASTA nyt ilmoita HUDille (LastReward on jo oikein)
+            GameEvents.Finish();
         }
 
-        void FreezeCar(bool freeze)
-        {
-            if (car == null) return;
-            car.isKinematic = freeze;
-        }
+        void FreezeCar(bool freeze) { if (car != null) car.isKinematic = freeze; }
 
         void ResetCar()
         {
@@ -109,7 +125,6 @@ namespace Pakettiporina
             car.rotation = startPoint.rotation;
         }
 
-        // Kytke tama "Uudestaan"-nappiin.
         public void Restart() { StartRace(); }
     }
 }

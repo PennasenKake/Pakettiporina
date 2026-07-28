@@ -4,19 +4,18 @@ using UnityEngine.SceneManagement;
 
 namespace Pakettiporina
 {
-    // Tauko: pysayttaa pelin, piilottaa ajonapit, vaihtaa napin kuvan pause<->play.
-    // Ei salli taukoa lahtolaskennan aikana.
+    // Tauko: pysayttaa ajan, nayttaa tauko-paneelin ja PIILOTTAA ohjausnapit.
     public class PauseMenu : MonoBehaviour
     {
         [Header("Viittaukset")]
         public GameObject pausePanel;
-        [Tooltip("Ajonappien vanhempiobjekti (Controls) — piilotetaan tauolla")]
+        [Tooltip("Ohjausnappien vanhempi — piilotetaan tauon ajaksi")]
         public GameObject controls;
 
         [Header("Tauko/jatka-napin kuva (valinnainen)")]
         public Image toggleIcon;
-        public Sprite pauseSprite;   // nakyy kun peli kay
-        public Sprite playSprite;    // nakyy kun tauolla
+        public Sprite pauseSprite;
+        public Sprite playSprite;
 
         [Header("Scenet")]
         public string mainMenuScene = "MainMenu";
@@ -25,18 +24,18 @@ namespace Pakettiporina
 
         void Start()
         {
-            IsPaused = false;
-            Time.timeScale = 1f;
             if (pausePanel != null) pausePanel.SetActive(false);
-            UpdateIcon();
+            SetIcon(false);
         }
 
         void Update()
         {
+            // Androidin takaisin-nappi = tauko/jatka
             if (Input.GetKeyDown(KeyCode.Escape))
                 Toggle();
         }
 
+        // Kytke tauko-nappiin.
         public void Toggle()
         {
             if (IsPaused) Resume();
@@ -45,23 +44,11 @@ namespace Pakettiporina
 
         public void Pause()
         {
-            var race = RaceManager.Instance;
-            if (race != null && race.IsCountingDown)
-            {
-                Debug.Log("[Pause] Ei taukoa lahtolaskennan aikana.");
-                return;
-            }
-            if (race != null && !race.IsRacing)
-            {
-                Debug.Log("[Pause] Ei taukoa (ei ajossa).");
-                return;
-            }
-
             IsPaused = true;
             Time.timeScale = 0f;
             if (pausePanel != null) pausePanel.SetActive(true);
-            if (controls != null) controls.SetActive(false);   // ajonapit piiloon
-            UpdateIcon();
+            if (controls != null) controls.SetActive(false);   // napit piiloon
+            SetIcon(true);
             Debug.Log("[Pause] Tauko — ajonapit piilotettu.");
         }
 
@@ -70,9 +57,11 @@ namespace Pakettiporina
             IsPaused = false;
             Time.timeScale = 1f;
             if (pausePanel != null) pausePanel.SetActive(false);
-            if (controls != null) controls.SetActive(true);    // ajonapit takaisin
-            UpdateIcon();
-            Debug.Log("[Pause] Jatketaan — ajonapit takaisin.");
+            // Napit takaisin vain jos keikka on kaynnissa (ei maalin jalkeen)
+            bool racing = RaceManager.Instance != null && RaceManager.Instance.IsRacing;
+            if (controls != null) controls.SetActive(racing);
+            SetIcon(false);
+            Debug.Log("[Pause] Jatketaan.");
         }
 
         public void GoToMainMenu()
@@ -82,11 +71,11 @@ namespace Pakettiporina
             SceneManager.LoadScene(mainMenuScene);
         }
 
-        void UpdateIcon()
+        void SetIcon(bool paused)
         {
             if (toggleIcon == null) return;
-            if (IsPaused && playSprite != null) toggleIcon.sprite = playSprite;
-            else if (!IsPaused && pauseSprite != null) toggleIcon.sprite = pauseSprite;
+            if (paused && playSprite != null) toggleIcon.sprite = playSprite;
+            else if (!paused && pauseSprite != null) toggleIcon.sprite = pauseSprite;
         }
     }
 }
