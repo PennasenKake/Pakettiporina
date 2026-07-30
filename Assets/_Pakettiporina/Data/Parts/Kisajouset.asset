@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Kisajouset
   m_EditorClassIdentifier: 
   displayName: Kisajouset
-  category: 0
+  category: 3
   voima: 0
-  pito: 10
-  keveys: 5
-  kestavyys: 0
+  pito: 22
+  keveys: 6
+  kestavyys: -6
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

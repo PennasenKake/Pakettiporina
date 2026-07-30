@@ -15,9 +15,9 @@ MonoBehaviour:
   displayName: Kovat_jouset
   category: 3
   voima: 0
-  pito: -3
-  keveys: 0
-  kestavyys: 12
+  pito: -4
+  keveys: 6
+  kestavyys: 16
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

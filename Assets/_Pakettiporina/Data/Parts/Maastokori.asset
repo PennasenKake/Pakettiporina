@@ -15,9 +15,9 @@ MonoBehaviour:
   displayName: Maastokori
   category: 0
   voima: 0
-  pito: 0
-  keveys: -4
-  kestavyys: 12
+  pito: 8
+  keveys: -10
+  kestavyys: 20
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

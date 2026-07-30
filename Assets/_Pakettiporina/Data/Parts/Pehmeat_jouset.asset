@@ -15,9 +15,9 @@ MonoBehaviour:
   displayName: "Pehme\xE4t jouset"
   category: 3
   voima: 0
-  pito: 15
+  pito: 18
   keveys: 0
-  kestavyys: 5
+  kestavyys: 4
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

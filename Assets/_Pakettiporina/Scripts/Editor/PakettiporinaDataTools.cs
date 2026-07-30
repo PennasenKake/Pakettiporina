@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +12,7 @@ namespace Pakettiporina.EditorTools
     public static class PakettiporinaDataTools
     {
         const string PARTS_DIR = "Assets/_Pakettiporina/Data/Parts";
-        const string PKG_DIR   = "Assets/_Pakettiporina/Data/Packages";
+        const string PKG_DIR = "Assets/_Pakettiporina/Data/Packages";
 
         static List<PartData> LoadParts()
         {
@@ -75,7 +74,7 @@ namespace Pakettiporina.EditorTools
             {
                 var inCat = parts.Where(p => p.category == c && !p.cosmeticOnly).ToList();
                 if (inCat.Count == 0) continue;
-                s.AppendLine($"   {c}: voima {Range(inCat, p=>p.voima)}  pito {Range(inCat, p=>p.pito)}  keveys {Range(inCat, p=>p.keveys)}  kesto {Range(inCat, p=>p.kestavyys)}  kylmyys {Range(inCat, p=>p.kylmyys)}");
+                s.AppendLine($"   {c}: voima {Range(inCat, p => p.voima)}  pito {Range(inCat, p => p.pito)}  keveys {Range(inCat, p => p.keveys)}  kesto {Range(inCat, p => p.kestavyys)}  kylmyys {Range(inCat, p => p.kylmyys)}");
             }
 
             // kattavuus: onko jokaiselle vaaditulle osalle paketti?
@@ -99,7 +98,7 @@ namespace Pakettiporina.EditorTools
             if (p.kylmyys != 0) parts.Add($"kylmyys {p.kylmyys:+0;-0}");
             return parts.Count == 0 ? "ei vaikutusta" : string.Join(", ", parts);
         }
-        static string Range(List<PartData> list, System.Func<PartData,int> sel)
+        static string Range(List<PartData> list, System.Func<PartData, int> sel)
         {
             var vals = list.Select(sel).ToList();
             return $"{vals.Min()}..{vals.Max()}";
@@ -143,7 +142,7 @@ namespace Pakettiporina.EditorTools
 
                 var pkg = ScriptableObject.CreateInstance<PackageData>();
                 pkg.displayName = r.name;
-                pkg.tags = new List<string> { r.tag };
+                pkg.tags = new string[] { r.tag };
                 pkg.mass = r.mass;
                 pkg.rewardPoints = r.reward;
                 pkg.requiredPart = req;
@@ -151,7 +150,7 @@ namespace Pakettiporina.EditorTools
 
                 AssetDatabase.CreateAsset(pkg, path);
                 created++;
-                log.AppendLine($"   Luotu {r.name}: massa={r.mass}, palkkio={r.reward}, vaatii={(req!=null?req.displayName:"?")}");
+                log.AppendLine($"   Luotu {r.name}: massa={r.mass}, palkkio={r.reward}, vaatii={(req != null ? req.displayName : "?")}");
             }
 
             AssetDatabase.SaveAssets();
@@ -175,4 +174,3 @@ namespace Pakettiporina.EditorTools
         }
     }
 }
-#endif

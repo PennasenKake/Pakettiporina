@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Tavaratila
   m_EditorClassIdentifier: 
   displayName: Tavaratila
-  category: 0
+  category: 4
   voima: 0
   pito: 0
-  keveys: 0
-  kestavyys: 10
+  keveys: -8
+  kestavyys: 18
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

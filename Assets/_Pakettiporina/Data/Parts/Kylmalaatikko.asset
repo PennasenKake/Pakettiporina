@@ -16,8 +16,8 @@ MonoBehaviour:
   category: 4
   voima: 0
   pito: 0
-  keveys: 0
-  kestavyys: -5
+  keveys: -6
+  kestavyys: -4
   kylmyys: 80
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

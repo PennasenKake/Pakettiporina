@@ -13,13 +13,15 @@ namespace Pakettiporina
         public string displayName = "Uusi paketti";
         [Tooltip("Lyhyet kuvailevat tagit, esim. sarkyva, kylma, iso")]
         public string[] tags;
+        [Tooltip("Pieni kuva paketista hallin pakettiselaimeen (Art/UI/Stickers)")]
+        public Sprite icon;
 
         [Header("Vaatimus autolle")]
         [Tooltip("Osa, joka autossa pitaa olla jotta paketti sopii (veda osatiedosto tahan)")]
         public PartData requiredPart;
 
         [Header("Ominaisuudet")]
-        [Tooltip("Paketin massa — lisataan auton painoon, vaikuttaa ajoon")]
+        [Tooltip("Paketin massa ï¿½ lisataan auton painoon, vaikuttaa ajoon")]
         public float mass = 5f;
         [Tooltip("Palkkio pisteina onnistuneesta toimituksesta")]
         public int rewardPoints = 30;

@@ -25,6 +25,8 @@ namespace Pakettiporina
         public float goVisibleSeconds = 0.7f;
 
         [Header("Scenet")]
+        [Tooltip("M4: 'Takaisin halliin' -nappi vie ENSIN tahan pesusceneen, joka jatkaa itse halliin.")]
+        public string washScene = "Wash";
         public string garageScene = "Garage";
         public string mainMenuScene = "MainMenu";
 
@@ -81,7 +83,7 @@ namespace Pakettiporina
         {
             if (finishPanel != null) finishPanel.SetActive(true);
             if (controls != null) controls.SetActive(false);
-            if (messageText != null) messageText.text = race != null && race.LastFit ? "Hienoa, perillä!" : "Perillä!";
+            if (messageText != null) messageText.text = race != null && race.LastFit ? "Hienoa, perillï¿½!" : "Perillï¿½!";
             if (rewardText != null && race != null)
                 rewardText.text = "Palkkio: +" + race.LastReward;
         }
@@ -99,12 +101,13 @@ namespace Pakettiporina
             if (race != null) race.Restart();
         }
 
-        // "Takaisin halliin" — sulkee silmukan, auto sailyy.
+        // "Takaisin halliin" ï¿½ M4: sulkee silmukan PESUN kautta, auto sailyy.
+        // (Nappia ei tarvitse kytkea uudelleen Unityssa ï¿½ sama OnClick, uusi kohde.)
         public void OnGarageButton()
         {
             Time.timeScale = 1f;
-            Debug.Log("[HUD] Takaisin halliin: " + garageScene);
-            SceneManager.LoadScene(garageScene);
+            Debug.Log("[HUD] Maalista pesuun: " + washScene);
+            SceneManager.LoadScene(washScene);
         }
 
         public void OnMainMenuButton()

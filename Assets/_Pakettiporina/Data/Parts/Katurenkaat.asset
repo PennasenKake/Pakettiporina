@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Katurenkaat
   category: 1
   voima: 0
-  pito: 4
-  keveys: 8
+  pito: 6
+  keveys: 14
   kestavyys: 0
   kylmyys: 0
   cosmeticOnly: 0

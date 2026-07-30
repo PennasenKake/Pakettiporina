@@ -19,6 +19,6 @@ MonoBehaviour:
   keveys: 0
   kestavyys: 0
   kylmyys: 0
-  cosmeticOnly: 0
+  cosmeticOnly: 1
   color: {r: 0, g: 0.10449803, b: 0.96981126, a: 1}
   unlockPoints: 0

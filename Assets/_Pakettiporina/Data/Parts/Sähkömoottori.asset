@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: "S\xE4hk\xF6moottori"
   category: 2
-  voima: 18
+  voima: 22
   pito: 0
-  keveys: 4
+  keveys: 8
   kestavyys: 0
   kylmyys: 0
   cosmeticOnly: 0

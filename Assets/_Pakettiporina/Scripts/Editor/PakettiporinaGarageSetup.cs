@@ -112,6 +112,20 @@ namespace Pakettiporina.EditorTools
                 }
             }
 
+            // ---------- 3b. AudioManager ----------
+            var audioMgr = Object.FindObjectOfType<AudioManager>(true);
+            if (audioMgr == null)
+            {
+                Prob("AudioManager puuttuu hallista (aanet eivat soi jos testaat tasta scenesta suoraan).");
+                if (fix)
+                {
+                    var go = new GameObject("AudioManager");
+                    go.AddComponent<AudioManager>();
+                    Undo.RegisterCreatedObjectUndo(go, "AudioManager");
+                    s.AppendLine("  -> luotu (muista raahata aaniklipit sen Inspectoriin)");
+                }
+            }
+
             // ---------- 4. Canvas Scaler ----------
             if (canvas != null)
             {
@@ -166,6 +180,48 @@ namespace Pakettiporina.EditorTools
                 }
             }
             else s.AppendLine("Osa- ja pakettilistat: OK");
+
+            // ---------- 5b. Pakettien kuvat (M4-lisays: PackageData.icon) ----------
+            // Etsii Art/UI/Stickers-kansiosta spritet ja tunnistaa paketin nimen perusteella
+            // (esim. Jattijaatelo.asset <-> pakettiporina_paketti_jattijaatelo.png).
+            const string stickerDir = "Assets/_Pakettiporina/Art/UI/Stickers";
+            var spriteGuids = AssetDatabase.FindAssets("t:Sprite", new[] { stickerDir });
+            var spriteByName = new Dictionary<string, Sprite>();
+            foreach (var g in spriteGuids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(g);
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (sprite == null) continue;
+                string fname = System.IO.Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
+                const string prefix = "pakettiporina_paketti_";
+                string key = fname.StartsWith(prefix) ? fname.Substring(prefix.Length) : fname;
+                spriteByName[key] = sprite;
+            }
+            if (spriteGuids.Length == 0)
+            {
+                Prob("Stickers-kansiosta ei loytynyt yhtaan Sprite-tyyppista kuvaa. " +
+                     "Valitse PNG:t Art/UI/Stickers-kansiossa ja aseta Texture Type = Sprite (2D and UI), sitten Apply.");
+            }
+            int iconsSet = 0, iconsMissing = 0;
+            foreach (var pkg in allPkgs)
+            {
+                if (pkg.icon != null) continue;
+                string key = pkg.name.ToLowerInvariant();
+                if (spriteByName.TryGetValue(key, out var sprite))
+                {
+                    if (fix)
+                    {
+                        Undo.RecordObject(pkg, "PackageData icon");
+                        pkg.icon = sprite;
+                        EditorUtility.SetDirty(pkg);
+                        iconsSet++;
+                    }
+                    else { Prob($"Paketilta '{pkg.displayName}' puuttuu kuva (loytyy: {sprite.name})."); }
+                }
+                else iconsMissing++;
+            }
+            if (fix && iconsSet > 0) s.AppendLine($"Pakettien kuvat: kytketty {iconsSet} kpl.");
+            if (iconsMissing > 0) s.AppendLine($"VAROITUS: {iconsMissing} paketille ei loytynyt sopivaa kuvaa Stickers-kansiosta.");
 
             // datan laatutarkistus
             foreach (var p in allParts)
@@ -237,6 +293,19 @@ namespace Pakettiporina.EditorTools
                     var go = Find("Car") ?? Find("CarPreview");
                     var im = go != null ? go.GetComponent<Image>() : null;
                     if (im != null) { garage.carPreview = im; s.AppendLine("  -> kytketty"); }
+                }
+            }
+
+            // ---------- 8b. Paketin kuva ----------
+            if (garage.packageImage == null)
+            {
+                Prob("Package Image ei kytketty (paketin kuva ei nay).");
+                if (fix)
+                {
+                    var go = Find("PackageImage");
+                    var im = go != null ? go.GetComponent<Image>() : null;
+                    if (im != null) { garage.packageImage = im; s.AppendLine("  -> kytketty"); }
+                    else s.AppendLine("  -> objektia 'PackageImage' ei loytynyt, kytke kasin");
                 }
             }
 
@@ -313,7 +382,7 @@ namespace Pakettiporina.EditorTools
             }
             s.AppendLine(problems == 0
                 ? "\nKaikki kunnossa!"
-                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty — muista Ctrl+S." : " Aja '5 - KORJAA halli'."));
+                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty ï¿½ muista Ctrl+S." : " Aja '5 - KORJAA halli'."));
             Debug.Log(s.ToString());
         }
     }

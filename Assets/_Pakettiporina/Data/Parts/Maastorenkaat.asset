@@ -15,10 +15,10 @@ MonoBehaviour:
   displayName: Maastorenkaat
   category: 1
   voima: 0
-  pito: 20
-  keveys: -10
-  kestavyys: 0
+  pito: 24
+  keveys: -14
+  kestavyys: 4
   kylmyys: 0
-  cosmeticOnly: 1
+  cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}
   unlockPoints: 0

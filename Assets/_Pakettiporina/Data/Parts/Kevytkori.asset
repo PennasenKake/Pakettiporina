@@ -15,9 +15,9 @@ MonoBehaviour:
   displayName: Kevytkori
   category: 0
   voima: 0
-  pito: 0
-  keveys: 15
-  kestavyys: -5
+  pito: -4
+  keveys: 28
+  kestavyys: -12
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}

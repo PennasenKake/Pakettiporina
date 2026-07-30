@@ -120,6 +120,11 @@ namespace Pakettiporina
         {
             var pkg = allPackages[packageIndex];
             if (packageNameText != null) packageNameText.text = pkg.displayName;
+            if (packageImage != null)
+            {
+                packageImage.sprite = pkg.icon;
+                packageImage.enabled = pkg.icon != null; // piilota jos kuva puuttuu, ei nayta harmaata laatikkoa
+            }
             UpdateFit();
             Debug.Log($"[Garage] Paketti: {pkg.displayName}");
         }
@@ -146,7 +151,7 @@ namespace Pakettiporina
                 fitText.color = r.fits ? new Color(0.23f, 0.55f, 0.07f) : new Color(0.52f, 0.31f, 0.04f);
             }
             if (vilkkuText != null)
-                vilkkuText.text = r.fits ? "Hyvä valinta!" : "Katso mitä paketti tarvitsee.";
+                vilkkuText.text = r.fits ? "Hyvï¿½ valinta!" : "Katso mitï¿½ paketti tarvitsee.";
         }
 
         // ---- "Aja keikka" -napin OnClick ----
@@ -166,7 +171,7 @@ namespace Pakettiporina
                 case PartCategory.Renkaat: return "Renkaat";
                 case PartCategory.Moottori: return "Moottori";
                 case PartCategory.Jouset: return "Jouset";
-                case PartCategory.Lisat: return "Lisät";
+                case PartCategory.Lisat: return "Lisï¿½t";
                 case PartCategory.Maali: return "Maali";
                 default: return c.ToString();
             }
@@ -197,8 +202,8 @@ namespace Pakettiporina
         [Header("Kategoria")]
         public TMP_Text categoryText;
 
-        [Header("Kategoriavälilehdet (korostus)")]
-        [Tooltip("Järjestys: 0=Kori,1=Renkaat,2=Moottori,3=Jouset,4=Lisat,5=Maali")]
+        [Header("Kategoriavï¿½lilehdet (korostus)")]
+        [Tooltip("Jï¿½rjestys: 0=Kori,1=Renkaat,2=Moottori,3=Jouset,4=Lisat,5=Maali")]
         public Button[] categoryTabs;
         public Color tabNormalColor = new Color(0.945f, 0.937f, 0.909f); // #F1EFE8
         public Color tabActiveColor = new Color(0.114f, 0.62f, 0.459f);  // #1D9E75
@@ -207,7 +212,7 @@ namespace Pakettiporina
         public TMP_Text partNameText;
 
         [Header("Auton esikatselu")]
-        [Tooltip("Auton kuva (Image), jonka väri vaihtuu Maali-osasta")]
+        [Tooltip("Auton kuva (Image), jonka vï¿½ri vaihtuu Maali-osasta")]
         public Image carPreview;
 
         [Header("Mittarit (Image, Image Type = Filled)")]
@@ -322,6 +327,11 @@ namespace Pakettiporina
         {
             var pkg = allPackages[packageIndex];
             if (packageNameText != null) packageNameText.text = pkg.displayName;
+            if (packageImage != null)
+            {
+                packageImage.sprite = pkg.icon;
+                packageImage.enabled = pkg.icon != null; // piilota jos kuva puuttuu, ei nayta harmaata laatikkoa
+            }
             UpdateFit();
             Debug.Log($"[Garage] Paketti: {pkg.displayName}");
         }
@@ -347,7 +357,7 @@ namespace Pakettiporina
                 fitText.color = r.fits ? new Color(0.23f, 0.55f, 0.07f) : new Color(0.52f, 0.31f, 0.04f);
             }
             if (vilkkuText != null)
-                vilkkuText.text = r.fits ? "Hyvä valinta!" : "Katso mitä paketti tarvitsee.";
+                vilkkuText.text = r.fits ? "Hyvï¿½ valinta!" : "Katso mitï¿½ paketti tarvitsee.";
         }
 
         public void OnDrive()
@@ -366,7 +376,7 @@ namespace Pakettiporina
                 case PartCategory.Renkaat: return "Renkaat";
                 case PartCategory.Moottori: return "Moottori";
                 case PartCategory.Jouset: return "Jouset";
-                case PartCategory.Lisat: return "Lisät";
+                case PartCategory.Lisat: return "Lisï¿½t";
                 case PartCategory.Maali: return "Maali";
                 default: return c.ToString();
             }
@@ -395,8 +405,8 @@ namespace Pakettiporina
         [Header("Kategoria")]
         public TMP_Text categoryText;
 
-        [Header("Kategoriavälilehdet (korostus)")]
-        [Tooltip("Järjestys: 0=Kori,1=Renkaat,2=Moottori,3=Jouset,4=Lisat,5=Maali")]
+        [Header("Kategoriavï¿½lilehdet (korostus)")]
+        [Tooltip("Jï¿½rjestys: 0=Kori,1=Renkaat,2=Moottori,3=Jouset,4=Lisat,5=Maali")]
         public Button[] categoryTabs;
         public Color tabNormalColor = new Color(0.945f, 0.937f, 0.909f);
         public Color tabActiveColor = new Color(0.114f, 0.62f, 0.459f);
@@ -414,6 +424,8 @@ namespace Pakettiporina
         public TMP_Text packageNameText;
         public TMP_Text fitText;
         public TMP_Text vilkkuText;
+        [Tooltip("Pieni kuva nykyisesta paketista (PackageData.icon)")]
+        public Image packageImage;
 
         [Header("Ajo")]
         public string gameSceneName = "SampleScene";
@@ -556,6 +568,11 @@ namespace Pakettiporina
         {
             var pkg = allPackages[packageIndex];
             if (packageNameText != null) packageNameText.text = pkg.displayName;
+            if (packageImage != null)
+            {
+                packageImage.sprite = pkg.icon;
+                packageImage.enabled = pkg.icon != null; // piilota jos kuva puuttuu, ei nayta harmaata laatikkoa
+            }
             UpdateFit();
             Debug.Log($"[Garage] Paketti: {pkg.displayName}");
         }
@@ -581,7 +598,7 @@ namespace Pakettiporina
                 fitText.color = r.fits ? new Color(0.23f, 0.55f, 0.07f) : new Color(0.52f, 0.31f, 0.04f);
             }
             if (vilkkuText != null)
-                vilkkuText.text = r.fits ? "Hyvä valinta!" : "Katso mitä paketti tarvitsee.";
+                vilkkuText.text = r.fits ? "Hyvï¿½ valinta!" : "Katso mitï¿½ paketti tarvitsee.";
         }
 
         // "Aja keikka": tallenna paketti, mittarit JA valitut osat -> auto sailyy.
@@ -601,7 +618,7 @@ namespace Pakettiporina
                 case PartCategory.Renkaat: return "Renkaat";
                 case PartCategory.Moottori: return "Moottori";
                 case PartCategory.Jouset: return "Jouset";
-                case PartCategory.Lisat: return "Lisät";
+                case PartCategory.Lisat: return "Lisï¿½t";
                 case PartCategory.Maali: return "Maali";
                 default: return c.ToString();
             }

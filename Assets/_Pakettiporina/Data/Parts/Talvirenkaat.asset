@@ -15,10 +15,10 @@ MonoBehaviour:
   displayName: Talvirenkaat
   category: 1
   voima: 0
-  pito: 12
-  keveys: -4
+  pito: 16
+  keveys: -6
   kestavyys: 0
-  kylmyys: 0
+  kylmyys: 10
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}
   unlockPoints: 0

@@ -36,6 +36,22 @@ namespace Pakettiporina.EditorTools
             var maasto    = GameObject.Find("Maasto");
             var ground    = GameObject.Find("GroundCollider");
             var startObj  = GameObject.Find("StartPoint");
+            var audioMgr  = Object.FindObjectOfType<AudioManager>(true);
+
+            // ---------- 0. AUDIOMANAGER ----------
+            if (audioMgr == null)
+            {
+                log.AppendLine("VAROITUS: AudioManager puuttuu (aanet eivat soi jos testaat tasta scenesta suoraan).");
+                problems++;
+                if (fix)
+                {
+                    var go = new GameObject("AudioManager");
+                    audioMgr = go.AddComponent<AudioManager>();
+                    Undo.RegisterCreatedObjectUndo(go, "AudioManager");
+                    log.AppendLine("  -> luotu (muista raahata aaniklipit sen Inspectoriin)");
+                }
+            }
+            else log.AppendLine("AudioManager: OK");
 
             // ---------- 1. MAASTO ----------
             if (maasto == null) { log.AppendLine("VIRHE: Maasto puuttuu scenesta. Veda Art/Models/Maasto sceneen."); problems++; }
@@ -164,6 +180,47 @@ namespace Pakettiporina.EditorTools
                     if (fix) { col.isTrigger = false; log.AppendLine("  -> korjattu"); }
                 }
                 log.AppendLine("Auto: " + carGo.name + " @ " + carGo.transform.position);
+
+                // ---------- 4b. CARPAINTER (M4: hallin Maali-vari nakyy ajossa) ----------
+                var painter = carGo.GetComponent<CarPainter>();
+                if (painter == null)
+                {
+                    log.AppendLine("VAROITUS: CarPainter puuttuu (auton vari ei vaihdu hallin maalivalinnan mukaan).");
+                    problems++;
+                    if (fix)
+                    {
+                        painter = carGo.AddComponent<CarPainter>();
+                        log.AppendLine("  -> lisatty");
+                    }
+                }
+                if (painter != null && painter.bodyRenderer == null)
+                {
+                    Renderer found = null;
+                    foreach (var r in carGo.GetComponentsInChildren<Renderer>(true))
+                    {
+                        if (r.sharedMaterial != null && r.sharedMaterial.name.ToLower().Contains("kori"))
+                        { found = r; break; }
+                    }
+                    if (found != null)
+                    {
+                        log.AppendLine("CarPainter: Body Renderer ei kytketty.");
+                        problems++;
+                        if (fix)
+                        {
+                            Undo.RecordObject(painter, "CarPainter");
+                            painter.bodyRenderer = found;
+                            EditorUtility.SetDirty(painter);
+                            log.AppendLine("  -> kytketty (" + found.name + " / " + found.sharedMaterial.name + ")");
+                        }
+                    }
+                    else
+                    {
+                        log.AppendLine("VAROITUS: autolta ei loydy materiaalia jonka nimessa on 'kori' - CarPainter ei voi maalata. " +
+                            "Varmista etta auton korin Renderer kayttaa materiaalia kuten 'Auto_kori' (Art/Models/Materials).");
+                        problems++;
+                    }
+                }
+                else if (painter != null) log.AppendLine("CarPainter: OK");
             }
 
             // ---------- 5. MAALI ----------

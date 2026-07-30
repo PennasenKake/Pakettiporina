@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Turbomoottori
   category: 2
-  voima: 30
+  voima: 34
   pito: 0
-  keveys: -6
-  kestavyys: 0
+  keveys: -10
+  kestavyys: -4
   kylmyys: 0
   cosmeticOnly: 0
   color: {r: 1, g: 1, b: 1, a: 1}
