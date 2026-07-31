@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +44,7 @@ namespace Pakettiporina.EditorTools
             {
                 var inCat = parts.Where(p => p.category == c).ToList();
                 s.AppendLine($"\n[{c}] ({inCat.Count} kpl)");
-                if (inCat.Count == 0) { s.AppendLine("   (tyhja — kategoriassa ei ole osia!)"); continue; }
+                if (inCat.Count == 0) { s.AppendLine("   (tyhja ï¿½ kategoriassa ei ole osia!)"); continue; }
                 foreach (var p in inCat)
                 {
                     string effects = Effects(p);
@@ -110,7 +111,7 @@ namespace Pakettiporina.EditorTools
         public static void GeneratePackages()
         {
             var parts = LoadParts().Where(p => !p.cosmeticOnly).ToList();
-            if (parts.Count == 0) { Debug.LogWarning("Ei osia — luo osia ensin."); return; }
+            if (parts.Count == 0) { Debug.LogWarning("Ei osia ï¿½ luo osia ensin."); return; }
 
             System.IO.Directory.CreateDirectory(PKG_DIR);
 
@@ -131,7 +132,7 @@ namespace Pakettiporina.EditorTools
                 string path = $"{PKG_DIR}/{r.name}.asset";
                 if (AssetDatabase.LoadAssetAtPath<PackageData>(path) != null)
                 {
-                    log.AppendLine($"   {r.name}: on jo olemassa — ohitetaan.");
+                    log.AppendLine($"   {r.name}: on jo olemassa ï¿½ ohitetaan.");
                     continue;
                 }
                 // etsi sopivin vaadittu osa: kategoriasta se, jolla paras haluttu ominaisuus
@@ -174,3 +175,4 @@ namespace Pakettiporina.EditorTools
         }
     }
 }
+#endif

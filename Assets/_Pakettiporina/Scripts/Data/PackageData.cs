@@ -27,5 +27,10 @@ namespace Pakettiporina
         public int rewardPoints = 30;
         [Tooltip("Sulamisaika sekunteina kylmalle paketille (0 = ei sula)")]
         public float meltTime = 0f;
+
+        [Header("Ajorata")]
+        [Tooltip("Millä peliscenellä tämä paketti ajetaan (esim. 'Game' tai 'Game2'). " +
+                 "Tyhjä = käytä Hallin oletusrataa (GarageScreen.gameSceneName).")]
+        public string trackScene = "";
     }
 }

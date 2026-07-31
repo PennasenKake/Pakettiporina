@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: Saippuakuplat
   tags:
   - herkka
+  icon: {fileID: 21300000, guid: 89dc15dce44cc0343915c7c2225749e3, type: 3}
   requiredPart: {fileID: 11400000, guid: 39987ba38728f6a4eb0c2ff326f524cc, type: 2}
   mass: 6
   rewardPoints: 40

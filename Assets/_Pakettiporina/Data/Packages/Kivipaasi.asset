@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: Kivipaasi
   tags:
   - Painava
+  icon: {fileID: 21300000, guid: ee95d9077b39cb340b7cecb948ba5789, type: 3}
   requiredPart: {fileID: 11400000, guid: d3fbf08d2ac75c3449f38e80922e9eb2, type: 2}
   mass: 25
   rewardPoints: 45

@@ -29,7 +29,10 @@ namespace Pakettiporina.EditorTools
         const string DONE_TEXT = "DoneText";
         const string CONTINUE_BTN = "ContinueButton";
         const string SKIP_BTN = "SkipButton";
+        const string MAINMENU_BTN = "MainMenuButton";  // usein kopioitu Ajon maali-paneelista
+        const string RESTART_BTN = "RestartButton";    // usein kopioitu Ajon maali-paneelista
         const string GARAGE_SCENE = "Garage";
+        const string MAINMENU_SCENE = "MainMenu";
 
         [MenuItem("Pakettiporina/9 - Tarkista pesu")]
         public static void Diagnose() { Run(false); }
@@ -164,6 +167,80 @@ namespace Pakettiporina.EditorTools
                 }
             }
 
+            // ---------- 4c. BubbleArean skaala + kuplien nousukorkeus ----------
+            // Tunnettu sudenkuoppa: jos BubbleArea skaalataan Scene-nakymassa (esim. yritettaessa
+            // "sovittaa" alue autoa vasten), sen Transform.localScale poikkeaa 1:sta ja KAIKKI
+            // kuplien liikkeet (leveys, nousumatka) kutistuvat samassa suhteessa -> kuplat
+            // nakyvat pienena kasana yhdessa kohtaa eivatka nouse lahellekaan autoa.
+            if (wash.bubbleArea != null)
+            {
+                var sc = wash.bubbleArea.localScale;
+                bool badScale = Mathf.Abs(sc.x - 1f) > 0.02f || Mathf.Abs(sc.y - 1f) > 0.02f;
+                if (badScale)
+                {
+                    Prob($"BubbleArean Scale on {sc.x:0.###}, {sc.y:0.###} (pitaisi olla 1, 1) - " +
+                         "tama kutistaa kaikkien kuplien leveys- ja nousumatka-asetukset samassa suhteessa, " +
+                         "joten kuplat nayttavat jaavan pieneen kasaan eivatka nouse lahelle autoa.");
+                    if (fix)
+                    {
+                        wash.bubbleArea.localScale = Vector3.one;
+                        wash.bubbleArea.localPosition = Vector3.zero;
+                        s.AppendLine("  -> BubbleArean Scale asetettu (1,1,1) ja Position (0,0,0). " +
+                                     "Kuplien oma Spawn X/Y ja Rise Distance maarittavat nyt sijainnin suoraan Canvasin yksikoissa.");
+                    }
+                }
+                else s.AppendLine("BubbleArean Scale: OK (1,1,1).");
+
+                // Kuplien nousukorkeus suhteessa Car-objektiin: yritetaan arvioida etta kuplat
+                // nousevat juuri auton alapuolelle asti, eivat sen paalle/lapi.
+                var carGo = Find("Car");
+                var carRt = carGo != null ? carGo.GetComponent<RectTransform>() : null;
+                var bubbles = wash.bubbleArea.GetComponentsInChildren<Bubble>(true);
+                if (carRt != null && bubbles.Length > 0)
+                {
+                    float carBottom = carRt.anchoredPosition.y - (carRt.rect.height * carRt.localScale.y) / 2f;
+                    const float margin = 80f;
+                    float targetApex = carBottom - margin;
+                    int retuned = 0;
+                    foreach (var b in bubbles)
+                    {
+                        float wantedRise = targetApex - b.spawnY;
+                        if (wantedRise > 100f && Mathf.Abs(wantedRise - b.riseDistance) > 150f)
+                        {
+                            if (fix) { b.riseDistance = wantedRise; EditorUtility.SetDirty(b); retuned++; }
+                        }
+                    }
+                    if (retuned > 0)
+                        s.AppendLine($"  -> {retuned} kuplan Rise Distance saadetty (~{targetApex:0}) niin etta nousu pysahtyy juuri auton alapuolelle.");
+                    else if (!fix)
+                        s.AppendLine($"Kuplien nousukorkeus vs. auto: OK-ish (arvioitu tavoite ~{targetApex:0}).");
+                }
+            }
+
+            // ---------- 4b. DirtSpots (likatahrat autossa) ----------
+            if (wash.dirtSpotsParent == null && (wash.dirtSpots == null || wash.dirtSpots.Count == 0))
+            {
+                var dsGo = Find("DirtSpots");
+                if (dsGo != null)
+                {
+                    Prob("Dirt Spots Parent ei kytketty.");
+                    if (fix) { wash.dirtSpotsParent = dsGo.transform; s.AppendLine("  -> kytketty (DirtSpots)"); }
+                }
+                else
+                {
+                    Prob("Likatahroja (DirtSpots) ei loydy. Lisaa autoon muutama likatahra-Image ja ryhmita ne 'DirtSpots'-objektin alle, TAI raahaa ne kasin WashScreenin Dirt Spots -listaan.");
+                }
+            }
+            if (wash.dirtSpotsParent != null)
+            {
+                int dcount = wash.dirtSpotsParent.GetComponentsInChildren<Image>(true).Length;
+                s.AppendLine($"Likatahroja DirtSpotsin alla: {dcount}");
+            }
+            else if (wash.dirtSpots != null && wash.dirtSpots.Count > 0)
+            {
+                s.AppendLine($"Likatahroja Dirt Spots -listassa: {wash.dirtSpots.Count}");
+            }
+
             // ---------- 5. Edistymisteksti ----------
             if (wash.progressText == null)
             {
@@ -198,6 +275,10 @@ namespace Pakettiporina.EditorTools
             }
 
             // ---------- 7. Napit ----------
+            // HUOM: KORJAA-tilassa OnClick asetetaan AINA uudelleen oikeaksi, ei vain kun se on tyhja.
+            // Tama on tarkeaa koska napit ovat usein kopioituja Ajon maali-paneelista (samat kuvakkeet),
+            // ja niissa on silloin vanha viittaus RaceHUD-komponenttiin joka ei ole tassa scenessa
+            // (nayttaa "OnClick: 1" vaikka kohde on rikki, joten pelkka maaralaskenta ei riita).
             void Wire(string objName, UnityAction action, string label, bool required)
             {
                 var go = Find(objName);
@@ -207,25 +288,106 @@ namespace Pakettiporina.EditorTools
                     if (required) Prob($"Nappi '{objName}' puuttuu.");
                     return;
                 }
-                if (btn.onClick.GetPersistentEventCount() == 0)
+                if (fix)
+                {
+                    ClearClicks(btn);
+                    UnityEventTools.AddPersistentListener(btn.onClick, action);
+                    s.AppendLine($"{label}: OnClick kytketty ({objName}).");
+                }
+                else if (btn.onClick.GetPersistentEventCount() == 0)
                 {
                     Prob($"{label}: OnClick tyhja.");
-                    if (fix)
-                    {
-                        ClearClicks(btn);
-                        UnityEventTools.AddPersistentListener(btn.onClick, action);
-                        s.AppendLine("  -> kytketty");
-                    }
+                }
+                else
+                {
+                    s.AppendLine($"{label}: OnClick on jotain kytketty ({btn.onClick.GetPersistentEventCount()} kpl) � " +
+                        "jos nappi kopioitu toisesta scenesta, kohde voi silti olla rikki. Aja '10 - KORJAA pesu' varmuudeksi.");
                 }
             }
-            Wire(CONTINUE_BTN, wash.OnContinueButton, "Jatkoon-nappi", true);
-            Wire(SKIP_BTN, wash.OnSkipButton, "Ohita-nappi", false); // valinnainen
+            Wire(CONTINUE_BTN, wash.OnContinueButton, "Jatkoon-nappi (halliin)", true);
+            Wire(SKIP_BTN, wash.OnSkipButton, "Ohita-nappi", false);           // valinnainen
+            Wire(MAINMENU_BTN, wash.OnMainMenuButton, "Koti-nappi (paavalikko)", false);
+            Wire(RESTART_BTN, wash.OnRestartButton, "Uudestaan-nappi (aloita pesu uudestaan)", false);
 
-            // ---------- 8. Scenen nimi ----------
+            // ---------- 8. Scenejen nimet ----------
             if (wash.garageSceneName != GARAGE_SCENE)
             {
                 Prob($"Garage Scene Name = '{wash.garageSceneName}' (odotettu '{GARAGE_SCENE}').");
                 if (fix) { wash.garageSceneName = GARAGE_SCENE; s.AppendLine("  -> asetettu '" + GARAGE_SCENE + "'"); }
+            }
+            if (wash.mainMenuScene != MAINMENU_SCENE)
+            {
+                Prob($"Main Menu Scene = '{wash.mainMenuScene}' (odotettu '{MAINMENU_SCENE}').");
+                if (fix) { wash.mainMenuScene = MAINMENU_SCENE; s.AppendLine("  -> asetettu '" + MAINMENU_SCENE + "'"); }
+            }
+
+            // ---------- 9. PauseMenu (tauko) ----------
+            var pauseMenu = Object.FindObjectOfType<PauseMenu>(true);
+            if (pauseMenu == null)
+            {
+                Prob("PauseMenu-komponenttia ei loydy pesusta (tauko ei toimi).");
+                if (fix)
+                {
+                    var pmGo = Find("PausePanel");
+                    var host = pmGo != null ? pmGo : new GameObject("PauseMenu");
+                    if (pmGo == null) Undo.RegisterCreatedObjectUndo(host, "PauseMenu");
+                    pauseMenu = host.AddComponent<PauseMenu>();
+                    s.AppendLine("  -> PauseMenu lisatty (" + host.name + ")");
+                }
+            }
+            if (pauseMenu != null)
+            {
+                if (pauseMenu.pausePanel == null)
+                {
+                    var pp = Find("PausePanel");
+                    if (pp != null)
+                    {
+                        Prob("PauseMenu.Pause Panel ei kytketty.");
+                        if (fix) { pauseMenu.pausePanel = pp; s.AppendLine("  -> kytketty (PausePanel)"); }
+                    }
+                }
+                if (pauseMenu.garageScene != GARAGE_SCENE)
+                {
+                    Prob($"PauseMenu Garage Scene = '{pauseMenu.garageScene}' (odotettu '{GARAGE_SCENE}').");
+                    if (fix) { pauseMenu.garageScene = GARAGE_SCENE; s.AppendLine("  -> asetettu '" + GARAGE_SCENE + "'"); }
+                }
+                if (pauseMenu.mainMenuScene != MAINMENU_SCENE)
+                {
+                    Prob($"PauseMenu Main Menu Scene = '{pauseMenu.mainMenuScene}' (odotettu '{MAINMENU_SCENE}').");
+                    if (fix) { pauseMenu.mainMenuScene = MAINMENU_SCENE; s.AppendLine("  -> asetettu '" + MAINMENU_SCENE + "'"); }
+                }
+
+                // Samat "OnClick aina uudelleen fix-tilassa" -periaate kuin kohdassa 7,
+                // koska nama napit ovat mys usein kopioituja Ajon pausescenesta (rikkinainen viittaus).
+                void WirePause(string objName, UnityAction action, string label, bool required)
+                {
+                    var go = Find(objName);
+                    var btn = go != null ? go.GetComponent<Button>() : null;
+                    if (btn == null)
+                    {
+                        if (required) Prob($"Nappi '{objName}' puuttuu.");
+                        return;
+                    }
+                    if (fix)
+                    {
+                        ClearClicks(btn);
+                        UnityEventTools.AddPersistentListener(btn.onClick, action);
+                        s.AppendLine($"{label}: OnClick kytketty ({objName}).");
+                    }
+                    else if (btn.onClick.GetPersistentEventCount() == 0)
+                    {
+                        Prob($"{label}: OnClick tyhja.");
+                    }
+                    else
+                    {
+                        s.AppendLine($"{label}: OnClick on jotain kytketty � jos nappi kopioitu toisesta scenesta, " +
+                            "kohde voi silti olla rikki. Aja '10 - KORJAA pesu' varmuudeksi.");
+                    }
+                }
+                WirePause("PauseButton", pauseMenu.Pause, "Tauko-nappi (avaa)", true);
+                WirePause("ResumeButton", pauseMenu.Resume, "Jatka-nappi (tauossa)", true);
+                WirePause("PauseMenuButton", pauseMenu.GoToMainMenu, "Koti-nappi (tauossa)", false);
+                WirePause("PauseGarageButton", pauseMenu.GoToGarage, "Halliin-nappi (tauossa)", false); // valinnainen, lisaa itse jos haluat
             }
 
             // ---------- valmis ----------

@@ -16,6 +16,7 @@ MonoBehaviour:
   tags:
   - Sarkyva
   - Iso
+  icon: {fileID: 21300000, guid: 3e20286f78f46c54ba084188b3d90b75, type: 3}
   requiredPart: {fileID: 11400000, guid: 5ee238d698c4eea40848caf7f4ff7d9c, type: 2}
   mass: 10
   rewardPoints: 45

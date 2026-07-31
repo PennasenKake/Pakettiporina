@@ -9,7 +9,7 @@ namespace Pakettiporina
     {
         [Header("Viittaukset")]
         public GameObject pausePanel;
-        [Tooltip("Ohjausnappien vanhempi — piilotetaan tauon ajaksi")]
+        [Tooltip("Ohjausnappien vanhempi ï¿½ piilotetaan tauon ajaksi")]
         public GameObject controls;
 
         [Header("Tauko/jatka-napin kuva (valinnainen)")]
@@ -19,6 +19,8 @@ namespace Pakettiporina
 
         [Header("Scenet")]
         public string mainMenuScene = "MainMenu";
+        [Tooltip("Valinnainen: jos tauko-paneelissa on Halliin-nappi (esim. Pesu-scenessa)")]
+        public string garageScene = "Garage";
 
         public bool IsPaused { get; private set; }
 
@@ -49,7 +51,7 @@ namespace Pakettiporina
             if (pausePanel != null) pausePanel.SetActive(true);
             if (controls != null) controls.SetActive(false);   // napit piiloon
             SetIcon(true);
-            Debug.Log("[Pause] Tauko — ajonapit piilotettu.");
+            Debug.Log("[Pause] Tauko ï¿½ ajonapit piilotettu.");
         }
 
         public void Resume()
@@ -69,6 +71,14 @@ namespace Pakettiporina
             Time.timeScale = 1f;
             Debug.Log("[Pause] Paavalikkoon: " + mainMenuScene);
             SceneManager.LoadScene(mainMenuScene);
+        }
+
+        // Valinnainen "Halliin"-nappi tauko-paneelissa (esim. Pesu-scenessa).
+        public void GoToGarage()
+        {
+            Time.timeScale = 1f;
+            Debug.Log("[Pause] Halliin: " + garageScene);
+            SceneManager.LoadScene(garageScene);
         }
 
         void SetIcon(bool paused)

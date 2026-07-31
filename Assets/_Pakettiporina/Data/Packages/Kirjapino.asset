@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: Kirjapino
   tags:
   - painava
+  icon: {fileID: 21300000, guid: 8be8ef00149a7d0408bcee3d3978dee2, type: 3}
   requiredPart: {fileID: 11400000, guid: e6131adeb6a69334ea7e1c24b3e18047, type: 2}
   mass: 20
   rewardPoints: 60

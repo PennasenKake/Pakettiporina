@@ -16,6 +16,7 @@ MonoBehaviour:
   tags:
   - kylma
   - painava
+  icon: {fileID: 21300000, guid: a176ab48060163a49bfcf239d4345a5d, type: 3}
   requiredPart: {fileID: 11400000, guid: 3801cdbc943e5b84185c844e87e80d48, type: 2}
   mass: 20
   rewardPoints: 50

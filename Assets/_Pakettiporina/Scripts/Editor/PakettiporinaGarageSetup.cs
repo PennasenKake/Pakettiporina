@@ -25,7 +25,9 @@ namespace Pakettiporina.EditorTools
         const string PREV_PKG  = "PrevPackageButton";
         const string NEXT_PKG  = "NextPackageButton";
         const string DRIVE     = "DriveButton";
+        const string MAINMENU_BTN = "MainMenuButton";
         const string GAME_SCENE = "Game";
+        const string MAINMENU_SCENE = "MainMenu";
 
         [MenuItem("Pakettiporina/4 - Tarkista halli")]
         public static void Diagnose() { Run(false); }
@@ -237,6 +239,22 @@ namespace Pakettiporina.EditorTools
                     Prob($"Paketti '{pk.name}' vaatii osan jota ei ole listassa -> mahdoton keikka!");
             }
 
+            // ---------- 5c. Pakettien ajoradat (trackScene) ----------
+            // Informatiivinen: kertoo mille peliscenelle kukin paketti ajaa, ja varoittaa
+            // jos joku trackScene-nimi ei ole Build Settingsissa (silloin lataus kaatuu Playssa).
+            var buildScenes = new HashSet<string>();
+            foreach (var bs in EditorBuildSettings.scenes)
+                if (bs.enabled) buildScenes.Add(System.IO.Path.GetFileNameWithoutExtension(bs.path));
+            int withTrack = 0;
+            foreach (var pk in allPkgs)
+            {
+                if (string.IsNullOrEmpty(pk.trackScene)) continue;
+                withTrack++;
+                if (!buildScenes.Contains(pk.trackScene))
+                    Prob($"Paketti '{pk.name}': trackScene = '{pk.trackScene}', jota ei loydy Build Settingsista (lisaa File > Build Settings).");
+            }
+            if (withTrack > 0) s.AppendLine($"Paketteja joilla oma ajorata: {withTrack}/{allPkgs.Count} (loput ajavat Hallin oletusradalla '{garage.gameSceneName}').");
+
             // ---------- 6. Tekstikentat ----------
             void NeedText(ref TMP_Text field, string objName, string label)
             {
@@ -333,20 +351,26 @@ namespace Pakettiporina.EditorTools
             }
 
             // ---------- 10. Nappien OnClick ----------
-            void Wire(string objName, UnityAction action, string label)
+            // HUOM: fix-tilassa OnClick korjataan AINA (ei vain kun tyhja), koska Game/Wash-scenesta
+            // kopioidut napit voivat pitaa vanhan, rikkinaisen kuuntelijan vaikka lukumaara on > 0.
+            void Wire(string objName, UnityAction action, string label, bool required = true)
             {
                 var go = Find(objName);
                 var btn = go != null ? go.GetComponent<Button>() : null;
-                if (btn == null) { Prob($"Nappi '{objName}' puuttuu."); return; }
-                if (btn.onClick.GetPersistentEventCount() == 0)
+                if (btn == null)
+                {
+                    if (required) Prob($"Nappi '{objName}' puuttuu.");
+                    return;
+                }
+                if (fix)
+                {
+                    ClearClicks(btn);
+                    UnityEventTools.AddPersistentListener(btn.onClick, action);
+                    s.AppendLine($"{label}: kytketty ({objName}).");
+                }
+                else if (btn.onClick.GetPersistentEventCount() == 0)
                 {
                     Prob($"{label}: OnClick tyhja.");
-                    if (fix)
-                    {
-                        ClearClicks(btn);
-                        UnityEventTools.AddPersistentListener(btn.onClick, action);
-                        s.AppendLine("  -> kytketty");
-                    }
                 }
             }
             Wire(PREV_PART, garage.PrevPart,    "Edellinen osa");
@@ -354,6 +378,7 @@ namespace Pakettiporina.EditorTools
             Wire(PREV_PKG,  garage.PrevPackage, "Edellinen paketti");
             Wire(NEXT_PKG,  garage.NextPackage, "Seuraava paketti");
             Wire(DRIVE,     garage.OnDrive,     "Aja keikka");
+            Wire(MAINMENU_BTN, garage.OnMainMenuButton, "Koti / paavalikko", required: false);
 
             if (fix && tabsOk)
             {
@@ -366,11 +391,16 @@ namespace Pakettiporina.EditorTools
                 s.AppendLine("Valilehtien OnClick -> SetCategory(0..5) kytketty.");
             }
 
-            // ---------- 11. Scenen nimi ----------
+            // ---------- 11. Scenejen nimet ----------
             if (garage.gameSceneName != GAME_SCENE)
             {
                 Prob($"Game Scene Name = '{garage.gameSceneName}' (odotettu '{GAME_SCENE}').");
                 if (fix) { garage.gameSceneName = GAME_SCENE; s.AppendLine("  -> asetettu '" + GAME_SCENE + "'"); }
+            }
+            if (garage.mainMenuScene != MAINMENU_SCENE)
+            {
+                Prob($"Main Menu Scene = '{garage.mainMenuScene}' (odotettu '{MAINMENU_SCENE}').");
+                if (fix) { garage.mainMenuScene = MAINMENU_SCENE; s.AppendLine("  -> asetettu '" + MAINMENU_SCENE + "'"); }
             }
 
             // ---------- valmis ----------

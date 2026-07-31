@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: Lumiukko
   tags:
   - kylma
+  icon: {fileID: 21300000, guid: 250d67805539b7f408c30d21939526e2, type: 3}
   requiredPart: {fileID: 11400000, guid: 3801cdbc943e5b84185c844e87e80d48, type: 2}
   mass: 14
   rewardPoints: 55

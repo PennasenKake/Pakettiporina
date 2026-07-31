@@ -10,6 +10,7 @@ namespace Pakettiporina
 
         [Header("Viittaukset")]
         public Rigidbody car;
+        [Tooltip("Kaytetaan jos TrackManageria ei loydy scenesta (vanha, kiintea rata).")]
         public Transform startPoint;
 
         [Header("Asetukset")]
@@ -30,7 +31,7 @@ namespace Pakettiporina
 
         void Awake() { Instance = this; }
 
-        // HUOM: EI enaa kuuntele GameEvents.OnFinish — FinishTrigger kutsuu FinishRace() suoraan,
+        // HUOM: EI enaa kuuntele GameEvents.OnFinish ï¿½ FinishTrigger kutsuu FinishRace() suoraan,
         // jotta palkkio lasketaan ENNEN kuin HUD paivittaa maali-paneelin.
         void Start() { StartRace(); }
 
@@ -38,6 +39,16 @@ namespace Pakettiporina
         {
             StopAllCoroutines();
             Stars = 0; Elapsed = 0f; IsRacing = false;
+
+            // Jos scenessa on TrackManager, arvo rata ja kayta sen StartPointia.
+            // Muuten kaytetaan vanhaa, sceneen kiinteasti asetettua startPointia.
+            if (TrackManager.Instance != null)
+            {
+                var sp = TrackManager.Instance.SpawnRandomTrack();
+                if (sp != null) startPoint = sp;
+                else Debug.LogWarning("[Race] TrackManager loytyi mutta rataa ei saatu - kaytetaan vanhaa startPointia.");
+            }
+
             ResetCar();
             StartCoroutine(CountdownRoutine());
         }
@@ -67,7 +78,7 @@ namespace Pakettiporina
             Elapsed += Time.deltaTime;
             if (car != null && car.position.y < fallY)
             {
-                Debug.Log("[Race] Auto putosi kentalta — palautetaan lahtoon.");
+                Debug.Log("[Race] Auto putosi kentalta ï¿½ palautetaan lahtoon.");
                 ResetCar();
             }
         }
@@ -76,7 +87,7 @@ namespace Pakettiporina
         {
             if (!IsRacing) return;
             Stars++;
-            Debug.Log($"[Race] Tahti kerätty ({Stars}).");
+            Debug.Log($"[Race] Tahti kerï¿½tty ({Stars}).");
             GameEvents.StarCollected(Stars);
         }
 
@@ -115,7 +126,7 @@ namespace Pakettiporina
         {
             if (car == null || startPoint == null)
             {
-                Debug.LogWarning("[Race] car tai startPoint puuttuu — aseta ne Inspectorissa!");
+                Debug.LogWarning("[Race] car tai startPoint puuttuu ï¿½ aseta ne Inspectorissa!");
                 return;
             }
             car.isKinematic = false;
