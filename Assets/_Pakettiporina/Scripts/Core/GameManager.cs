@@ -22,7 +22,7 @@ namespace Pakettiporina
         {
             if (Instance != null && Instance != this)
             {
-                Debug.LogWarning("[GameManager] Toinen GameManager loytyi — tuhotaan duplikaatti.");
+                Debug.LogWarning("[GameManager] Toinen GameManager loytyi ï¿½ tuhotaan duplikaatti.");
                 Destroy(gameObject);
                 return;
             }
@@ -41,6 +41,7 @@ namespace Pakettiporina
         {
             Points += amount;
             Debug.Log($"[GameManager] +{amount} pistetta. Yhteensa: {Points}");
+            SaveManager.Instance?.Save();
         }
 
         // Hallin "Aja keikka" tallentaa taalle: paketti, mittarit JA valitut osat.
@@ -51,6 +52,23 @@ namespace Pakettiporina
             SelectedParts = new List<PartData>(parts); // kopio talteen
             string n = pkg != null ? pkg.displayName : "ei pakettia";
             Debug.Log($"[GameManager] Valinta tallennettu: paketti={n}, osia={SelectedParts.Count}, auto=({stats})");
+        }
+
+        // Kaytetaan SaveManagerista pisteiden palauttamiseen tallennuksesta (ei laske yhteen, asettaa suoraan).
+        public void SetPoints(int amount)
+        {
+            Points = amount;
+            Debug.Log($"[GameManager] Pisteet ladattu tallennuksesta: {Points}");
+        }
+
+        // Kaytetaan SaveManagerista: palauttaa paketin + osat ilman mittareita
+        // (mittarit lasketaan uudelleen kun pelaaja kaynnistaa Hallin, CarBuilderin kautta).
+        public void ApplyLoadedSelection(PackageData pkg, List<PartData> parts)
+        {
+            SelectedPackage = pkg;
+            SelectedParts = parts != null ? new List<PartData>(parts) : new List<PartData>();
+            SelectedStats = default;
+            Debug.Log($"[GameManager] Ladattu auto tallennuksesta: osia={SelectedParts.Count}, paketti={(pkg != null ? pkg.displayName : "ei mitaan")}.");
         }
     }
 }

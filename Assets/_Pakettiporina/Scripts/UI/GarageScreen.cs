@@ -46,6 +46,14 @@ namespace Pakettiporina
         [Tooltip("Nimi scenelle johon 'Koti'-nappi vie. Lisaa scene Build Settingsiin!")]
         public string mainMenuScene = "MainMenu";
 
+        [Header("Tilastopaneeli (napin takana)")]
+        [Tooltip("Paneeli joka sisaltaa mittaripalkit + sopivuustekstin. Piilotetaan automaattisesti alussa.")]
+        public GameObject statsPanel;
+
+        [Header("Osien lukitus (pisteilla)")]
+        [Tooltip("Nakyy kun selattu osa on viela lukossa (PartData.unlockPoints > pisteet). Valinnainen.")]
+        public TMP_Text lockText;
+
         readonly Dictionary<PartCategory, List<PartData>> byCat = new Dictionary<PartCategory, List<PartData>>();
         readonly Dictionary<PartCategory, int> indexByCat = new Dictionary<PartCategory, int>();
         PartCategory currentCat = PartCategory.Kori;
@@ -54,12 +62,20 @@ namespace Pakettiporina
         void Start()
         {
             if (builder == null) builder = FindObjectOfType<CarBuilder>();
+            if (statsPanel != null) statsPanel.SetActive(false);   // piilossa oletuksena, avataan napista
             BuildLookups();
             LoadSavedOrDefaults();                 // <- lataa tallennettu auto TAI oletusosat
             RestorePackage();                      // <- lataa tallennettu paketti jos on
             SetCategory((int)PartCategory.Kori);
             UpdateStats();
             Debug.Log("[Garage] Halli valmis.");
+        }
+
+        // "Tiedot"/"i"-napin OnClick: avaa/sulkee tilastopaneelin.
+        public void ToggleStatsPanel()
+        {
+            if (statsPanel == null) return;
+            statsPanel.SetActive(!statsPanel.activeSelf);
         }
 
         void BuildLookups()
@@ -155,7 +171,13 @@ namespace Pakettiporina
             if (i < 0) i = list.Count - 1;
             if (i >= list.Count) i = 0;
             indexByCat[currentCat] = i;
-            ApplyPart(list[i]);
+
+            var part = list[i];
+            if (!IsLocked(part))
+                ApplyPart(part);
+            // Jos osa on lukossa: autoon jaa edellinen valittu osa, mutta selain nayttaa
+            // silti lukitun osan nimen + lockTextin ("tarvitset X pistetta").
+
             ShowPart();
             UpdateStats();
             UpdateFit();
@@ -164,8 +186,24 @@ namespace Pakettiporina
         void ShowPart()
         {
             var list = byCat[currentCat];
-            if (partNameText != null)
-                partNameText.text = list.Count == 0 ? "(ei osia)" : list[indexByCat[currentCat]].displayName;
+            if (list.Count == 0)
+            {
+                if (partNameText != null) partNameText.text = "(ei osia)";
+                if (lockText != null) lockText.text = "";
+                return;
+            }
+            var part = list[indexByCat[currentCat]];
+            if (partNameText != null) partNameText.text = part.displayName;
+            if (lockText != null)
+                lockText.text = IsLocked(part) ? $"Lukossa - tarvitset {part.unlockPoints} pistetta" : "";
+        }
+
+        // Onko osa viela lukossa? unlockPoints=0 (oletus) tarkoittaa aina auki.
+        bool IsLocked(PartData part)
+        {
+            if (part == null || part.unlockPoints <= 0) return false;
+            int pts = GameManager.Instance != null ? GameManager.Instance.Points : 0;
+            return pts < part.unlockPoints;
         }
 
         public void NextPackage() { StepPackage(+1); }
@@ -223,6 +261,7 @@ namespace Pakettiporina
         {
             if (GameManager.Instance != null)
                 GameManager.Instance.SetSelection(CurrentPackage, builder.Current, builder.GetSelectedList());
+            SaveManager.Instance?.Save();   // tallenna auto+paketti heti kun keikka lahtee
 
             string scene = gameSceneName;
             var pkg = CurrentPackage;

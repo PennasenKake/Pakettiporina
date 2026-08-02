@@ -128,6 +128,20 @@ namespace Pakettiporina.EditorTools
                 }
             }
 
+            // ---------- 3c. SaveManager ----------
+            var saveMgr = Object.FindObjectOfType<SaveManager>(true);
+            if (saveMgr == null)
+            {
+                Prob("SaveManager puuttuu hallista (tallennus/lataus ei toimi jos aloitat tasta).");
+                if (fix)
+                {
+                    var go = new GameObject("SaveManager");
+                    saveMgr = go.AddComponent<SaveManager>();
+                    Undo.RegisterCreatedObjectUndo(go, "SaveManager");
+                    s.AppendLine("  -> luotu");
+                }
+            }
+
             // ---------- 4. Canvas Scaler ----------
             if (canvas != null)
             {
@@ -182,6 +196,23 @@ namespace Pakettiporina.EditorTools
                 }
             }
             else s.AppendLine("Osa- ja pakettilistat: OK");
+
+            // ---------- 5a2. SaveManagerin listat (sama data, tarvitaan nimipohjaiseen lataukseen) ----------
+            if (saveMgr != null)
+            {
+                if (saveMgr.allParts.Count != allParts.Count || saveMgr.allPackages.Count != allPkgs.Count)
+                {
+                    Prob($"SaveManagerin listat eivat tasmaa ({saveMgr.allParts.Count} osaa / {saveMgr.allPackages.Count} pakettia).");
+                    if (fix)
+                    {
+                        saveMgr.allParts = allParts;
+                        saveMgr.allPackages = allPkgs;
+                        EditorUtility.SetDirty(saveMgr);
+                        s.AppendLine("  -> SaveManagerin listat ladattu");
+                    }
+                }
+                else s.AppendLine("SaveManagerin listat: OK");
+            }
 
             // ---------- 5b. Pakettien kuvat (M4-lisays: PackageData.icon) ----------
             // Etsii Art/UI/Stickers-kansiosta spritet ja tunnistaa paketin nimen perusteella
@@ -302,6 +333,32 @@ namespace Pakettiporina.EditorTools
             var b4 = garage.barKestavyys; NeedBar(ref b4, "BarKestavyys", "Bar Kestavyys"); garage.barKestavyys = b4;
             var b5 = garage.barKylmyys;   NeedBar(ref b5, "BarKylmyys", "Bar Kylmyys");     garage.barKylmyys = b5;
 
+            // ---------- 7b. Tilastopaneeli (napin takana) ----------
+            if (garage.statsPanel == null)
+            {
+                var go = Find("StatsPanel");
+                if (go != null)
+                {
+                    Prob("Stats Panel ei kytketty.");
+                    if (fix) { garage.statsPanel = go; s.AppendLine("  -> kytketty (StatsPanel)"); }
+                }
+                else
+                {
+                    s.AppendLine("Stats Panel: ei loydy ('StatsPanel') - mittaripalkit nakyvat aina, " +
+                                 "jos haluat ne napin taakse, ryhmita ne paneeliksi ja nimea se 'StatsPanel'.");
+                }
+            }
+            if (garage.lockText == null)
+            {
+                var go = Find("LockText");
+                var t = go != null ? go.GetComponent<TMP_Text>() : null;
+                if (t != null)
+                {
+                    Prob("Lock Text ei kytketty.");
+                    if (fix) { garage.lockText = t; s.AppendLine("  -> kytketty (LockText)"); }
+                }
+            }
+
             // ---------- 8. Auton esikatselu ----------
             if (garage.carPreview == null)
             {
@@ -379,6 +436,7 @@ namespace Pakettiporina.EditorTools
             Wire(NEXT_PKG,  garage.NextPackage, "Seuraava paketti");
             Wire(DRIVE,     garage.OnDrive,     "Aja keikka");
             Wire(MAINMENU_BTN, garage.OnMainMenuButton, "Koti / paavalikko", required: false);
+            Wire("InfoButton", garage.ToggleStatsPanel, "Tiedot-nappi (tilastopaneeli)", required: false);
 
             if (fix && tabsOk)
             {

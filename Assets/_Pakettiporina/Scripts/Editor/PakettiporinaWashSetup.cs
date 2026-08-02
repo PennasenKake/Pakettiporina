@@ -113,6 +113,20 @@ namespace Pakettiporina.EditorTools
                 }
             }
 
+            // ---------- 2c. SaveManager ----------
+            var saveMgr = Object.FindObjectOfType<SaveManager>(true);
+            if (saveMgr == null)
+            {
+                Prob("SaveManager puuttuu pesusta (tallennus/lataus ei toimi jos testaat tasta scenesta suoraan).");
+                if (fix)
+                {
+                    var go = new GameObject("SaveManager");
+                    go.AddComponent<SaveManager>();
+                    Undo.RegisterCreatedObjectUndo(go, "SaveManager");
+                    s.AppendLine("  -> luotu (listat tayttyvat automaattisesti kun ajat 'KORJAA halli' Garage-scenessa)");
+                }
+            }
+
             // ---------- 3. Canvas Scaler ----------
             if (canvas != null)
             {

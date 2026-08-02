@@ -53,6 +53,22 @@ namespace Pakettiporina.EditorTools
             }
             else log.AppendLine("AudioManager: OK");
 
+            // ---------- 0b. SAVEMANAGER ----------
+            var saveMgr = Object.FindObjectOfType<SaveManager>(true);
+            if (saveMgr == null)
+            {
+                log.AppendLine("VAROITUS: SaveManager puuttuu (tallennus/lataus ei toimi jos testaat tasta scenesta suoraan).");
+                problems++;
+                if (fix)
+                {
+                    var go = new GameObject("SaveManager");
+                    go.AddComponent<SaveManager>();
+                    Undo.RegisterCreatedObjectUndo(go, "SaveManager");
+                    log.AppendLine("  -> luotu (listat tayttyvat automaattisesti kun ajat 'KORJAA halli' Garage-scenessa)");
+                }
+            }
+            else log.AppendLine("SaveManager: OK");
+
             // ---------- 1. MAASTO ----------
             if (maasto == null) { log.AppendLine("VIRHE: Maasto puuttuu scenesta. Veda Art/Models/Maasto sceneen."); problems++; }
             else
