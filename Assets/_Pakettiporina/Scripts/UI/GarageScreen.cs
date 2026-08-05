@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -53,6 +54,10 @@ namespace Pakettiporina
         [Header("Osien lukitus (pisteilla)")]
         [Tooltip("Nakyy kun selattu osa on viela lukossa (PartData.unlockPoints > pisteet). Valinnainen.")]
         public TMP_Text lockText;
+
+        [Header("Ratojen lukitus (pisteilla, PackageData.unlockPoints)")]
+        [Tooltip("Nakyy kun selattu paketti (ja sen rata) on viela lukossa. Valinnainen.")]
+        public TMP_Text packageLockText;
 
         readonly Dictionary<PartCategory, List<PartData>> byCat = new Dictionary<PartCategory, List<PartData>>();
         readonly Dictionary<PartCategory, int> indexByCat = new Dictionary<PartCategory, int>();
@@ -227,8 +232,18 @@ namespace Pakettiporina
                 packageImage.sprite = pkg.icon;
                 packageImage.enabled = pkg.icon != null; // piilota jos kuva puuttuu, ei nayta harmaata laatikkoa
             }
+            if (packageLockText != null)
+                packageLockText.text = IsPackageLocked(pkg) ? $"Lukossa - tarvitset {pkg.unlockPoints} pistetta" : "";
             UpdateFit();
             Debug.Log($"[Garage] Paketti: {pkg.displayName}");
+        }
+
+        // Onko paketti (ja sita kautta sen rata) viela lukossa? unlockPoints=0 (oletus) = aina auki.
+        bool IsPackageLocked(PackageData pkg)
+        {
+            if (pkg == null || pkg.unlockPoints <= 0) return false;
+            int pts = GameManager.Instance != null ? GameManager.Instance.Points : 0;
+            return pts < pkg.unlockPoints;
         }
 
         PackageData CurrentPackage => allPackages.Count > 0 ? allPackages[packageIndex] : null;
@@ -259,6 +274,14 @@ namespace Pakettiporina
         // Jos paketilla on oma trackScene (esim. "Game2"), ajetaan silla - muuten oletusradalla.
         public void OnDrive()
         {
+            var pkgToCheck = CurrentPackage;
+            if (IsPackageLocked(pkgToCheck))
+            {
+                Debug.Log($"[Garage] '{pkgToCheck.displayName}' on viela lukossa (tarvitset {pkgToCheck.unlockPoints} pistetta) - ei lahdeta ajoon.");
+                if (packageLockText != null) StartCoroutine(FlashLock(packageLockText));
+                return;
+            }
+
             if (GameManager.Instance != null)
                 GameManager.Instance.SetSelection(CurrentPackage, builder.Current, builder.GetSelectedList());
             SaveManager.Instance?.Save();   // tallenna auto+paketti heti kun keikka lahtee
@@ -270,6 +293,14 @@ namespace Pakettiporina
 
             Debug.Log("[Garage] Aja keikka -> " + scene);
             SceneManager.LoadScene(scene);
+        }
+
+        IEnumerator FlashLock(TMP_Text t)
+        {
+            var original = t.color;
+            t.color = Color.red;
+            yield return new WaitForSeconds(0.4f);
+            if (t != null) t.color = original;
         }
 
         // "Koti"-napin OnClick -> paavalikkoon.

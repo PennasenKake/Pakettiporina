@@ -358,6 +358,21 @@ namespace Pakettiporina.EditorTools
                     if (fix) { garage.lockText = t; s.AppendLine("  -> kytketty (LockText)"); }
                 }
             }
+            if (garage.packageLockText == null)
+            {
+                var go = Find("PackageLockText");
+                var t = go != null ? go.GetComponent<TMP_Text>() : null;
+                if (t != null)
+                {
+                    Prob("Package Lock Text ei kytketty.");
+                    if (fix) { garage.packageLockText = t; s.AppendLine("  -> kytketty (PackageLockText)"); }
+                }
+                else
+                {
+                    s.AppendLine("Package Lock Text: ei loydy ('PackageLockText') - valinnainen, mutta ilman sita " +
+                                 "pelaaja ei nae tekstina etta paketti/rata on lukossa (Aja keikka silti estyy).");
+                }
+            }
 
             // ---------- 8. Auton esikatselu ----------
             if (garage.carPreview == null)

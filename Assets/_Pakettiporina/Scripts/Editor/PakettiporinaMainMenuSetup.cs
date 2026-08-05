@@ -50,6 +50,52 @@ namespace Pakettiporina.EditorTools
                 UnityEventTools.RemovePersistentListener(b.onClick, i);
         }
 
+        // Etsii SUORAN lapsen nimella, kirjainkoosta valittamatta (esim. "lock" == "Lock").
+        static Transform FindChildCI(Transform parent, string name)
+        {
+            foreach (Transform t in parent)
+                if (string.Equals(t.name, name, System.StringComparison.OrdinalIgnoreCase))
+                    return t;
+            return null;
+        }
+
+        // Etsii lapsiobjektin nimella rekursiivisesti (kaikista jalkelaisista, ei vain
+        // suorista lapsista), kirjainkoosta valittamatta - kaytetaan Lock/LockText-lapsien
+        // tunnistukseen silla varalta etta ne on vahingossa sijoitettu esim. "Lock"-objektin
+        // ALLE eika sen viereen, tai nimetty hieman eri kirjainkoolla.
+        static Transform FindDeepCI(Transform root, string name)
+        {
+            foreach (Transform t in root)
+            {
+                if (string.Equals(t.name, name, System.StringComparison.OrdinalIgnoreCase)) return t;
+                var found = FindDeepCI(t, name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        // Etsii TMP_Text-objektin root:in lapsista (rekursiivisesti) jonka nimi tasmaa
+        // johonkin candidateNamesLower-listan nimeen (pienina kirjaimina). Kaytetaan
+        // StickerPanelin sisaisen pistetekstin tunnistamiseen, koska kasin tehty objekti
+        // paatyy helposti hieman eri nimelle (esim. "pointsText" "StickerPointsText":n
+        // sijaan) - tarkka nimihaku jattaisi sen silloin huomaamatta ja pisteet jaisivat
+        // paneelissa aina lukemaan placeholder-tekstin.
+        static GameObject FindTmpByNames(Transform root, params string[] candidateNamesLower)
+        {
+            foreach (Transform t in root)
+            {
+                if (t.GetComponent<TMP_Text>() != null)
+                {
+                    string n = t.name.ToLowerInvariant();
+                    foreach (var cand in candidateNamesLower)
+                        if (n == cand) return t.gameObject;
+                }
+                var found = FindTmpByNames(t, candidateNamesLower);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
         static void Run(bool fix)
         {
             var s = new StringBuilder();
@@ -201,8 +247,31 @@ namespace Pakettiporina.EditorTools
                     if (fix) { stickerPanel.panelRoot = panelGo; EditorUtility.SetDirty(stickerPanel); s.AppendLine("  -> kytketty (itseensa)"); }
                 }
 
+                // Pisteteksti paneelin sisalla (valinnainen). Haetaan STICKER_PANELin OMASTA
+                // hierarkiasta (ei koko scenesta) jotta ei vahingossa napata paavalikon
+                // Sticker_Points_Buttonin omaa "PointsText"-objektia. Hyvaksytaan useampi
+                // nimivariantti, koska kasin nimeaminen menee helposti hieman eri lailla.
+                var spTextGo = FindTmpByNames(panelGo.transform, "stickerpointstext", "pointstext");
+                if (spTextGo != null && stickerPanel != null)
+                {
+                    var tmp = spTextGo.GetComponent<TMP_Text>();
+                    if (tmp != null && stickerPanel.pointsText != tmp)
+                    {
+                        Prob($"StickerPanel.Points Text ei kytketty (loytyi '{spTextGo.name}').");
+                        if (fix) { stickerPanel.pointsText = tmp; EditorUtility.SetDirty(stickerPanel); s.AppendLine($"  -> kytketty ('{spTextGo.name}')"); }
+                    }
+                    else if (tmp != null) s.AppendLine($"StickerPanel.Points Text: OK ('{spTextGo.name}').");
+                }
+                else
+                {
+                    s.AppendLine($"StickerPanelin sisalta ei loytynyt pistetekstia (valinnainen - nimea 'StickerPointsText' jos haluat sen).");
+                }
+
                 // Slottien automaattinen tunnistus: StickerGrid-lapsen jokainen lapsi
                 // nimetaan StickerData-assetin nimen mukaan (esim. "Vilkku.asset" <-> "Vilkku"-objekti).
+                // HUOM: rakennetaan JOKA fix-ajolla uudestaan tyhjasta (ei vain jos maara
+                // muuttuu) - nain esim. myohemmin lisatyt Lock-lapset kytkeytyvat aina, eika
+                // vanha, osittain tyhja Slots-lista jaa "piiloon" pelkan lukumaaran takana.
                 var gridGo = Find(STICKER_GRID);
                 if (gridGo == null)
                 {
@@ -221,7 +290,10 @@ namespace Pakettiporina.EditorTools
                         s.AppendLine("Projektista ei loytynyt yhtaan StickerData-assetia (Assets > Create > Pakettiporina > Sticker).");
 
                     var newSlots = new List<StickerPanel.Slot>();
-                    int matched = 0, unmatched = 0;
+                    var newButtons = new List<Button>();
+                    var missingLock = new List<string>();
+                    var missingLockText = new List<string>();
+                    int matched = 0, unmatched = 0, withLock = 0, withLockText = 0, withButton = 0;
                     foreach (Transform child in gridGo.transform)
                     {
                         var img = child.GetComponent<Image>();
@@ -232,28 +304,69 @@ namespace Pakettiporina.EditorTools
                             unmatched++;
                             continue;
                         }
-                        var lockChild = child.Find("Lock");
-                        var lockTextChild = child.Find("LockText");
+                        // Suora lapsi ensin (odotettu sijainti, kirjainkoosta valittamatta),
+                        // sitten rekursiivinen varahaku silla varalta etta LockText paatyi
+                        // vahingossa Lock-objektin ALLE eika sen viereen.
+                        var lockChild = FindChildCI(child, "Lock");
+                        var lockTextChild = FindChildCI(child, "LockText") ?? FindDeepCI(child, "LockText");
+                        if (lockChild != null) withLock++; else missingLock.Add(child.name);
+                        if (lockTextChild != null) withLockText++; else missingLockText.Add(child.name);
+
+                        // Slotin nappi: kaytetaan objektilla jo olevaa Buttonia, tai lisataan yksi
+                        // (koko slotti napautettavaksi -> ostaa lukossa olevan tarran).
+                        var btn = child.GetComponent<Button>();
+                        if (btn == null && fix)
+                        {
+                            btn = child.gameObject.AddComponent<Button>();
+                            btn.transition = Selectable.Transition.None;
+                        }
+                        if (btn != null && btn.targetGraphic == null) btn.targetGraphic = img;
+                        if (btn != null) withButton++;
+
                         newSlots.Add(new StickerPanel.Slot
                         {
                             sticker = sticker,
                             image = img,
                             lockOverlay = lockChild != null ? lockChild.gameObject : null,
-                            lockText = lockTextChild != null ? lockTextChild.GetComponent<TMP_Text>() : null
+                            lockText = lockTextChild != null ? lockTextChild.GetComponent<TMP_Text>() : null,
+                            button = btn
                         });
+                        newButtons.Add(btn);
                         matched++;
                     }
-                    if (matched != stickerPanel.slots.Count)
-                    {
+
+                    bool needsRebuild = fix; // aina uudelleen fix-ajolla, katso HUOM yllä
+                    if (!fix && matched != stickerPanel.slots.Count)
                         Prob($"StickerPanel.Slots ei tasmaa (loytyi {matched} kytkettavaa, oli {stickerPanel.slots.Count}).");
-                        if (fix)
+
+                    if (needsRebuild)
+                    {
+                        stickerPanel.slots = newSlots;
+                        EditorUtility.SetDirty(stickerPanel);
+                        s.AppendLine($"  -> {matched} slottia kytketty (Lock-peite: {withLock}/{matched}, LockText: {withLockText}/{matched}, Nappi: {withButton}/{matched}).");
+
+                        // Nappien OnClick -> StickerPanel.OnSlotClicked(index), indeksipohjaisesti
+                        // (sama kaava kuin Garagen kategoriavalilehdilla).
+                        var call = new UnityAction<int>(stickerPanel.OnSlotClicked);
+                        for (int i = 0; i < newButtons.Count; i++)
                         {
-                            stickerPanel.slots = newSlots;
-                            EditorUtility.SetDirty(stickerPanel);
-                            s.AppendLine($"  -> {matched} slottia kytketty");
+                            if (newButtons[i] == null) continue;
+                            ClearClicks(newButtons[i]);
+                            UnityEventTools.AddIntPersistentListener(newButtons[i].onClick, call, i);
                         }
+                        s.AppendLine($"  -> {withButton} napin OnClick -> OnSlotClicked(index) kytketty.");
                     }
-                    else s.AppendLine($"StickerPanel.Slots: OK ({matched} kpl).");
+                    else
+                    {
+                        s.AppendLine($"StickerPanel.Slots: OK ({matched} kpl, Lock-peite: {withLock}/{matched}, LockText: {withLockText}/{matched}, Nappi: {withButton}/{matched}).");
+                    }
+
+                    if (missingLock.Count > 0)
+                        s.AppendLine($"VAROITUS: {missingLock.Count} tarralta puuttuu 'Lock'-lapsi (lukko ei nay koskaan niilla): " +
+                                     string.Join(", ", missingLock));
+                    if (missingLockText.Count > 0)
+                        s.AppendLine($"VAROITUS: {missingLockText.Count} tarralta puuttuu 'LockText'-lapsi (pistemaara ei nay lukossa): " +
+                                     string.Join(", ", missingLockText));
                     if (unmatched > 0)
                         s.AppendLine($"VAROITUS: {unmatched} StickerGridin lasta ei tasmaa minkaan StickerData-assetin nimeen.");
                 }

@@ -51,6 +51,7 @@ namespace Pakettiporina
             };
             foreach (var p in gm.SelectedParts)
                 if (p != null) data.selectedPartNames.Add(p.name);
+            data.unlockedStickerNames = new List<string>(gm.UnlockedStickerNames);
 
             try
             {
@@ -104,7 +105,8 @@ namespace Pakettiporina
             }
 
             gm.ApplyLoadedSelection(pkg, parts);
-            Debug.Log($"[Save] Ladattu: {data.points} pistetta, {parts.Count}/{data.selectedPartNames.Count} osaa loytyi.");
+            gm.ApplyLoadedStickers(data.unlockedStickerNames);
+            Debug.Log($"[Save] Ladattu: {data.points} pistetta, {parts.Count}/{data.selectedPartNames.Count} osaa loytyi, {data.unlockedStickerNames?.Count ?? 0} tarraa avattu.");
         }
 
         // Mobiilissa sovellus harvoin sulkeutuu siististi (kayttaja vain vaihtaa

@@ -16,5 +16,6 @@ namespace Pakettiporina
         public int points;
         public List<string> selectedPartNames = new List<string>();
         public string selectedPackageName = "";
+        public List<string> unlockedStickerNames = new List<string>();
     }
 }

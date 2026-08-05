@@ -18,6 +18,16 @@ namespace Pakettiporina
         // Valitut osat: nailla halli rakentaa saman auton uudelleen.
         public List<PartData> SelectedParts { get; private set; } = new List<PartData>();
 
+        // Pysyvasti avatut tarrat (ostettu pisteilla). Sailyy tallennuksen yli.
+        public HashSet<string> UnlockedStickerNames { get; private set; } = new HashSet<string>();
+
+        // Ilmoittaa AINA kun Points-arvo muuttuu (lisays, lataus tallennuksesta, tarraosto).
+        // UI-komponentit (esim. PointsDisplay) voivat tilata taman sen sijaan etta luottavat
+        // vain OnEnableen - talla vaietaan tilanne jossa pisteet muuttuvat SAMAN scenen
+        // sisalla (esim. tarran ostaminen paavalikossa) eika mikaan UI-elementti ehdi
+        // aktivoitua/deaktivoitua uudelleen, mika muuten jattaisi vanhan lukeman nakyviin.
+        public event System.Action<int> OnPointsChanged;
+
         void Awake()
         {
             if (Instance != null && Instance != this)
@@ -42,6 +52,7 @@ namespace Pakettiporina
             Points += amount;
             Debug.Log($"[GameManager] +{amount} pistetta. Yhteensa: {Points}");
             SaveManager.Instance?.Save();
+            OnPointsChanged?.Invoke(Points);
         }
 
         // Hallin "Aja keikka" tallentaa taalle: paketti, mittarit JA valitut osat.
@@ -59,6 +70,7 @@ namespace Pakettiporina
         {
             Points = amount;
             Debug.Log($"[GameManager] Pisteet ladattu tallennuksesta: {Points}");
+            OnPointsChanged?.Invoke(Points);
         }
 
         // Kaytetaan SaveManagerista: palauttaa paketin + osat ilman mittareita
@@ -69,6 +81,35 @@ namespace Pakettiporina
             SelectedParts = parts != null ? new List<PartData>(parts) : new List<PartData>();
             SelectedStats = default;
             Debug.Log($"[GameManager] Ladattu auto tallennuksesta: osia={SelectedParts.Count}, paketti={(pkg != null ? pkg.displayName : "ei mitaan")}.");
+        }
+
+        // Onko tarra jo ostettu/avattu pysyvasti (ei riipu nykyisista pisteista).
+        public bool IsStickerUnlocked(StickerData sticker)
+        {
+            return sticker != null && UnlockedStickerNames.Contains(sticker.name);
+        }
+
+        // Yrittaa ostaa tarran nykyisilla pisteilla. Jos jo avattu, palauttaa true heti
+        // (ei veloita uudelleen). Jos pisteet eivat riita, palauttaa false eika tee mitaan.
+        public bool TryUnlockSticker(StickerData sticker)
+        {
+            if (sticker == null) return false;
+            if (UnlockedStickerNames.Contains(sticker.name)) return true;
+            if (Points < sticker.unlockPoints) return false;
+
+            Points -= sticker.unlockPoints;
+            UnlockedStickerNames.Add(sticker.name);
+            Debug.Log($"[GameManager] Tarra ostettu: {sticker.displayName} (-{sticker.unlockPoints} p). Pisteet jaljella: {Points}");
+            SaveManager.Instance?.Save();
+            OnPointsChanged?.Invoke(Points);
+            return true;
+        }
+
+        // Kaytetaan SaveManagerista: palauttaa avattujen tarrojen listan tallennuksesta.
+        public void ApplyLoadedStickers(List<string> names)
+        {
+            UnlockedStickerNames = names != null ? new HashSet<string>(names) : new HashSet<string>();
+            Debug.Log($"[GameManager] Ladattu {UnlockedStickerNames.Count} avattua tarraa tallennuksesta.");
         }
     }
 }

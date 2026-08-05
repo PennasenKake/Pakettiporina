@@ -11,9 +11,20 @@ namespace Pakettiporina.EditorTools
     // Kaytto: ylavalikko "Pakettiporina" -> Tarkista / Korjaa
     public static class PakettiporinaSetup
     {
-        const float START_Z  = -135f;   // lahto (suoralla osuudella)
-        const float FINISH_Z =  135f;   // maali (suoralla osuudella)
-        const float START_Y  =    1.0f; // auto hieman maan ylapuolelle
+        const float START_Y = 1.0f; // auto hieman maan ylapuolelle
+
+        // Radan mitat scenen nimen mukaan - jokaisella radalla on eri pituus, joten
+        // lahto/maali-Z JA GroundColliderin skaala EIVAT voi olla samat kaikilla.
+        // Game (Rata 1) on oletus/vanha kaava, jos scenen nimi ei tasmaa mihinkaan.
+        class TrackDims { public string maastoName; public float startZ, finishZ, groundScaleZ; }
+        static readonly System.Collections.Generic.Dictionary<string, TrackDims> DIMS_BY_SCENE = new()
+        {
+            ["Game"]       = new TrackDims { maastoName = "Maasto",     startZ = -135f, finishZ = 135f, groundScaleZ = 30.2f },
+            ["Puisto"]     = new TrackDims { maastoName = "Puisto",     startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f },
+            ["Satama"]     = new TrackDims { maastoName = "Satama",     startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f },
+            ["Huvipuisto"] = new TrackDims { maastoName = "Huvipuisto", startZ = -170f, finishZ = 170f, groundScaleZ = 38.0f },
+        };
+        const float GROUND_SCALE_X = 7.2f; // radan leveys on aina 71 -> sama kaikilla
 
         [MenuItem("Pakettiporina/1 - Tarkista peliscene")]
         public static void Diagnose() { Run(false); }
@@ -24,7 +35,15 @@ namespace Pakettiporina.EditorTools
         static void Run(bool fix)
         {
             var log = new StringBuilder();
-            log.AppendLine(fix ? "=== KORJAUS ===" : "=== TARKISTUS ===");
+            string sceneName = EditorSceneManager.GetActiveScene().name;
+            if (!DIMS_BY_SCENE.TryGetValue(sceneName, out var dims))
+            {
+                dims = DIMS_BY_SCENE["Game"];
+                log.AppendLine($"(Scenea '{sceneName}' ei tunnisteta - kaytetaan Rata 1:n oletusmittoja. " +
+                                "Lisaa se DIMS_BY_SCENE-tauluun jos tama on uusi rata.)");
+            }
+            float START_Z = dims.startZ, FINISH_Z = dims.finishZ;
+            log.AppendLine(fix ? $"=== KORJAUS ({sceneName}) ===" : $"=== TARKISTUS ({sceneName}) ===");
             int problems = 0;
 
             // ---------- etsi osat ----------
@@ -33,7 +52,7 @@ namespace Pakettiporina.EditorTools
             var raceSetup = Object.FindObjectOfType<RaceSetup>();
             var camFollow = Object.FindObjectOfType<CameraFollow>();
             var finishTr  = Object.FindObjectOfType<FinishTrigger>();
-            var maasto    = GameObject.Find("Maasto");
+            var maasto    = GameObject.Find(dims.maastoName);
             var ground    = GameObject.Find("GroundCollider");
             var startObj  = GameObject.Find("StartPoint");
             var audioMgr  = Object.FindObjectOfType<AudioManager>(true);
@@ -70,7 +89,7 @@ namespace Pakettiporina.EditorTools
             else log.AppendLine("SaveManager: OK");
 
             // ---------- 1. MAASTO ----------
-            if (maasto == null) { log.AppendLine("VIRHE: Maasto puuttuu scenesta. Veda Art/Models/Maasto sceneen."); problems++; }
+            if (maasto == null) { log.AppendLine($"VIRHE: '{dims.maastoName}' puuttuu scenesta. Veda Art/Models/{dims.maastoName} sceneen."); problems++; }
             else
             {
                 bool bad = maasto.transform.position != Vector3.zero
@@ -110,19 +129,20 @@ namespace Pakettiporina.EditorTools
                 var mc = ground.GetComponent<MeshCollider>();
                 var mr = ground.GetComponent<MeshRenderer>();
                 var mf = ground.GetComponent<MeshFilter>();
+                var expectedScale = new Vector3(GROUND_SCALE_X, 1f, dims.groundScaleZ);
                 bool bad = mc == null || mr != null
                         || ground.transform.position != Vector3.zero
-                        || ground.transform.localScale != new Vector3(7.2f, 1f, 30.2f);
+                        || ground.transform.localScale != expectedScale;
                 if (bad)
                 {
-                    log.AppendLine("GroundCollider: puutteita (collider/renderer/skaala).");
+                    log.AppendLine($"GroundCollider: puutteita (collider/renderer/skaala, odotettu {expectedScale}).");
                     problems++;
                     if (fix)
                     {
                         ground.transform.SetParent(null);
                         ground.transform.position = Vector3.zero;
                         ground.transform.rotation = Quaternion.identity;
-                        ground.transform.localScale = new Vector3(7.2f, 1f, 30.2f);
+                        ground.transform.localScale = expectedScale;
                         if (mr != null) Object.DestroyImmediate(mr);
                         if (mc == null)
                         {
@@ -130,7 +150,7 @@ namespace Pakettiporina.EditorTools
                             if (mf != null) mc.sharedMesh = mf.sharedMesh;
                         }
                         mc.convex = false;
-                        log.AppendLine("  -> korjattu (MeshCollider paalla, renderer pois, skaala 7.2/1/30.2)");
+                        log.AppendLine($"  -> korjattu (MeshCollider paalla, renderer pois, skaala {expectedScale})");
                     }
                 }
                 else log.AppendLine("GroundCollider: OK");

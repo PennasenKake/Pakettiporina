@@ -25,6 +25,8 @@ namespace Pakettiporina
         public float mass = 5f;
         [Tooltip("Palkkio pisteina onnistuneesta toimituksesta")]
         public int rewardPoints = 30;
+        [Tooltip("Pisteraja jonka jalkeen paketti (ja sen rata) aukeaa. 0 = aina auki.")]
+        public int unlockPoints = 0;
         [Tooltip("Sulamisaika sekunteina kylmalle paketille (0 = ei sula)")]
         public float meltTime = 0f;
 

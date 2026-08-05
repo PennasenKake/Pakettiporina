@@ -19,6 +19,11 @@ namespace Pakettiporina
         public AudioClip bubblePop;       // saippuakupla poksahtaa (M4)
         public AudioClip buttonClick;     // yleinen napin klikkausaani (kytke halutessasi kasin nappeihin)
 
+        [Header("Radan elementit (valinnaisia)")]
+        public AudioClip boostSound;      // Boost-tapa
+        public AudioClip splashSound;     // Lätäkkö
+        public AudioClip bumpSound;       // Kartio-kolhu
+
         [Header("Musiikki (valinnainen)")]
         [Range(0f, 1f)] public float musicVolume = 0.6f;
         [Range(0f, 1f)] public float sfxVolume = 1f;
@@ -80,6 +85,9 @@ namespace Pakettiporina
 
         public void PlayBubblePop() { PlaySfx(bubblePop); }
         public void PlayButtonClick() { PlaySfx(buttonClick); }
+        public void PlayBoost() { PlaySfx(boostSound); }
+        public void PlaySplash() { PlaySfx(splashSound); }
+        public void PlayBump() { PlaySfx(bumpSound); }
 
         public void PlayMusic(AudioClip clip, bool loop = true)
         {
