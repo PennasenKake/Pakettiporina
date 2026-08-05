@@ -64,7 +64,9 @@ namespace Pakettiporina.EditorTools
                 // Huvipuisto: kaikki elementit yhdessa - haastavin, kaikki opitut taidot tarpeen.
                 sceneName = "Huvipuisto",
                 bends = new[] { (-150f, -80f, 16f), (-40f, 40f, -18f), (80f, 150f, 16f) },
-                boostZ = new[] { -170f, 170f },
+                // Yksi boost per mutka-osuus (ei vain radan paissa) - opettaa
+                // kiihdyttamaan jokaisen mutkan kohdalla, ei vain suoralla.
+                boostZ = new[] { -140f, -20f, 100f },
                 puddleZ = new[] { 0f },
                 cones = new[] { (-115f, 3.5f), (115f, -3.5f) },
             },
@@ -122,9 +124,17 @@ namespace Pakettiporina.EditorTools
             Debug.Log(s.ToString());
         }
 
+        // GameObject.Find loytaa vain AKTIIVISET objektit - jos Boost/Latakko/Kartio oli
+        // valilla piilotettuna (esim. testauksen aikana), Find ei loytaisi sita ja tama
+        // loisi vahingossa toisen samannimisen kopion. Etsitaan siksi kaikista objekteista
+        // (myos piilotetut) nimen perusteella.
         static GameObject FindOrCreate(string name, PrimitiveType prim)
         {
-            var go = GameObject.Find(name);
+            GameObject go = null;
+            foreach (var t in Object.FindObjectsOfType<Transform>(true))
+            {
+                if (t.name == name) { go = t.gameObject; break; }
+            }
             if (go == null)
             {
                 go = GameObject.CreatePrimitive(prim);

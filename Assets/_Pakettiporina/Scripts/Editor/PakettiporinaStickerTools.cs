@@ -44,6 +44,20 @@ namespace Pakettiporina.EditorTools
             ("pokaali",     "Pokaali",     350),
             ("planeetta",   "Planeetta",   450),
             ("kilpaauto",   "Kilpa-auto",  600),
+
+            // Kolmas era
+            ("pollo",       "Pollo",        15),
+            ("perhonen",    "Perhonen",     35),
+            ("kissa",       "Kissa",        65),
+            ("kukka",       "Kukka",        85),
+            ("jalkapallo",  "Jalkapallo",  120),
+            ("lumihiutale", "Lumihiutale", 150),
+            ("pilvi",       "Pilvi",       190),
+            ("leijona",     "Leijona",     230),
+            ("kitara",      "Kitara",      270),
+            ("avain",       "Avain",       310),
+            ("komeetta",    "Komeetta",    380),
+            ("kello",       "Kello",       550),
         };
 
         [MenuItem("Pakettiporina/13 - Luo tarrat (avattavat)")]

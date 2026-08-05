@@ -20,4 +20,6 @@ MonoBehaviour:
   requiredPart: {fileID: 11400000, guid: 5ee238d698c4eea40848caf7f4ff7d9c, type: 2}
   mass: 10
   rewardPoints: 45
+  unlockPoints: 0
   meltTime: 0
+  trackScene: Huvipuisto

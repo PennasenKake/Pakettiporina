@@ -90,8 +90,17 @@ namespace Pakettiporina
                 byCat[c] = new List<PartData>();
                 indexByCat[c] = 0;
             }
+            int pts = GameManager.Instance != null ? GameManager.Instance.Points : 0;
             foreach (var p in allParts)
-                if (p != null) byCat[p.category].Add(p);
+            {
+                if (p == null) continue;
+                // Salainen osa ei nay osaselaimessa OLLENKAAN ennen kuin pisteraja tayttyy -
+                // ei siis pelkkaa "lukossa"-tekstia, vaan osa puuttuu listasta kokonaan.
+                // Kun pelaaja on kerannyt tarpeeksi pisteita, osa ilmestyy yllatyksena seuraavalla
+                // hallikaynnilla (BuildLookups ajetaan Start():ssa).
+                if (p.secret && pts < p.unlockPoints) continue;
+                byCat[p.category].Add(p);
+            }
         }
 
         // Lataa GameManagerin tallennetut osat (jos on) oikeilla indekseilla, muuten oletukset.

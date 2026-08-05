@@ -321,7 +321,25 @@ namespace Pakettiporina.EditorTools
                 }
                 else log.AppendLine("CameraFollow: OK");
             }
-            else if (camFollow == null) { log.AppendLine("VAROITUS: Main Cameralta puuttuu CameraFollow."); problems++; }
+            else if (camFollow == null)
+            {
+                log.AppendLine("VAROITUS: Main Cameralta puuttuu CameraFollow."); problems++;
+                if (fix)
+                {
+                    var mainCamGo = Camera.main != null ? Camera.main.gameObject : GameObject.Find("Main Camera");
+                    if (mainCamGo != null)
+                    {
+                        camFollow = mainCamGo.AddComponent<CameraFollow>();
+                        if (carCtrl != null) camFollow.target = carCtrl.transform;
+                        EditorUtility.SetDirty(mainCamGo);
+                        log.AppendLine("  -> CameraFollow lisatty Main Cameraan" + (carCtrl != null ? " ja kytketty autoon" : " (auto puuttuu viela, kytke myohemmin)"));
+                    }
+                    else
+                    {
+                        log.AppendLine("  -> ei voitu lisata: 'Main Camera' -objektia ei loydy scenesta.");
+                    }
+                }
+            }
 
             if (raceSetup != null && carCtrl != null)
             {

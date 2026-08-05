@@ -19,4 +19,6 @@ MonoBehaviour:
   requiredPart: {fileID: 11400000, guid: 39987ba38728f6a4eb0c2ff326f524cc, type: 2}
   mass: 6
   rewardPoints: 40
+  unlockPoints: 0
   meltTime: 0
+  trackScene: Puisto

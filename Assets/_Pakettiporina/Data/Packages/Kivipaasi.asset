@@ -19,4 +19,6 @@ MonoBehaviour:
   requiredPart: {fileID: 11400000, guid: d3fbf08d2ac75c3449f38e80922e9eb2, type: 2}
   mass: 25
   rewardPoints: 45
+  unlockPoints: 0
   meltTime: 0
+  trackScene: Satama

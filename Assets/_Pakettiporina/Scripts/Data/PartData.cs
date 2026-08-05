@@ -17,18 +17,24 @@ namespace Pakettiporina
         public PartCategory category = PartCategory.Kori;
 
         [Header("Ominaisuusvaikutukset (+ / -)")]
-        [Tooltip("Kiihtyvyys / mäkien nousu")] public int voima;
+        [Tooltip("Kiihtyvyys / mï¿½kien nousu")] public int voima;
         [Tooltip("Mutkat ja liukkaat pinnat")] public int pito;
         [Tooltip("Ketteryys ja hyppyjen pituus")] public int keveys;
-        [Tooltip("Töyssyjen sieto, särkyvän paketin suoja")] public int kestavyys;
-        [Tooltip("Kylmälaatikon teho (jäätelö)")] public int kylmyys;
+        [Tooltip("Tï¿½yssyjen sieto, sï¿½rkyvï¿½n paketin suoja")] public int kestavyys;
+        [Tooltip("Kylmï¿½laatikon teho (jï¿½ï¿½telï¿½)")] public int kylmyys;
 
         [Header("Muut")]
-        [Tooltip("Vain koriste (esim. kissankorvat) — ei muuta ominaisuuksia")]
+        [Tooltip("Vain koriste (esim. kissankorvat) ï¿½ ei muuta ominaisuuksia")]
         public bool cosmeticOnly;
         [Tooltip("Auton varille (Maali-kategoria)")]
         public Color color = Color.white;
         [Tooltip("Pistemaara jolla osa avautuu (0 = kaytettavissa heti)")]
         public int unlockPoints;
+
+        [Header("Salainen osa")]
+        [Tooltip("Salainen osa EI NAY osaselaimessa ollenkaan ennen kuin unlockPoints tayttyy - " +
+                 "se ei ole vain lukossa vaan pois nakyvista, ja ilmestyy yllatyksena listaan kun " +
+                 "pelaaja on kerannyt tarpeeksi pisteita. Kaytetaan esim. 'paras mahdollinen auto' -jekkuun.")]
+        public bool secret;
     }
 }
