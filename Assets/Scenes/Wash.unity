@@ -2092,7 +2092,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &598645936
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5222,7 +5222,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1833780503
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5726,6 +5726,9 @@ MonoBehaviour:
   finishFanfare: {fileID: 0}
   bubblePop: {fileID: 0}
   buttonClick: {fileID: 0}
+  boostSound: {fileID: 0}
+  splashSound: {fileID: 0}
+  bumpSound: {fileID: 0}
   musicVolume: 0.6
   sfxVolume: 1
 --- !u!4 &2144476060

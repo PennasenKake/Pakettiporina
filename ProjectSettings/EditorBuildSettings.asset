@@ -15,6 +15,15 @@ EditorBuildSettings:
     path: Assets/Scenes/Game.unity
     guid: 027f2e562feb5b04ba7291059c98f8d7
   - enabled: 1
+    path: Assets/Scenes/Satama.unity
+    guid: 5b466834c24f10047853fdad56304b26
+  - enabled: 1
+    path: Assets/Scenes/Puisto.unity
+    guid: f0258aa45fa213449b02b8bbb95bd7e4
+  - enabled: 1
+    path: Assets/Scenes/Huvipuisto.unity
+    guid: 5b51f8217482623448f9b6eb6b5e2c6b
+  - enabled: 1
     path: Assets/Scenes/Wash.unity
     guid: f3badd5b652e3344ba6d004be98d817d
   - enabled: 0
