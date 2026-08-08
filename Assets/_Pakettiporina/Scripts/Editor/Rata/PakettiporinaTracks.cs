@@ -30,6 +30,15 @@ namespace Pakettiporina.EditorTools
             public float[] boostZ;
             public float[] puddleZ;
             public (float z, float offsetX)[] cones;
+
+            // KAYTTAJAN UNITYSSA KASIN TESTAAMAT (x,z) -ylikirjoitukset - jos annettu (ei-tyhja),
+            // PakettiporinaElements kayttaa naita SUORAAN eika laske X:aa road_x(z)-kaavasta.
+            // Lisatty 8.8.2026 Huvipuistoa varten: kayttaja totesi etaisyystestilla etta
+            // formulasta laskettu X ei osunut nakyvalle tielle radan alkupaassa - eika
+            // formulaa haluttu (viela) muuttaa kaikkien elementtien osalta, joten yksittaiset,
+            // Unityssa oikeaksi todetut sijainnit voidaan kiinnittaa tassa suoraan.
+            public (float z, float x)[] boostXZ;
+            public (float z, float x)[] conesXZ;
         }
 
         // Radan leveys on aina 71 -> GroundColliderin X-skaala sama kaikilla radoilla.
@@ -43,6 +52,19 @@ namespace Pakettiporina.EditorTools
 
         public static readonly TrackDef[] ALL =
         {
+            new TrackDef
+            {
+                // Maatila: ensimmainen "hengahdys"-rata, kaksi hyvin loivaa peltotien
+                // kaarretta. Ei kartioita/lataakoita - helppo, rauhallinen. Tahdet
+                // toimivat vaikeasuunnitelman "kolikoiden" sijasta kunnes oma
+                // kolikkosysteemi rakennetaan.
+                sceneName = "Maatila", maastoName = "Maatila",
+                startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f, roadBaseX = 0f,
+                bends = new[] { (-110f, -20f, 14f), (20f, 110f, -14f) },
+                boostZ = new float[0],
+                puddleZ = new float[0],
+                cones = new (float, float)[0],
+            },
             new TrackDef
             {
                 sceneName = "Game", maastoName = "Maasto",
@@ -88,12 +110,64 @@ namespace Pakettiporina.EditorTools
             new TrackDef
             {
                 // Huvipuisto: kaikki elementit yhdessa - haastavin, kaikki opitut taidot tarpeen.
+                // TAYDENNETTY 8.8.2026: elementit nyt jokaisessa kolmesta osiosta (bend1/
+                // s-mutka/bend3) - boost/lätäkkö sijoittuvat AINA road_x(z):n paalle (siis
+                // suoraan tielle, PlaceBoost/PlacePuddle eivat kayta offsetX:aa), kartiot
+                // road_x(z)+offsetX. Lisatty lätäkkö bend1:een ja kaksi kartiota s-mutkan
+                // suunnanvaihtoon (pakottaa vaistelemaan juuri kun tie kaantyy toiseen suuntaan).
+                //
+                // KORJATTU 8.8.2026 (sama paiva, myohemmin): edellinen muokkaus poisti
+                // vahingossa sceneName/maastoName/startZ/finishZ/groundScaleZ/roadBaseX/bends-
+                // rivit talta TrackDefilta editoidessa vain boostZ/puddleZ/cones-osaa. Tama
+                // aiheutti "ei tunnettua ratapresettia" -virheen KAIKISSA tyokaluissa
+                // (SceneDump/RoadProfile/Elements) Huvipuisto-scenessa, vaikka rata oli listalla -
+                // koska sceneName oli hiljaa null (C#:n string-oletusarvo) eika koskaan tasmannyt
+                // "Huvipuisto":n kanssa Find()-vertailussa. Palautettu.
+                //
+                // KORJATTU 8.8.2026 (kolmas kerta): kayttaja totesi Unityssa etta tehosteet/
+                // esteet/tahdet EIVAT osuneet nakyvalle tielle, erityisesti radan alkupaassa -
+                // kaikki kaytannon testauksesta saadut korjatut pisteet (Boost_01/02/03/05,
+                // Kartio_01/02/04) osoittautuivat systemaattisesti VASTAKKAISMERKKISIKSI kuin
+                // mita bends-kaava antoi (esim. Boost_02 z=-100: kaava antoi X=+9.78, oikea
+                // paikka oli X=-4 - siis negatiivinen). Kaikkien kolmen mutkan amplitudin
+                // etumerkki oli vaarinpain (peilikuva sivuttain nakyvaan tiehen nahden) -
+                // kaannetty. HUOM tama poikkeaa Blenderista tehdysta FBX-tarkistuksesta joka
+                // NAYTTI tasmaavan alkuperaisiin (positiivisiin) arvoihin - todennakoinen syy:
+                // Blenderin oma X-akseli kaantyy FBX-vienti/tuontiketjussa (kasisyys/handedness-
+                // muunnos) eika suoraan vastaa Unityn X:aa - Unity-testi on tassa auktoriteetti.
+                // TASAPAINOTETTU 8.8.2026: kayttaja pyysi tarkistamaan/tasapainottamaan
+                // tahtien/boostien/esteiden maaran ja sijoittelun. Alkuperaisessa listassa
+                // (5 boostia, 2 latakkoa) oli kaksi 80 yksikon "tyhjaa" valia (z -100..-20 ja
+                // z -20..60) JA koko viimeinen 71 yksikon pätka (z 99..170, koko kolmas mutka +
+                // maaliin johtava suora) ilman YHTAAN boostia. Lisatty 3 boostia (z=-65,20,130)
+                // ja 2 latakkoa (z=-130,110) tayttamaan aukot - uudet valit nyt tasaisesti
+                // 30-45 yksikkoa (oli 30-80). Uusien kohteiden X laskettu SUORAAN alla olevalla
+                // (jo Unityssa vahvistetulla, kaannetylla) bends-kaavalla road_x(z):lla - ei
+                // kasin testattu Unityssa viela kuten muut boostXZ-pisteet, mutta kaava on nyt
+                // todistetusti tarkka (~5 yks. virhemarginaali kayttajan hand-testatuista
+                // pisteista) joten pitaisi osua tielle oikein.
                 sceneName = "Huvipuisto", maastoName = "Huvipuisto",
                 startZ = -170f, finishZ = 170f, groundScaleZ = 38.0f, roadBaseX = 0f,
-                bends = new[] { (-150f, -80f, 16f), (-40f, 40f, -18f), (80f, 150f, 16f) },
-                boostZ = new[] { -140f, -20f, 100f },
-                puddleZ = new[] { 0f },
-                cones = new[] { (-115f, 3.5f), (115f, -3.5f) },
+                bends = new[] { (-150f, -80f, -16f), (-40f, 40f, 18f), (80f, 150f, -16f) },
+                boostZ = new[] { -140f, -100f, -65f, -20f, 20f, 60f, 99f, 130f },
+                puddleZ = new[] { -130f, -60f, 0f, 110f },
+                cones = new[] { (-115f, 3.5f), (-15f, -3f), (15f, 3f), (115f, -3.5f) },
+
+                // Kayttajan Unityssa kasin testaamat, tarkat sijainnit - kaytetaan naita
+                // SUORAAN boostZ/cones+kaavan sijasta (ks. TrackDef.boostXZ-kommentti).
+                // Kolme uutta tayteboostia (-65,20,130) lisatty perään, X laskettu kaavasta
+                // (ks. yllaoleva TASAPAINOTETTU-kommentti) - ei viela kasin Unity-testattu.
+                boostXZ = new[] { (-140f, -4f), (-100f, -4f), (-65f, 0f), (-20f, 5f), (20f, 9f), (60f, 0f), (99f, -5f), (130f, -9.78f) },
+                // KORJATTU 8.8.2026 ("tarkista kaikki huolellisesti" -pyynnon yhteydessa loydetty):
+                // Kartio_03:n arvo (15,-9.44) oli peraisin AIVAN ALKUPERAISESTA (ennen bends-
+                // kaannosta otetusta) scene-dumpista - kayttaja ei koskaan pyytanyt sille
+                // korjausta erikseen (vain Kartio_01/02/04 mainittiin), joten se jai vahingossa
+                // vanhaksi. Nyt kaannetyn kaavan mukaan RoadX(15)=12.44, joten -9.44 oli 21.9
+                // yksikkoa oikealta tielta - kiintea este joka ei enaa oikeasti tukkinut tieta.
+                // Korjattu samalla n. +5 offset-periaatteella kuin Kartio_01/02/04 (mutta
+                // vastakkainen etumerkki Kartio_02:een nahden, koska ne ovat s-mutkan
+                // vastakkaisilla puolilla) - EI VIELA KASIN UNITY-TESTATTU.
+                conesXZ = new[] { (-115f, -11f), (-15f, 7f), (15f, 17.44f), (114f, -11f) },
             },
         };
 

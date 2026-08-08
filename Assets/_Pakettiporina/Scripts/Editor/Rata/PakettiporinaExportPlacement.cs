@@ -51,16 +51,24 @@ namespace Pakettiporina.EditorTools
                     string instAttr = t.name != model ? $", instanceName = \"{t.name}\"" : "";
                     float rotY = NormAngle(t.eulerAngles.y);
                     float rotX = NormAngle(t.eulerAngles.x);
-                    // HUOM: rotX tulostetaan vain jos poikkeaa nollasta (esim. veneet joilla
-                    // on korjauskierto) - useimmilla objekteilla se on 0 eika sotke lohkoa.
-                    // Signed-arvo (-90 eika 270) on luettavampi kun se on lahella nollaa.
+                    float rotZ = NormAngle(t.eulerAngles.z);
+                    // HUOM: rotX/rotZ tulostetaan vain jos poikkeaa nollasta (esim. veneet/
+                    // Maskotti/Rengasheitto/Pomppulinna joilla on korjauskierto) - useimmilla
+                    // objekteilla ne ovat 0 eivatka sotke lohkoa. Signed-arvo (-90 eika 270)
+                    // on luettavampi kun se on lahella nollaa.
                     string rotXAttr = "";
                     if (Mathf.Abs(rotX) > 0.5f && Mathf.Abs(rotX - 360f) > 0.5f)
                     {
                         float signedRotX = rotX > 180f ? rotX - 360f : rotX;
                         rotXAttr = $"rotX = {F(signedRotX,0)}f, ";
                     }
-                    s.AppendLine($"new DecorItem {{ modelName = \"{model}\"{instAttr}, pos = new Vector3({F(t.position.x,1)}f, {F(t.position.y,1)}f, {F(t.position.z,1)}f), {rotXAttr}rotY = {F(rotY,0)}f, scale = {F(t.localScale.x,2)}f }},");
+                    string rotZAttr = "";
+                    if (Mathf.Abs(rotZ) > 0.5f && Mathf.Abs(rotZ - 360f) > 0.5f)
+                    {
+                        float signedRotZ = rotZ > 180f ? rotZ - 360f : rotZ;
+                        rotZAttr = $"rotZ = {F(signedRotZ,0)}f, ";
+                    }
+                    s.AppendLine($"new DecorItem {{ modelName = \"{model}\"{instAttr}, pos = new Vector3({F(t.position.x,1)}f, {F(t.position.y,1)}f, {F(t.position.z,1)}f), {rotXAttr}rotY = {F(rotY,0)}f, {rotZAttr}scale = {F(t.localScale.x,2)}f }},");
                 }
                 s.AppendLine();
             }

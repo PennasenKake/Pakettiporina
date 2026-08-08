@@ -58,17 +58,37 @@ namespace Pakettiporina.EditorTools
             if (cleared > 0)
                 s.AppendLine($"Siivottu {cleared} vanhaa pelielementtia (myos nykyisessa listassa enaa esiintymattomat).");
 
+            // KAYTTAJAN TESTAAMAT (x,z) -YLIKIRJOITUKSET: jos preset.boostXZ/conesXZ on
+            // annettu (ei-tyhja), kaytetaan naita SUORAAN eika lasketa X:aa road_x(z):sta.
+            // Lisatty 8.8.2026 Huvipuistolle, koska kayttaja totesi Unityssa etta kaavasta
+            // laskettu X ei osunut nakyvalle tielle radan alkupaassa - ks. TrackDef-kommentti.
             int i = 1;
-            foreach (var z in preset.boostZ)
-                PlaceBoost($"Boost_{i++:00}", z, preset.bends, preset.roadBaseX, s);
+            if (preset.boostXZ != null && preset.boostXZ.Length > 0)
+            {
+                foreach (var (z, x) in preset.boostXZ)
+                    PlaceBoostXZ($"Boost_{i++:00}", x, z, s);
+            }
+            else
+            {
+                foreach (var z in preset.boostZ)
+                    PlaceBoost($"Boost_{i++:00}", z, preset.bends, preset.roadBaseX, s);
+            }
 
             i = 1;
             foreach (var z in preset.puddleZ)
                 PlacePuddle($"Latakko_{i++:00}", z, preset.bends, preset.roadBaseX, s);
 
             i = 1;
-            foreach (var (z, offset) in preset.cones)
-                PlaceCone($"Kartio_{i++:00}", z, offset, preset.bends, preset.roadBaseX, s);
+            if (preset.conesXZ != null && preset.conesXZ.Length > 0)
+            {
+                foreach (var (z, x) in preset.conesXZ)
+                    PlaceConeXZ($"Kartio_{i++:00}", x, z, s);
+            }
+            else
+            {
+                foreach (var (z, offset) in preset.cones)
+                    PlaceCone($"Kartio_{i++:00}", z, offset, preset.bends, preset.roadBaseX, s);
+            }
 
             if (preset.boostZ.Length == 0 && preset.puddleZ.Length == 0 && preset.cones.Length == 0)
                 s.AppendLine("(Tälle radalle ei ole maaritelty yhtaan elementtia presetissa.)");
@@ -120,6 +140,37 @@ namespace Pakettiporina.EditorTools
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Boost_Vihrea", new Color(0.25f, 0.85f, 0.35f));
             s.AppendLine($"{name}: ({x:F1}, 0.05, {z:F0})");
+        }
+
+        // Sama kuin PlaceBoost, mutta X annetaan suoraan (kayttajan Unityssa testaama
+        // sijainti) - ei lasketa road_x(z):sta. Ks. TrackDef.boostXZ-kommentti.
+        static void PlaceBoostXZ(string name, float x, float z, StringBuilder s)
+        {
+            var go = FindOrCreate(name, PrimitiveType.Cube);
+            go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.TEHOSTEET), false);
+            go.transform.position = new Vector3(x, 0.05f, z);
+            go.transform.localScale = new Vector3(3f, 0.1f, 3f);
+            var col = go.GetComponent<Collider>();
+            if (col != null) col.isTrigger = true;
+            if (go.GetComponent<Boost>() == null) go.AddComponent<Boost>();
+            var rend = go.GetComponent<Renderer>();
+            if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Boost_Vihrea", new Color(0.25f, 0.85f, 0.35f));
+            s.AppendLine($"{name}: ({x:F1}, 0.05, {z:F0}) [kiinnitetty]");
+        }
+
+        // Sama kuin PlaceCone, mutta X annetaan suoraan. Ks. TrackDef.conesXZ-kommentti.
+        static void PlaceConeXZ(string name, float x, float z, StringBuilder s)
+        {
+            var go = FindOrCreate(name, PrimitiveType.Cylinder);
+            go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.ESTEET), false);
+            go.transform.position = new Vector3(x, 0.4f, z);
+            go.transform.localScale = new Vector3(0.6f, 0.4f, 0.6f);
+            var col = go.GetComponent<Collider>();
+            if (col != null) col.isTrigger = false;
+            if (go.GetComponent<Cone>() == null) go.AddComponent<Cone>();
+            var rend = go.GetComponent<Renderer>();
+            if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Kartio_Oranssi", new Color(0.95f, 0.5f, 0.15f));
+            s.AppendLine($"{name}: ({x:F1}, 0.4, {z:F0}) [kiinnitetty]");
         }
 
         static void PlacePuddle(string name, float z, (float, float, float)[] bends, float baseX, StringBuilder s)
