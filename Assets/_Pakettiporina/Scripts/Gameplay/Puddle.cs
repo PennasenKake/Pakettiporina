@@ -9,6 +9,8 @@ namespace Pakettiporina
     // CarStats.pito (Hallissa valittu) lieventaa vaikutusta: hyva pito -> auto tuskin
     // huomaa latakkoa, huono pito -> selva liukastus. Tarkoitus opettaa etta pito
     // kannattaa pito-painotteisilla radoilla (esim. "Satama").
+    // M5: jokainen osuma kerryttaa GameManager.RaceDirtHits - maara nakyy likatahroina
+    // autossa Pesu-scenessa (WashScreen) heti keikan jalkeen, ennen Hallia.
     [RequireComponent(typeof(Collider))]
     public class Puddle : MonoBehaviour
     {
@@ -40,6 +42,8 @@ namespace Pakettiporina
 
             car.ApplyGripPenalty(effectiveMultiplier, duration);
             if (AudioManager.Instance != null) AudioManager.Instance.PlaySplash();
+            // M5: roiske jattaa likatahran autoon - pestaan Pesu-scenessa ennen Hallia.
+            if (GameManager.Instance != null) GameManager.Instance.AddDirtHit();
             Debug.Log($"[Puddle] Liukastus! kerroin={effectiveMultiplier:F2} (pito={pito01 * 100f:F0})");
         }
     }

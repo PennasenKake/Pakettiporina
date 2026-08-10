@@ -8,12 +8,13 @@ using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using TMPro;
+using static Pakettiporina.EditorTools.PakettiporinaEditorUtils;
 
 namespace Pakettiporina.EditorTools
 {
     // Paavalikon (MainMenu) tarkistus- ja korjaustyokalu.
-    // Sijoita: Assets/_Pakettiporina/Scripts/Editor/
-    // Kaytto: Pakettiporina -> 07 Tarkista paavalikko / 08 KORJAA paavalikko
+    // Sijoita: Assets/_Pakettiporina/Scripts/Editor/Tarkistus/
+    // Kaytto: Pakettiporina -> Tarkistus/04 Tarkista paavalikko, Korjaus/04 KORJAA paavalikko
     //
     // Odottaa scenesta naita nimia (muuta vakioita jos omat nimesi poikkeavat):
     //   PlayButton, QuitButton      - MainMenun perusnapit
@@ -31,24 +32,14 @@ namespace Pakettiporina.EditorTools
         const string STICKER_GRID = "StickerGrid";
         const string GARAGE_SCENE = "Garage";
 
-        [MenuItem("Pakettiporina/07 - Tarkista paavalikko")]
+        [MenuItem("Pakettiporina/Tarkistus/04 - Tarkista paavalikko")]
         public static void Diagnose() { Run(false); }
 
-        [MenuItem("Pakettiporina/08 - KORJAA paavalikko")]
+        [MenuItem("Pakettiporina/Korjaus/04 - KORJAA paavalikko")]
         public static void FixAll() { Run(true); }
 
-        static GameObject Find(string name)
-        {
-            foreach (var t in Object.FindObjectsOfType<Transform>(true))
-                if (t.name == name) return t.gameObject;
-            return null;
-        }
-
-        static void ClearClicks(Button b)
-        {
-            for (int i = b.onClick.GetPersistentEventCount() - 1; i >= 0; i--)
-                UnityEventTools.RemovePersistentListener(b.onClick, i);
-        }
+        // Find()/ClearClicks() ovat PakettiporinaEditorUtils:ssa (Editor/Common/),
+        // tuotu tahan "using static"-direktiivilla yllä.
 
         // Etsii SUORAN lapsen nimella, kirjainkoosta valittamatta (esim. "lock" == "Lock").
         static Transform FindChildCI(Transform parent, string name)
@@ -414,7 +405,7 @@ namespace Pakettiporina.EditorTools
             }
             s.AppendLine(problems == 0
                 ? "\nKaikki kunnossa!"
-                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty - muista Ctrl+S." : " Aja '12 - KORJAA paavalikko'."));
+                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty - muista Ctrl+S." : " Aja 'Pakettiporina/Korjaus/04 - KORJAA paavalikko'."));
             Debug.Log(s.ToString());
         }
     }

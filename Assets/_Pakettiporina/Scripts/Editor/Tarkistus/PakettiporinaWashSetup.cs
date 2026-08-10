@@ -7,12 +7,13 @@ using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using TMPro;
+using static Pakettiporina.EditorTools.PakettiporinaEditorUtils;
 
 namespace Pakettiporina.EditorTools
 {
     // Pesu-scenen (M4) tarkistus- ja korjaustyokalu.
-    // Sijoita: Assets/_Pakettiporina/Scripts/Editor/
-    // Kaytto: Pakettiporina -> 05 Tarkista pesu / 06 KORJAA pesu
+    // Sijoita: Assets/_Pakettiporina/Scripts/Editor/Tarkistus/
+    // Kaytto: Pakettiporina -> Tarkistus/03 Tarkista pesu, Korjaus/03 KORJAA pesu
     //
     // Odottaa scenesta naita nimia (muuta vakioita jos omat nimesi poikkeavat):
     //   BubbleArea      - tyhja Transform, jonka lapsina kuplat (Bubble-komponentti) ovat
@@ -34,24 +35,14 @@ namespace Pakettiporina.EditorTools
         const string GARAGE_SCENE = "Garage";
         const string MAINMENU_SCENE = "MainMenu";
 
-        [MenuItem("Pakettiporina/05 - Tarkista pesu")]
+        [MenuItem("Pakettiporina/Tarkistus/03 - Tarkista pesu")]
         public static void Diagnose() { Run(false); }
 
-        [MenuItem("Pakettiporina/06 - KORJAA pesu")]
+        [MenuItem("Pakettiporina/Korjaus/03 - KORJAA pesu")]
         public static void FixAll() { Run(true); }
 
-        static GameObject Find(string name)
-        {
-            foreach (var t in Object.FindObjectsOfType<Transform>(true))
-                if (t.name == name) return t.gameObject;
-            return null;
-        }
-
-        static void ClearClicks(Button b)
-        {
-            for (int i = b.onClick.GetPersistentEventCount() - 1; i >= 0; i--)
-                UnityEventTools.RemovePersistentListener(b.onClick, i);
-        }
+        // Find()/ClearClicks() ovat PakettiporinaEditorUtils:ssa (Editor/Common/),
+        // tuotu tahan "using static"-direktiivilla yllä.
 
         static void Run(bool fix)
         {
@@ -324,8 +315,8 @@ namespace Pakettiporina.EditorTools
                 }
                 else
                 {
-                    s.AppendLine($"{label}: OnClick on jotain kytketty ({btn.onClick.GetPersistentEventCount()} kpl) � " +
-                        "jos nappi kopioitu toisesta scenesta, kohde voi silti olla rikki. Aja '10 - KORJAA pesu' varmuudeksi.");
+                    s.AppendLine($"{label}: OnClick on jotain kytketty ({btn.onClick.GetPersistentEventCount()} kpl) — " +
+                        "jos nappi kopioitu toisesta scenesta, kohde voi silti olla rikki. Aja 'Pakettiporina/Korjaus/03 - KORJAA pesu' varmuudeksi.");
                 }
             }
             Wire(CONTINUE_BTN, wash.OnContinueButton, "Jatkoon-nappi (halliin)", true);
@@ -410,8 +401,8 @@ namespace Pakettiporina.EditorTools
                     }
                     else
                     {
-                        s.AppendLine($"{label}: OnClick on jotain kytketty � jos nappi kopioitu toisesta scenesta, " +
-                            "kohde voi silti olla rikki. Aja '10 - KORJAA pesu' varmuudeksi.");
+                        s.AppendLine($"{label}: OnClick on jotain kytketty — jos nappi kopioitu toisesta scenesta, " +
+                            "kohde voi silti olla rikki. Aja 'Pakettiporina/Korjaus/03 - KORJAA pesu' varmuudeksi.");
                     }
                 }
                 WirePause("PauseButton", pauseMenu.Pause, "Tauko-nappi (avaa)", true);
@@ -428,7 +419,7 @@ namespace Pakettiporina.EditorTools
             }
             s.AppendLine(problems == 0
                 ? "\nKaikki kunnossa!"
-                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty � muista Ctrl+S." : " Aja '10 - KORJAA pesu'."));
+                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty — muista Ctrl+S." : " Aja 'Pakettiporina/Korjaus/03 - KORJAA pesu'."));
             Debug.Log(s.ToString());
         }
     }

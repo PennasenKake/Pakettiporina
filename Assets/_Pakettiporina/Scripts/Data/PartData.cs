@@ -17,14 +17,14 @@ namespace Pakettiporina
         public PartCategory category = PartCategory.Kori;
 
         [Header("Ominaisuusvaikutukset (+ / -)")]
-        [Tooltip("Kiihtyvyys / m�kien nousu")] public int voima;
+        [Tooltip("Kiihtyvyys / mäkien nousu")] public int voima;
         [Tooltip("Mutkat ja liukkaat pinnat")] public int pito;
         [Tooltip("Ketteryys ja hyppyjen pituus")] public int keveys;
-        [Tooltip("T�yssyjen sieto, s�rkyv�n paketin suoja")] public int kestavyys;
-        [Tooltip("Kylm�laatikon teho (j��tel�)")] public int kylmyys;
+        [Tooltip("Töyssyjen sieto, särkyvän paketin suoja")] public int kestavyys;
+        [Tooltip("Kylmälaatikon teho (jäätelö)")] public int kylmyys;
 
         [Header("Muut")]
-        [Tooltip("Vain koriste (esim. kissankorvat) � ei muuta ominaisuuksia")]
+        [Tooltip("Vain koriste (esim. kissankorvat) — ei muuta ominaisuuksia")]
         public bool cosmeticOnly;
         [Tooltip("Auton varille (Maali-kategoria)")]
         public Color color = Color.white;

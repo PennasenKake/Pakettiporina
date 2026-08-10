@@ -8,12 +8,13 @@ using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using TMPro;
+using static Pakettiporina.EditorTools.PakettiporinaEditorUtils;
 
 namespace Pakettiporina.EditorTools
 {
     // Hallin (Garage) tarkistus- ja korjaustyokalu.
-    // Sijoita: Assets/_Pakettiporina/Scripts/Editor/
-    // Kaytto: Pakettiporina -> 03 Tarkista halli / 04 KORJAA halli
+    // Sijoita: Assets/_Pakettiporina/Scripts/Editor/Tarkistus/
+    // Kaytto: Pakettiporina -> Tarkistus/02 Tarkista halli, Korjaus/02 KORJAA halli
     public static class PakettiporinaGarageSetup
     {
         // Odotetut objektinimet (muuta jos omat nimesi poikkeavat)
@@ -29,25 +30,14 @@ namespace Pakettiporina.EditorTools
         const string GAME_SCENE = "Game";
         const string MAINMENU_SCENE = "MainMenu";
 
-        [MenuItem("Pakettiporina/03 - Tarkista halli")]
+        [MenuItem("Pakettiporina/Tarkistus/02 - Tarkista halli")]
         public static void Diagnose() { Run(false); }
 
-        [MenuItem("Pakettiporina/04 - KORJAA halli")]
+        [MenuItem("Pakettiporina/Korjaus/02 - KORJAA halli")]
         public static void FixAll() { Run(true); }
 
-        // --- apuri: etsi objekti nimella, myos piilotetut ---
-        static GameObject Find(string name)
-        {
-            foreach (var t in Object.FindObjectsOfType<Transform>(true))
-                if (t.name == name) return t.gameObject;
-            return null;
-        }
-
-        static void ClearClicks(Button b)
-        {
-            for (int i = b.onClick.GetPersistentEventCount() - 1; i >= 0; i--)
-                UnityEventTools.RemovePersistentListener(b.onClick, i);
-        }
+        // Find()/ClearClicks() ovat nyt PakettiporinaEditorUtils:ssa (Editor/Common/) -
+        // tama tiedosto kayttaa niita "using static"-tuonnin kautta yllä.
 
         static void Run(bool fix)
         {
@@ -485,7 +475,7 @@ namespace Pakettiporina.EditorTools
             }
             s.AppendLine(problems == 0
                 ? "\nKaikki kunnossa!"
-                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty � muista Ctrl+S." : " Aja '5 - KORJAA halli'."));
+                : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty — muista Ctrl+S." : " Aja 'Pakettiporina/Korjaus/02 - KORJAA halli'."));
             Debug.Log(s.ToString());
         }
     }

@@ -31,7 +31,7 @@ namespace Pakettiporina
 
         void Awake() { Instance = this; }
 
-        // HUOM: EI enaa kuuntele GameEvents.OnFinish � FinishTrigger kutsuu FinishRace() suoraan,
+        // HUOM: EI enaa kuuntele GameEvents.OnFinish — FinishTrigger kutsuu FinishRace() suoraan,
         // jotta palkkio lasketaan ENNEN kuin HUD paivittaa maali-paneelin.
         void Start() { StartRace(); }
 
@@ -39,6 +39,9 @@ namespace Pakettiporina
         {
             StopAllCoroutines();
             Stars = 0; Elapsed = 0f; IsRacing = false;
+
+            // M5: uusi keikka alkaa aina ehjalla, puhtaalla autolla.
+            if (GameManager.Instance != null) GameManager.Instance.ResetRaceDamage();
 
             // Jos scenessa on TrackManager, arvo rata ja kayta sen StartPointia.
             // Muuten kaytetaan vanhaa, sceneen kiinteasti asetettua startPointia.
@@ -78,7 +81,7 @@ namespace Pakettiporina
             Elapsed += Time.deltaTime;
             if (car != null && car.position.y < fallY)
             {
-                Debug.Log("[Race] Auto putosi kentalta � palautetaan lahtoon.");
+                Debug.Log("[Race] Auto putosi kentalta — palautetaan lahtoon.");
                 ResetCar();
             }
         }
@@ -87,7 +90,7 @@ namespace Pakettiporina
         {
             if (!IsRacing) return;
             Stars++;
-            Debug.Log($"[Race] Tahti ker�tty ({Stars}).");
+            Debug.Log($"[Race] Tahti kerätty ({Stars}).");
             GameEvents.StarCollected(Stars);
         }
 
@@ -126,7 +129,7 @@ namespace Pakettiporina
         {
             if (car == null || startPoint == null)
             {
-                Debug.LogWarning("[Race] car tai startPoint puuttuu � aseta ne Inspectorissa!");
+                Debug.LogWarning("[Race] car tai startPoint puuttuu — aseta ne Inspectorissa!");
                 return;
             }
             car.isKinematic = false;

@@ -6,7 +6,7 @@ namespace Pakettiporina
     // Liita samaan objektiin kuin ArcadeCarController (auton juureen).
     //
     // HUOM: tama etsii lapsista Renderer-komponentin, jonka materiaalin nimessa
-    // on "kori" (esim. "Auto_kori") � se on auton korin materiaali, JOKA EI KAYTA
+    // on "kori" (esim. "Auto_kori") — se on auton korin materiaali, JOKA EI KAYTA
     // tekstuuria (paletti-materiaalit kuten Auto_Paletti jatetaan koskematta,
     // etteivat silmat/renkaat/muut yksityiskohdat vari mukana).
     //

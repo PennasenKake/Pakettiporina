@@ -7,21 +7,21 @@ using UnityEditor.SceneManagement;
 namespace Pakettiporina.EditorTools
 {
     // Peliscenen tarkistus- ja korjaustyokalu.
-    // Sijoita kansioon: Assets/_Pakettiporina/Scripts/Editor/
-    // Kaytto: ylavalikko "Pakettiporina" -> Tarkista / Korjaa
+    // Sijoita kansioon: Assets/_Pakettiporina/Scripts/Editor/Tarkistus/
+    // Kaytto: ylavalikko "Pakettiporina" -> Tarkistus/01 / Korjaus/01
     public static class PakettiporinaSetup
     {
         const float START_Y = 1.0f; // auto hieman maan ylapuolelle
 
         // Ratakohtainen data (bends/baseX/startZ/finishZ/groundScaleZ/roadBaseX) tulee
-        // nyt yhdesta yhteisesta lahteesta: PakettiporinaTracks.cs. Uuden radan lisays:
-        // lisaa se sinne, ei tanne.
+        // nyt yhdesta yhteisesta lahteesta: PakettiporinaTracks.cs (Editor/Common/).
+        // Uuden radan lisays: lisaa se sinne, ei tanne.
         const float GROUND_SCALE_X = PakettiporinaTracks.GROUND_SCALE_X;
 
-        [MenuItem("Pakettiporina/01 - Tarkista peliscene")]
+        [MenuItem("Pakettiporina/Tarkistus/01 - Tarkista peliscene")]
         public static void Diagnose() { Run(false); }
 
-        [MenuItem("Pakettiporina/02 - KORJAA peliscene")]
+        [MenuItem("Pakettiporina/Korjaus/01 - KORJAA peliscene")]
         public static void FixAll() { Run(true); }
 
         static void Run(bool fix)
@@ -82,7 +82,10 @@ namespace Pakettiporina.EditorTools
             else log.AppendLine("SaveManager: OK");
 
             // ---------- 1. MAASTO ----------
-            if (maasto == null) { log.AppendLine($"VIRHE: '{dims.maastoName}' puuttuu scenesta. Veda Art/Models/{dims.maastoName} sceneen."); problems++; }
+            // HUOM 9.8.2026: mallit on kansioitu scenekohtaisiin alikansioihin - maasto
+            // loytyy nyt polusta Art/Models/{sceneName}/{maastoName}.fbx (esim.
+            // Art/Models/Huvipuisto/Huvipuisto.fbx), ei enaa suoraan Art/Models-juuresta.
+            if (maasto == null) { log.AppendLine($"VIRHE: '{dims.maastoName}' puuttuu scenesta. Veda Art/Models/{dims.sceneName}/{dims.maastoName} sceneen."); problems++; }
             else
             {
                 bool bad = maasto.transform.position != Vector3.zero
@@ -373,7 +376,7 @@ namespace Pakettiporina.EditorTools
                 if (fix) { pp.SetActive(false); log.AppendLine("  -> piilotettu"); }
             }
 
-            log.AppendLine(problems == 0 ? "\nKaikki kunnossa!" : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty." : " Aja 'KORJAA peliscene'."));
+            log.AppendLine(problems == 0 ? "\nKaikki kunnossa!" : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty." : " Aja 'Pakettiporina/Korjaus/01 - KORJAA peliscene'."));
             if (fix) EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Debug.Log(log.ToString());
         }

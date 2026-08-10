@@ -77,13 +77,13 @@ namespace Pakettiporina
                 rb.velocity = new Vector3(flat.x, rb.velocity.y, flat.z);
             }
 
-            // 4) Kaantyminen � vain kun autolla on vauhtia (paikallaan ei kaanny).
+            // 4) Kaantyminen — vain kun autolla on vauhtia (paikallaan ei kaanny).
             float speedFactor = Mathf.Clamp01(Mathf.Abs(fwdSpeed) / 3f);
             float yaw = steer * turnSpeed * speedFactor * Time.fixedDeltaTime;
             if (fwdSpeed < -0.1f) yaw = -yaw; // peruutuksessa ohjaus toisinpain
             rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, yaw, 0f));
 
-            // 5) Pito � ohjaa sivuttaisvauhti auton eteenpain-suuntaan (arcade-pito).
+            // 5) Pito — ohjaa sivuttaisvauhti auton eteenpain-suuntaan (arcade-pito).
             // Lätäkkö pienentaa effectiveGripia hetkeksi, jolloin auto liukuu enemman sivuttain.
             Vector3 v = rb.velocity;
             Vector3 forwardVel = transform.forward * fwdSpeed;

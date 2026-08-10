@@ -8728,7 +8728,7 @@ GameObject:
   - component: {fileID: 1796259566}
   - component: {fileID: 1796259565}
   m_Layer: 5
-  m_Name: "P\xF6ll\xF6"
+  m_Name: Pollo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

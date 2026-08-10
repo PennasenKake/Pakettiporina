@@ -19,7 +19,7 @@ namespace Pakettiporina
 
         void Start()
         {
-            // Kerro consoleen onko kohde asetettu — yleisin aloittelijan virhe.
+            // Kerro consoleen onko kohde asetettu â€” yleisin aloittelijan virhe.
             if (target == null)
                 Debug.LogWarning("[Camera] Target on tyhja! Veda Car-objekti CameraFollow'n Target-kenttaan.");
             else
@@ -31,7 +31,7 @@ namespace Pakettiporina
             if (target == null)
             {
                 // Varoita vain kerran, ei joka ruutu.
-                if (!warned) { Debug.LogWarning("[Camera] Ei kohdetta — kamera ei liiku."); warned = true; }
+                if (!warned) { Debug.LogWarning("[Camera] Ei kohdetta â€” kamera ei liiku."); warned = true; }
                 return;
             }
 

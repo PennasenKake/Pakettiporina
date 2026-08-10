@@ -19,6 +19,8 @@ namespace Pakettiporina
         [Header("Maali-paneeli")]
         [Tooltip("Nayttaa keikan palkkion, esim. 'Palkkio: +40'")]
         public TMP_Text rewardText;
+        [Tooltip("M5: Valinnainen. Nayttaa esim. 'Kolhuja: 2, likatahroja: 3' - korjataan Pesussa/Hallissa.")]
+        public TMP_Text damageText;
 
         [Header("Lahtolaskenta")]
         public TMP_Text countdownText;
@@ -53,6 +55,7 @@ namespace Pakettiporina
             if (controls != null) controls.SetActive(false);
             if (starText != null) starText.text = "Tahdet: 0";
             if (countdownText != null) { countdownText.gameObject.SetActive(true); countdownText.text = ""; }
+            lastShownTime = -1f;
         }
 
         void HandleCountdown(int n)
@@ -83,15 +86,36 @@ namespace Pakettiporina
         {
             if (finishPanel != null) finishPanel.SetActive(true);
             if (controls != null) controls.SetActive(false);
-            if (messageText != null) messageText.text = race != null && race.LastFit ? "Hienoa, perill�!" : "Perill�!";
+            if (messageText != null) messageText.text = race != null && race.LastFit ? "Hienoa, perillä!" : "Perillä!";
             if (rewardText != null && race != null)
                 rewardText.text = "Palkkio: +" + race.LastReward;
+
+            // M5: kertoo heti maalissa mita korjattavaa autossa on (kolhut Hallissa,
+            // lika Pesussa) - ei rangaistus, vain tieto seuraavaa vaihetta varten.
+            if (damageText != null)
+            {
+                var gm = GameManager.Instance;
+                int dents = gm != null ? gm.RaceDents : 0;
+                int dirt = gm != null ? gm.RaceDirtHits : 0;
+                damageText.text = (dents == 0 && dirt == 0)
+                    ? "Auto pysyi puhtaana ja ehjana!"
+                    : $"Kolhuja: {dents}  |  Likatahroja: {dirt}";
+            }
         }
 
+        float lastShownTime = -1f;
+
+        // Paivittaa aikatekstin vain kun nakyva lukema (0.1 s tarkkuudella) oikeasti
+        // muuttuu, ei joka ruutu - .ToString() joka Update-kutsulla allokoisi roskaa
+        // ihan turhaan silloinkin kun ruudulla nakyva luku ei muuttuisi ollenkaan.
         void Update()
         {
-            if (timeText != null && race != null && race.IsRacing)
-                timeText.text = race.Elapsed.ToString("F1") + " s";
+            if (timeText == null || race == null || !race.IsRacing) return;
+
+            float rounded = Mathf.Floor(race.Elapsed * 10f) / 10f;
+            if (rounded == lastShownTime) return;
+            lastShownTime = rounded;
+            timeText.text = rounded.ToString("F1") + " s";
         }
 
         // --- napit ---
@@ -101,8 +125,8 @@ namespace Pakettiporina
             if (race != null) race.Restart();
         }
 
-        // "Takaisin halliin" � M4: sulkee silmukan PESUN kautta, auto sailyy.
-        // (Nappia ei tarvitse kytkea uudelleen Unityssa � sama OnClick, uusi kohde.)
+        // "Takaisin halliin" — M4: sulkee silmukan PESUN kautta, auto sailyy.
+        // (Nappia ei tarvitse kytkea uudelleen Unityssa — sama OnClick, uusi kohde.)
         public void OnGarageButton()
         {
             Time.timeScale = 1f;

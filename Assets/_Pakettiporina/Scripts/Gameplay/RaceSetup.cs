@@ -48,14 +48,14 @@ namespace Pakettiporina
             if (car == null) car = FindObjectOfType<ArcadeCarController>();
             if (car == null)
             {
-                Debug.LogWarning("[Setup] Autoa ei loytynyt — ajoa ei saadetty.");
+                Debug.LogWarning("[Setup] Autoa ei loytynyt â€” ajoa ei saadetty.");
                 return;
             }
 
             var gm = GameManager.Instance;
             if (gm == null)
             {
-                Debug.Log("[Setup] Ei GameManageria (ajettiin suoraan peliscenesta) — kaytetaan oletusarvoja.");
+                Debug.Log("[Setup] Ei GameManageria (ajettiin suoraan peliscenesta) â€” kaytetaan oletusarvoja.");
                 return;
             }
 
@@ -64,7 +64,7 @@ namespace Pakettiporina
             // Jos hallissa ei ole kayty (kaikki nollia), ei saadeta mitaan.
             if (s.voima == 0 && s.pito == 0 && s.keveys == 0)
             {
-                Debug.Log("[Setup] Ei hallivalintaa — kaytetaan oletusarvoja.");
+                Debug.Log("[Setup] Ei hallivalintaa â€” kaytetaan oletusarvoja.");
                 return;
             }
 

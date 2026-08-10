@@ -19,7 +19,7 @@ namespace Pakettiporina
         void Start()
         {
             if (car == null) car = FindObjectOfType<CarInput>();
-            if (car == null) Debug.LogWarning("[TouchButton] CarInput puuttuu — aseta Car-kentta.");
+            if (car == null) Debug.LogWarning("[TouchButton] CarInput puuttuu â€” aseta Car-kentta.");
         }
 
         public void OnPointerDown(PointerEventData e) { Set(true); }

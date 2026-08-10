@@ -50,6 +50,7 @@ namespace Pakettiporina
         public string mainMenuScene = "MainMenu";
 
         int cleanedCount;
+        int activeSpotCount;   // M5: kuinka monta likatahraa TÄLLÄ kertaa nakyy (ks. Start)
         bool finished;
 
         void Awake() { Instance = this; }
@@ -59,8 +60,20 @@ namespace Pakettiporina
             if (dirtSpots.Count == 0 && dirtSpotsParent != null)
                 dirtSpots.AddRange(dirtSpotsParent.GetComponentsInChildren<Image>(true));
 
-            foreach (var d in dirtSpots)
-                if (d != null) { d.gameObject.SetActive(true); SetAlpha(d, 1f); }
+            // M5: likatahrojen maara riippuu OIKEASTI siita kuinka moneen latakkoon
+            // pelaaja ajoi radalla (GameManager.RaceDirtHits) - ei enaa aina kaikkia
+            // scenen tahroja nakyviin. Puhtaasti ajettu keikka -> ei likaa, ei pesua.
+            int hits = GameManager.Instance != null ? GameManager.Instance.RaceDirtHits : dirtSpots.Count;
+            activeSpotCount = Mathf.Clamp(hits, 0, dirtSpots.Count);
+
+            for (int i = 0; i < dirtSpots.Count; i++)
+            {
+                var d = dirtSpots[i];
+                if (d == null) continue;
+                bool show = i < activeSpotCount;
+                d.gameObject.SetActive(show);
+                SetAlpha(d, 1f);
+            }
 
             if (shineEffect != null) shineEffect.SetActive(false);
             if (donePanel != null) donePanel.SetActive(false);
@@ -69,14 +82,14 @@ namespace Pakettiporina
             finished = false;
             UpdateProgress();
 
-            if (dirtSpots.Count == 0)
+            if (activeSpotCount == 0)
             {
-                Debug.LogWarning("[Wash] Likatahroja ei loytynyt scenesta � siirrytaan suoraan halliin.");
+                Debug.Log("[Wash] Auto oli jo puhdas (ei latakko-osumia) - siirrytaan suoraan halliin.");
                 Finish();
             }
             else
             {
-                Debug.Log($"[Wash] Pesu alkoi. Likatahroja: {dirtSpots.Count}");
+                Debug.Log($"[Wash] Pesu alkoi. Likatahroja: {activeSpotCount}");
             }
         }
 
@@ -97,8 +110,8 @@ namespace Pakettiporina
                 StartCoroutine(FadeOutSpot(spot));
                 cleanedCount++;
                 UpdateProgress();
-                Debug.Log($"[Wash] Likatahra puhdistettu ({cleanedCount}/{dirtSpots.Count}).");
-                if (cleanedCount >= dirtSpots.Count) Finish();
+                Debug.Log($"[Wash] Likatahra puhdistettu ({cleanedCount}/{activeSpotCount}).");
+                if (cleanedCount >= activeSpotCount) Finish();
                 return;
             }
         }
@@ -126,7 +139,7 @@ namespace Pakettiporina
 
         void UpdateProgress()
         {
-            int total = Mathf.Max(1, dirtSpots.Count);
+            int total = Mathf.Max(1, activeSpotCount);
             int pct = Mathf.RoundToInt(100f * cleanedCount / total);
             if (progressText != null) progressText.text = $"Puhtaus: {pct} %";
             if (cleanBar != null) cleanBar.fillAmount = cleanedCount / (float)total;
@@ -137,7 +150,7 @@ namespace Pakettiporina
             if (finished) return;
             finished = true;
 
-            int total = pointsPerDirt * Mathf.Max(cleanedCount, dirtSpots.Count > 0 ? 0 : 1);
+            int total = pointsPerDirt * cleanedCount;
             if (GameManager.Instance != null) GameManager.Instance.AddPoints(total);
 
             if (shineEffect != null) shineEffect.SetActive(true);
@@ -181,14 +194,15 @@ namespace Pakettiporina
             cleanedCount = 0;
             if (donePanel != null) donePanel.SetActive(false);
             if (shineEffect != null) shineEffect.SetActive(false);
-            foreach (var d in dirtSpots)
+            for (int i = 0; i < dirtSpots.Count; i++)
             {
+                var d = dirtSpots[i];
                 if (d == null) continue;
-                d.gameObject.SetActive(true);
+                d.gameObject.SetActive(i < activeSpotCount);   // sama maara kuin alunperin taman keikan jalkeen
                 SetAlpha(d, 1f);
             }
             UpdateProgress();
-            Debug.Log($"[Wash] Pesu nollattu. Likatahroja: {dirtSpots.Count}");
+            Debug.Log($"[Wash] Pesu nollattu. Likatahroja: {activeSpotCount}");
         }
     }
 }

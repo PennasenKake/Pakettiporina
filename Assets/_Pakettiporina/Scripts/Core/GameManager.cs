@@ -21,6 +21,14 @@ namespace Pakettiporina
         // Pysyvasti avatut tarrat (ostettu pisteilla). Sailyy tallennuksen yli.
         public HashSet<string> UnlockedStickerNames { get; private set; } = new HashSet<string>();
 
+        // M5: Kolhut (Cone) ja lika (Puddle) kertyvat AJON aikana. Nollataan aina uuden
+        // keikan alussa (RaceManager.StartRace). Kolhut sailyvat autossa kunnes pelaaja
+        // korjaa ne Hallissa (GarageScreen.OnRepairDents); lika sailyy kunnes pelaaja
+        // pesee sen Pesu-scenessa (WashScreen) - molemmat GameManager sailyttaa
+        // scenejen ylitse (DontDestroyOnLoad), joten tieto kulkee Ajo -> Pesu -> Halli.
+        public int RaceDents { get; private set; }
+        public int RaceDirtHits { get; private set; }
+
         // Ilmoittaa AINA kun Points-arvo muuttuu (lisays, lataus tallennuksesta, tarraosto).
         // UI-komponentit (esim. PointsDisplay) voivat tilata taman sen sijaan etta luottavat
         // vain OnEnableen - talla vaietaan tilanne jossa pisteet muuttuvat SAMAN scenen
@@ -32,7 +40,7 @@ namespace Pakettiporina
         {
             if (Instance != null && Instance != this)
             {
-                Debug.LogWarning("[GameManager] Toinen GameManager loytyi � tuhotaan duplikaatti.");
+                Debug.LogWarning("[GameManager] Toinen GameManager loytyi — tuhotaan duplikaatti.");
                 Destroy(gameObject);
                 return;
             }
@@ -110,6 +118,39 @@ namespace Pakettiporina
         {
             UnlockedStickerNames = names != null ? new HashSet<string>(names) : new HashSet<string>();
             Debug.Log($"[GameManager] Ladattu {UnlockedStickerNames.Count} avattua tarraa tallennuksesta.");
+        }
+
+        // --- M5: Kolhut (Cone) ja lika (Puddle) ---
+
+        // Kutsutaan RaceManager.StartRace():sta ENNEN lahtolaskentaa - uusi keikka alkaa
+        // aina puhtaalla, ehjalla autolla (edellisen keikan korjaamattomat kolhut/lika
+        // eivat kasaannu loputtomiin).
+        public void ResetRaceDamage()
+        {
+            RaceDents = 0;
+            RaceDirtHits = 0;
+            Debug.Log("[GameManager] Ajon kolhut/lika nollattu (uusi keikka).");
+        }
+
+        // Kutsutaan Cone.cs:sta kun auto osuu kartioon.
+        public void AddDent()
+        {
+            RaceDents++;
+            Debug.Log($"[GameManager] Kolhu! Yhteensa taman keikan aikana: {RaceDents}");
+        }
+
+        // Kutsutaan Puddle.cs:sta kun auto ajaa latakon lapi.
+        public void AddDirtHit()
+        {
+            RaceDirtHits++;
+            Debug.Log($"[GameManager] Roiske! Likatahroja taman keikan aikana: {RaceDirtHits}");
+        }
+
+        // Kutsutaan GarageScreen.OnRepairDents():sta - korjaa kaikki kolhut kerralla.
+        public void RepairDents()
+        {
+            RaceDents = 0;
+            Debug.Log("[GameManager] Kolhut korjattu Hallissa.");
         }
     }
 }

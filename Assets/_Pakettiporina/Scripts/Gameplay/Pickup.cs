@@ -12,12 +12,12 @@ namespace Pakettiporina
 
         void OnTriggerEnter(Collider other)
         {
-            // Vain auto ker‰‰ tahden.
+            // Vain auto ker√§√§ tahden.
             if (other.GetComponentInParent<ArcadeCarController>() == null) return;
 
             if (RaceManager.Instance != null) RaceManager.Instance.AddStar();
-            Debug.Log("[Pickup] Tahti ker‰tty!");
-            gameObject.SetActive(false); // piilota ker‰tty tahti
+            Debug.Log("[Pickup] Tahti ker√§tty!");
+            gameObject.SetActive(false); // piilota ker√§tty tahti
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Pakettiporina
     {
         [Header("Viittaukset")]
         public GameObject pausePanel;
-        [Tooltip("Ohjausnappien vanhempi � piilotetaan tauon ajaksi")]
+        [Tooltip("Ohjausnappien vanhempi — piilotetaan tauon ajaksi")]
         public GameObject controls;
 
         [Header("Tauko/jatka-napin kuva (valinnainen)")]
@@ -51,7 +51,7 @@ namespace Pakettiporina
             if (pausePanel != null) pausePanel.SetActive(true);
             if (controls != null) controls.SetActive(false);   // napit piiloon
             SetIcon(true);
-            Debug.Log("[Pause] Tauko � ajonapit piilotettu.");
+            Debug.Log("[Pause] Tauko — ajonapit piilotettu.");
         }
 
         public void Resume()

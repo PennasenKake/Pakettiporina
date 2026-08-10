@@ -11,7 +11,7 @@ namespace Pakettiporina
     {
         public static AudioManager Instance { get; private set; }
 
-        [Header("Pelitapahtumien aanet (valinnaisia � tyhja = ei aanta)")]
+        [Header("Pelitapahtumien aanet (valinnaisia — tyhja = ei aanta)")]
         public AudioClip countdownBeep;   // 3, 2, 1
         public AudioClip goSound;         // "AJA!"
         public AudioClip starPickup;      // tahden kerays
@@ -41,7 +41,7 @@ namespace Pakettiporina
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // Luo aanilahteet automaattisesti � ei tarvitse lisata kasin Inspectorissa.
+            // Luo aanilahteet automaattisesti — ei tarvitse lisata kasin Inspectorissa.
             sfxSource = gameObject.AddComponent<AudioSource>();
             sfxSource.playOnAwake = false;
             sfxSource.loop = false;

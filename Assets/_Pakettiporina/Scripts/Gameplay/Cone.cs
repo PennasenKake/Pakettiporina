@@ -3,8 +3,11 @@ using UnityEngine;
 namespace Pakettiporina
 {
     // Kartio (tai muu pieni fyysinen este): "kolhu" jos auto osuu siihen - leikkaa
-    // hetkeksi nopeudesta palan. EI vaurioita autoa eika pysayta peliä; reilu, lyhyt
+    // hetkeksi nopeudesta palan. EI pysayta peliä eika vie pisteita; reilu, lyhyt
     // rangaistus ilman aikarajaa tai menetysta, sopii 6-10-vuotiaille.
+    // M5: kolhu JAA nakyviin autoon keikan ajaksi (GameManager.RaceDents) - ei haittaa
+    // ajamista millaan tavalla, mutta pelaaja korjaa sen kivana pienena "tyona" Hallissa
+    // radan jalkeen (GarageScreen.OnRepairDents).
     //
     // Toimii KAHDELLA tavalla riippuen Collider-asetuksesta:
     //  - Is Trigger POIS (oletus, CreatePrimitive): auto tormaa fyysisesti kartioon
@@ -32,6 +35,8 @@ namespace Pakettiporina
             nextHitTime = Time.time + cooldown;
             car.Bump(speedCutFraction);
             if (AudioManager.Instance != null) AudioManager.Instance.PlayBump();
+            // M5: kolhu jaa nakyviin autoon - korjataan radan jalkeen Hallissa.
+            if (GameManager.Instance != null) GameManager.Instance.AddDent();
             Debug.Log("[Cone] Kolhu!");
         }
     }

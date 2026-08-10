@@ -18,8 +18,8 @@ namespace Pakettiporina
         [Header("Kategoria")]
         public TMP_Text categoryText;
 
-        [Header("Kategoriav�lilehdet (korostus)")]
-        [Tooltip("J�rjestys: 0=Kori,1=Renkaat,2=Moottori,3=Jouset,4=Lisat,5=Maali")]
+        [Header("Kategoriavälilehdet (korostus)")]
+        [Tooltip("Järjestys: 0=Kori,1=Renkaat,2=Moottori,3=Jouset,4=Lisat,5=Maali")]
         public Button[] categoryTabs;
         public Color tabNormalColor = new Color(0.945f, 0.937f, 0.909f);
         public Color tabActiveColor = new Color(0.114f, 0.62f, 0.459f);
@@ -59,6 +59,14 @@ namespace Pakettiporina
         [Tooltip("Nakyy kun selattu paketti (ja sen rata) on viela lukossa. Valinnainen.")]
         public TMP_Text packageLockText;
 
+        [Header("M5: Kolhut (kartioihin osuminen edellisella keikalla)")]
+        [Tooltip("Esim. 'Kolhuja: 2' tai 'Auto ehja!'. Valinnainen.")]
+        public TMP_Text dentsText;
+        [Tooltip("'Korjaa kolhut' -nappi. Ei-interaktiivinen jos kolhuja ei ole.")]
+        public Button repairDentsButton;
+        [Tooltip("Pistetta jokaisesta korjatusta kolhusta (pieni palkkio, kuten pesussa)")]
+        public int pointsPerDentRepair = 3;
+
         readonly Dictionary<PartCategory, List<PartData>> byCat = new Dictionary<PartCategory, List<PartData>>();
         readonly Dictionary<PartCategory, int> indexByCat = new Dictionary<PartCategory, int>();
         PartCategory currentCat = PartCategory.Kori;
@@ -73,7 +81,33 @@ namespace Pakettiporina
             RestorePackage();                      // <- lataa tallennettu paketti jos on
             SetCategory((int)PartCategory.Kori);
             UpdateStats();
+            UpdateDents();
             Debug.Log("[Garage] Halli valmis.");
+        }
+
+        // M5: nayttaa edellisen keikan kolhut (GameManager.RaceDents) ja paivittaa
+        // "Korjaa"-napin interaktiivisuuden.
+        void UpdateDents()
+        {
+            int dents = GameManager.Instance != null ? GameManager.Instance.RaceDents : 0;
+            if (dentsText != null)
+                dentsText.text = dents > 0 ? $"Kolhuja: {dents}" : "Auto on ehja!";
+            if (repairDentsButton != null)
+                repairDentsButton.interactable = dents > 0;
+        }
+
+        // "Korjaa kolhut" -napin OnClick: korjaa kaikki kolhut kerralla ja palkitsee
+        // pienesta "tyosta" (sama periaate kuin Pesu-scenen likatahroissa).
+        public void OnRepairDents()
+        {
+            var gm = GameManager.Instance;
+            if (gm == null || gm.RaceDents <= 0) return;
+
+            int reward = pointsPerDentRepair * gm.RaceDents;
+            gm.RepairDents();
+            gm.AddPoints(reward);
+            UpdateDents();
+            Debug.Log($"[Garage] Kolhut korjattu, palkkio +{reward}.");
         }
 
         // "Tiedot"/"i"-napin OnClick: avaa/sulkee tilastopaneelin.
@@ -257,6 +291,11 @@ namespace Pakettiporina
 
         PackageData CurrentPackage => allPackages.Count > 0 ? allPackages[packageIndex] : null;
 
+        // Uusin FitChecker-tulos - VilkkuController lukee TAMAN suoraan sen sijaan
+        // etta paattelisi tilan fitText:n nakyvasta merkkijonosta (hauras, hajoaisi
+        // hiljaa jos viestien sanamuotoa joskus muutetaan).
+        public FitChecker.Result CurrentFit { get; private set; }
+
         void UpdateStats()
         {
             CarStats s = builder.Current;
@@ -270,13 +309,14 @@ namespace Pakettiporina
         void UpdateFit()
         {
             FitChecker.Result r = FitChecker.Check(builder, CurrentPackage);
+            CurrentFit = r;
             if (fitText != null)
             {
                 fitText.text = r.message;
                 fitText.color = r.fits ? new Color(0.23f, 0.55f, 0.07f) : new Color(0.52f, 0.31f, 0.04f);
             }
             if (vilkkuText != null)
-                vilkkuText.text = r.fits ? "Hyv� valinta!" : "Katso mit� paketti tarvitsee.";
+                vilkkuText.text = r.fits ? "Hyvä valinta!" : "Katso mitä paketti tarvitsee.";
         }
 
         // "Aja keikka": tallenna paketti, mittarit JA valitut osat -> auto sailyy.
@@ -327,7 +367,7 @@ namespace Pakettiporina
                 case PartCategory.Renkaat: return "Renkaat";
                 case PartCategory.Moottori: return "Moottori";
                 case PartCategory.Jouset: return "Jouset";
-                case PartCategory.Lisat: return "Lis�t";
+                case PartCategory.Lisat: return "Lisät";
                 case PartCategory.Maali: return "Maali";
                 default: return c.ToString();
             }

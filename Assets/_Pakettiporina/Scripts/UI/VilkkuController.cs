@@ -13,14 +13,16 @@ namespace Pakettiporina
         public TMP_Text bubbleText;
 
         [Header("Tila")]
-        [Tooltip("Sama FitText jonka GarageScreen paivittaa ó Vilkku lukee siita tilan")]
-        public TMP_Text fitText;
+        [Tooltip("GarageScreen, jolta Vilkku lukee sopivuustilan (CurrentFit) suoraan - " +
+                 "EI paattele tilaa mistaan nakyvasta UI-tekstista, jotta sanamuodon " +
+                 "myohempi muuttaminen ei hiljaa riko Vilkun logiikkaa.")]
+        public GarageScreen garage;
 
         [Header("Yleisvinkit (kun ei keikkatietoa)")]
         [TextArea]
         public string[] tips = {
             "Rakenna auto ja aja keikka!",
-            "Kokeile eri osia ó mittarit muuttuvat!",
+            "Kokeile eri osia ‚Äî mittarit muuttuvat!",
             "Valitse ensin keikka, sitten sopiva auto."
         };
         [Tooltip("Kupla piiloutuu itsestaan taman ajan jalkeen (0 = ei piiloudu)")]
@@ -49,9 +51,13 @@ namespace Pakettiporina
 
         string BuildLine()
         {
-            string f = fitText != null ? fitText.text : "";
-            if (f.Contains("Sopii")) return "Hienoa! Auto sopii t‰h‰n keikkaan.";
-            if (f.Contains("Tarvitsee")) return "Vinkki: " + f + ". Vaihda oikea osa!";
+            if (garage != null)
+            {
+                var fit = garage.CurrentFit;
+                bool hasPackage = fit.message != "Ei valittua pakettia";
+                if (fit.fits && hasPackage) return "Hienoa! Auto sopii t√§h√§n keikkaan.";
+                if (!fit.fits) return "Vinkki: " + fit.message + ". Vaihda oikea osa!";
+            }
             if (tips.Length == 0) return "Hei, olen Vilkku!";
             string t = tips[tipIndex % tips.Length];
             tipIndex++;

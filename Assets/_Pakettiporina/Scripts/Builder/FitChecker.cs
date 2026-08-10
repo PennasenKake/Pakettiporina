@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Pakettiporina
 {
     // Tarkistaa sopiiko auto paketille: onko autossa paketin vaatima osa.
-    // EI estä ajamista — palauttaa vain tuloksen ja viestin UI:ta varten.
+    // EI estÃ¤ ajamista â€” palauttaa vain tuloksen ja viestin UI:ta varten.
     public static class FitChecker
     {
         public struct Result

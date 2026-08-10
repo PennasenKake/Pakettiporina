@@ -28,7 +28,7 @@ namespace Pakettiporina
         [Tooltip("Pehmennys: isompi = nopeampi reagointi")]
         public float tiltSmoothing = 10f;
 
-        // Kosketusnapit — TouchButton asettaa nama.
+        // Kosketusnapit â€” TouchButton asettaa nama.
         // HUOM: touchGas toimii JARRUNA (vanha nappikytkenta kelpaa sellaisenaan).
         [HideInInspector] public bool touchGas;
         [HideInInspector] public bool touchBrake;
@@ -101,7 +101,7 @@ namespace Pakettiporina
 
         float ReadTilt()
         {
-            // Ero kalibroituun neutraaliin — nain puhelinta saa pitaa missa asennossa tahansa.
+            // Ero kalibroituun neutraaliin â€” nain puhelinta saa pitaa missa asennossa tahansa.
             float raw = Input.acceleration.x - tiltNeutral.x;
 
             // Kuollut alue, ja sen jalkeen pehmea aloitus (ei hyppaysta)

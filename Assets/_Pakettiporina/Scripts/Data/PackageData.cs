@@ -21,7 +21,7 @@ namespace Pakettiporina
         public PartData requiredPart;
 
         [Header("Ominaisuudet")]
-        [Tooltip("Paketin massa � lisataan auton painoon, vaikuttaa ajoon")]
+        [Tooltip("Paketin massa — lisataan auton painoon, vaikuttaa ajoon")]
         public float mass = 5f;
         [Tooltip("Palkkio pisteina onnistuneesta toimituksesta")]
         public int rewardPoints = 30;
