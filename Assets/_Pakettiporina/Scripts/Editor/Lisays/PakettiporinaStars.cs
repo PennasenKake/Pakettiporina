@@ -12,8 +12,9 @@ namespace Pakettiporina.EditorTools
     // PakettiporinaElements.cs:ssa ja Blenderin ratageneraattorissa, joten tahdet
     // seuraavat aina oikeaa tien keskilinjaa riippumatta radasta.
     //
-    // Kaytto: Pakettiporina -> 10 - Asettele tahdet radalle
-    // Tukee: "Game" (Rata 1), "Puisto", "Satama", "Huvipuisto".
+    // Kaytto: Pakettiporina -> Lisays/01 - Asettele tahdet radalle
+    // Tukee kaikki PakettiporinaTracks.ALL:ssa listatut radat (ei tarvitse paivittaa
+    // tata tiedostoa kun uusi rata lisataan sinne).
     // Ratadata (bends/baseX/startZ/finishZ) tulee PakettiporinaTracks.cs:sta - uuden
     // radan lisays tehdaan sinne, ei tanne.
     public static class PakettiporinaStars
@@ -21,6 +22,7 @@ namespace Pakettiporina.EditorTools
         const float STAR_Y = 1.2f;
         const float WOBBLE = 3.8f;   // sivuttaisheilahdus - pysyy tien 12 leveyden sisalla (puolikas 6)
         const int TARGET_STAR_COUNT = 16;
+        const string STAR_PREFAB_PATH = "Assets/_Pakettiporina/Prefabs/Pickups/Star.prefab";
 
         [MenuItem("Pakettiporina/Lisays/01 - Asettele tahdet radalle")]
         public static void Arrange()
@@ -34,7 +36,7 @@ namespace Pakettiporina.EditorTools
             if (preset == null)
             {
                 s.AppendLine($"VIRHE: scenelle '{sceneName}' ei ole valmista tahtipresettia.");
-                s.AppendLine("Tuetut scenet: Game, Puisto, Satama, Huvipuisto.");
+                s.AppendLine("Lisaa scene PakettiporinaTracks.cs:n ALL-tauluun (Editor/Common/).");
                 Debug.LogWarning(s.ToString());
                 return;
             }
@@ -49,11 +51,36 @@ namespace Pakettiporina.EditorTools
             else if (pickups.Count < TARGET_STAR_COUNT)
             {
                 s.AppendLine($"Luodaan {TARGET_STAR_COUNT - pickups.Count} uutta tahtea...");
+                // Instantioidaan valmis Star-prefab (pallo-mesh + SphereCollider(trigger) + Pickup jo
+                // valmiiksi paikallaan), EI paljasta GameObject.AddComponent<Pickup>()-kutsua suoraan -
+                // Pickupilla on [RequireComponent(typeof(Collider))] ja Collider on abstrakti, joten
+                // Unity ei osaa paatella mita konkreettista collider-tyyppia lisata itsestaan ja
+                // AddComponent<Pickup>() paljaalle objektille kaatuu virheeseen "Adding component
+                // failed...". LOYTYI 11.8.2026 kun Maatilan tahdet luotiin ensimmaista kertaa
+                // tyhjasta (muilla radoilla tahdet oli aina kopioitu olemassa olevista, joten tama
+                // koodipolku ei ollut koskaan oikeasti ajettu ennen).
+                var starPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(STAR_PREFAB_PATH);
+                if (starPrefab == null)
+                    s.AppendLine($"VAROITUS: '{STAR_PREFAB_PATH}' ei loytynyt - luodaan varakeinona paljas objekti " +
+                                 "SphereColliderilla (ei nay visuaalisesti tahdelta).");
                 while (pickups.Count < TARGET_STAR_COUNT)
                 {
-                    var newStar = new GameObject($"Star_{pickups.Count + 1:00}").AddComponent<Pickup>();
-                    Undo.RegisterCreatedObjectUndo(newStar.gameObject, "Luo tahti");
-                    pickups.Add(newStar);
+                    GameObject starGo;
+                    if (starPrefab != null)
+                    {
+                        starGo = (GameObject)PrefabUtility.InstantiatePrefab(starPrefab);
+                    }
+                    else
+                    {
+                        starGo = new GameObject();
+                        var sc = starGo.AddComponent<SphereCollider>();
+                        sc.isTrigger = true;
+                    }
+                    starGo.name = $"Star_{pickups.Count + 1:00}";
+                    var pickup = starGo.GetComponent<Pickup>();
+                    if (pickup == null) pickup = starGo.AddComponent<Pickup>();
+                    Undo.RegisterCreatedObjectUndo(starGo, "Luo tahti");
+                    pickups.Add(pickup);
                 }
             }
 

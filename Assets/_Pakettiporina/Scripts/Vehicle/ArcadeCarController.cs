@@ -21,6 +21,15 @@ namespace Pakettiporina
         [Tooltip("Painopisteen korkeus; matalampi = vakaampi, vahemman kaatuilua")]
         public float centerOfMassY = -0.5f;
 
+        [Header("Nopeustaso (Asetukset: Hidas/Keski/Nopea, ks. SaveManager.carSpeedTier)")]
+        [Tooltip("0=Hidas, 1=Keski, 2=Nopea. SaveManager.ApplyToScene() asettaa taman scenen latautuessa - ei tarvitse kasin muokata.")]
+        public int speedTier = 1;
+        // Kerroin kiihtyvyydelle JA huippunopeudelle - molemmat skaalautuvat yhdessa, jotta
+        // "Hidas" tuntuu oikeasti rauhallisemmalta autolta eika vain matalammalta katolta
+        // (pelkka maxSpeed-rajoitus ilman kiihtyvyyden pienennysta tuntuisi vain "tukkoiselta").
+        static readonly float[] SpeedTierMultiplier = { 0.72f, 1f, 1.32f };
+        float baseAcceleration = -1f, baseMaxSpeed = -1f;
+
         [Header("Debug")]
         [Tooltip("Tulosta nopeus consoleen (EI joka ruutu, vaan valein)")]
         public bool logSpeed = false;
@@ -43,7 +52,27 @@ namespace Pakettiporina
             rb = GetComponent<Rigidbody>();
             input = GetComponent<CarInput>();
             rb.centerOfMass = new Vector3(0f, centerOfMassY, 0f); // matala painopiste
+            // Talleta Inspectorin alkuperaiset arvot "perustasoksi" ENNEN kuin ApplySpeedTier
+            // mahdollisesti skaalaa niita - nain SaveManager.ApplyToScene() (joka voi kutsua
+            // taman useamman kerran, esim. Asetuksista kesken pelin) ei koskaan kasaannu
+            // (0.72 * 0.72 * ...) vaan laskee aina samasta perustasosta.
+            baseAcceleration = acceleration;
+            baseMaxSpeed = maxSpeed;
+            ApplySpeedTier(speedTier);
             Debug.Log("[Car] Autokontrolleri valmis. Paina Play ja aja WASD/nuolilla.");
+        }
+
+        // Asetukset-paneelin "Ajonopeus"-valitsin (Hidas/Keski/Nopea) kutsuu tata SaveManagerin
+        // kautta (ks. SaveManager.ApplyToScene). Turvallinen kutsua ennen Awakea EI ole -
+        // jos base-arvoja ei viela ole otettu talteen, otetaan ne talteen nyt.
+        public void ApplySpeedTier(int tier)
+        {
+            if (baseAcceleration < 0f) baseAcceleration = acceleration;
+            if (baseMaxSpeed < 0f) baseMaxSpeed = maxSpeed;
+            speedTier = Mathf.Clamp(tier, 0, 2);
+            float m = SpeedTierMultiplier[speedTier];
+            acceleration = baseAcceleration * m;
+            maxSpeed = baseMaxSpeed * m;
         }
 
         void FixedUpdate()
@@ -130,6 +159,7 @@ namespace Pakettiporina
         public void Bump(float speedCutFraction)
         {
             rb.velocity *= Mathf.Clamp01(1f - speedCutFraction);
+            VibrationManager.Vibrate(); // Asetukset: "Varahtely" - tuntuva kuittaus kolhusta
         }
     }
 }

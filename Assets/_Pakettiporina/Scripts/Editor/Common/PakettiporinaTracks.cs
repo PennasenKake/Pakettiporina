@@ -22,6 +22,18 @@ namespace Pakettiporina.EditorTools
             public string maastoName;
             public float startZ, finishZ;
             public float groundScaleZ;
+            // maastoRotationY: maaston (FBX-mallin) odotettu Y-kierto asteina. Useimmilla
+            // radoilla 0, mutta jotkin mallit on tuotu/aseteltu niin etta ne tarvitsevat
+            // kiinteän kierron nayttaakseen oikealta (esim. Satama, ks. alla). LISATTY
+            // 13.8.2026: PakettiporinaSetupin "Maasto: vaara sijainti/kierto/skaala"
+            // -korjaus pakotti KAIKKI maastot Quaternion.identityyn riippumatta radasta,
+            // mika hiljaa nollasi Sataman tarkoituksellisen 180 asteen kierron joka
+            // kerta kun Korjaus/01 ajettiin - koko satama-alue (laituri/vesi) kaantyi
+            // ymparinsa mutta erikseen sijoitetut koristeet (kartiot, laatikot,
+            // nosturi/majakka/laiva jne.) jaivat paikoilleen, mika rikkoi koko asettelun
+            // nakymatta itse koodissa virheelta. Nyt jokainen rata voi maaritella oman
+            // odotetun kiertonsa tassa.
+            public float maastoRotationY;
             // roadBaseX: tien X-perustaso (0 = tie kaartaa keskilinjan molemmin puolin,
             // >0 = koko tie siirretty sivuun - kaytetaan Satamassa jotta rannalle jaa
             // johdonmukaisesti tilaa toisella puolella eika vesi kaventele "joeksi").
@@ -95,6 +107,10 @@ namespace Pakettiporina.EditorTools
                 // rannalle jaa johdonmukaisesti tilaa koko radan matkalta.
                 sceneName = "Satama", maastoName = "Satama",
                 startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f, roadBaseX = 15f,
+                // Sataman FBX-malli on tuotu/aseteltu 180 astetta kierrettyna (nakyy myos
+                // scenen m_LocalEulerAnglesHint.y=180-arvosta) - laituri/vesi ovat oikealla
+                // puolella VAIN tassa kierrossa. AlA muuta 0:ksi, ks. maastoRotationY-kommentti.
+                maastoRotationY = 180f,
                 bends = new[] { (-100f, 0f, 10f), (0f, 100f, -6f) },
                 boostZ = new float[0],
                 puddleZ = new[] { 0f },

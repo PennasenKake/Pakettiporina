@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 62047633}
   - component: {fileID: 62047632}
   - component: {fileID: 62047631}
+  - component: {fileID: 62047634}
   m_Layer: 5
   m_Name: NextPartButton
   m_TagString: Untagged
@@ -257,6 +258,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 62047629}
   m_CullTransparentMesh: 1
+--- !u!114 &62047634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62047629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &67079636
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,6 +432,7 @@ GameObject:
   - component: {fileID: 110952878}
   - component: {fileID: 110952877}
   - component: {fileID: 110952876}
+  - component: {fileID: 110952879}
   m_Layer: 5
   m_Name: TabKori
   m_TagString: Untagged
@@ -541,6 +555,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 110952874}
   m_CullTransparentMesh: 1
+--- !u!114 &110952879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110952874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &143101137
 GameObject:
   m_ObjectHideFlags: 0
@@ -920,6 +946,7 @@ GameObject:
   - component: {fileID: 272193881}
   - component: {fileID: 272193880}
   - component: {fileID: 272193879}
+  - component: {fileID: 272193882}
   m_Layer: 5
   m_Name: NextPackageButton
   m_TagString: Untagged
@@ -1042,6 +1069,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 272193877}
   m_CullTransparentMesh: 1
+--- !u!114 &272193882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 272193877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &288112057
 GameObject:
   m_ObjectHideFlags: 0
@@ -1787,6 +1826,7 @@ GameObject:
   - component: {fileID: 420615893}
   - component: {fileID: 420615892}
   - component: {fileID: 420615891}
+  - component: {fileID: 420615894}
   m_Layer: 5
   m_Name: TabMoottori
   m_TagString: Untagged
@@ -1909,6 +1949,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 420615889}
   m_CullTransparentMesh: 1
+--- !u!114 &420615894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 420615889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &438274727
 GameObject:
   m_ObjectHideFlags: 0
@@ -2486,6 +2538,7 @@ GameObject:
   - component: {fileID: 565563648}
   - component: {fileID: 565563647}
   - component: {fileID: 565563646}
+  - component: {fileID: 565563649}
   m_Layer: 5
   m_Name: TabRenkaat
   m_TagString: Untagged
@@ -2608,6 +2661,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 565563644}
   m_CullTransparentMesh: 1
+--- !u!114 &565563649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 565563644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &631987235
 GameObject:
   m_ObjectHideFlags: 0
@@ -3099,6 +3164,7 @@ GameObject:
   - component: {fileID: 730781130}
   - component: {fileID: 730781129}
   - component: {fileID: 730781128}
+  - component: {fileID: 730781131}
   m_Layer: 5
   m_Name: PrevPackageButton
   m_TagString: Untagged
@@ -3221,6 +3287,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 730781126}
   m_CullTransparentMesh: 1
+--- !u!114 &730781131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 730781126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &753223992
 GameObject:
   m_ObjectHideFlags: 0
@@ -3233,6 +3311,7 @@ GameObject:
   - component: {fileID: 753223996}
   - component: {fileID: 753223995}
   - component: {fileID: 753223994}
+  - component: {fileID: 753223997}
   m_Layer: 5
   m_Name: TabMaali
   m_TagString: Untagged
@@ -3355,6 +3434,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 753223992}
   m_CullTransparentMesh: 1
+--- !u!114 &753223997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 753223992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &835795377
 GameObject:
   m_ObjectHideFlags: 0
@@ -3592,6 +3683,7 @@ GameObject:
   - component: {fileID: 975163941}
   - component: {fileID: 975163940}
   - component: {fileID: 975163939}
+  - component: {fileID: 975163942}
   m_Layer: 5
   m_Name: TabJouset
   m_TagString: Untagged
@@ -3714,6 +3806,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 975163937}
   m_CullTransparentMesh: 1
+--- !u!114 &975163942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 975163937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1001189452
 GameObject:
   m_ObjectHideFlags: 0
@@ -4306,6 +4410,7 @@ GameObject:
   - component: {fileID: 1091273821}
   - component: {fileID: 1091273820}
   - component: {fileID: 1091273819}
+  - component: {fileID: 1091273822}
   m_Layer: 5
   m_Name: TabLisat
   m_TagString: Untagged
@@ -4428,6 +4533,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1091273817}
   m_CullTransparentMesh: 1
+--- !u!114 &1091273822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091273817}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1167071742
 GameObject:
   m_ObjectHideFlags: 0
@@ -5009,6 +5126,9 @@ MonoBehaviour:
   statsPanel: {fileID: 0}
   lockText: {fileID: 0}
   packageLockText: {fileID: 0}
+  dentsText: {fileID: 0}
+  repairDentsButton: {fileID: 0}
+  pointsPerDentRepair: 3
 --- !u!1 &1227105494
 GameObject:
   m_ObjectHideFlags: 0
@@ -5021,6 +5141,7 @@ GameObject:
   - component: {fileID: 1227105498}
   - component: {fileID: 1227105497}
   - component: {fileID: 1227105496}
+  - component: {fileID: 1227105499}
   m_Layer: 5
   m_Name: PrevPartButton
   m_TagString: Untagged
@@ -5143,6 +5264,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1227105494}
   m_CullTransparentMesh: 1
+--- !u!114 &1227105499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227105494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1254640948
 GameObject:
   m_ObjectHideFlags: 0
@@ -5656,6 +5789,7 @@ GameObject:
   - component: {fileID: 1335520499}
   - component: {fileID: 1335520498}
   - component: {fileID: 1335520497}
+  - component: {fileID: 1335520500}
   m_Layer: 5
   m_Name: DriveButton
   m_TagString: Untagged
@@ -5778,6 +5912,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1335520495}
   m_CullTransparentMesh: 1
+--- !u!114 &1335520500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335520495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1341930309
 GameObject:
   m_ObjectHideFlags: 0
@@ -6698,17 +6844,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2180467f098c674c81a9ec813ab5df8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  countdownBeep: {fileID: 0}
-  goSound: {fileID: 0}
-  starPickup: {fileID: 0}
-  finishFanfare: {fileID: 0}
-  bubblePop: {fileID: 0}
-  buttonClick: {fileID: 0}
-  boostSound: {fileID: 0}
-  splashSound: {fileID: 0}
-  bumpSound: {fileID: 0}
+  countdownBeep: {fileID: 8300000, guid: e15372cab1d0f0e4da8d0138414b83b5, type: 3}
+  goSound: {fileID: 8300000, guid: 8a8c8150a25c23b4b99ed148ca5c2e33, type: 3}
+  starPickup: {fileID: 8300000, guid: 382624845fe981a4183d2363c57e2ff1, type: 3}
+  finishFanfare: {fileID: 8300000, guid: 893d14c45189392488938d1a9f94b8a3, type: 3}
+  bubblePop: {fileID: 8300000, guid: e8630c9d5975ec8418f22f8edd412a1e, type: 3}
+  buttonClick: {fileID: 8300000, guid: f44b7eeb54e634d4493084ae16011bd8, type: 3}
+  boostSound: {fileID: 8300000, guid: ed18aa7bd07e1034394add8a7ffc0898, type: 3}
+  splashSound: {fileID: 8300000, guid: c6fa94baeb5903046a6dc6768225a535, type: 3}
+  bumpSound: {fileID: 8300000, guid: 4a8a78f590f2ba14cabf2f9b2d99d749, type: 3}
+  fitGoodSound: {fileID: 8300000, guid: dba7e3091f31089418ffa432546ccb46, type: 3}
+  unlockSound: {fileID: 8300000, guid: 2d34c31c97624d94fb0152ce435a4dfa, type: 3}
+  engineLoop: {fileID: 8300000, guid: 98d4389b09e86054190d2796ce79841c, type: 3}
   musicVolume: 0.6
   sfxVolume: 1
+  menuMusic: {fileID: 8300000, guid: 1169706242c71954c9c59df93efea31d, type: 3}
+  garageMusic: {fileID: 8300000, guid: 403efaa148d122b408a4fb3b4305de1c, type: 3}
+  raceMusic: {fileID: 8300000, guid: c90926029ae3455418468d78a0dce955, type: 3}
+  washMusic: {fileID: 8300000, guid: 728b3b5e986d66d41b01a3ca0fa8da72, type: 3}
 --- !u!4 &1677791881
 Transform:
   m_ObjectHideFlags: 0
@@ -7479,6 +7632,7 @@ GameObject:
   - component: {fileID: 1976182615}
   - component: {fileID: 1976182614}
   - component: {fileID: 1976182613}
+  - component: {fileID: 1976182616}
   m_Layer: 5
   m_Name: BackMainMenuButton
   m_TagString: Untagged
@@ -7600,6 +7754,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1976182611}
   m_CullTransparentMesh: 1
+--- !u!114 &1976182616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1976182611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1976282126
 GameObject:
   m_ObjectHideFlags: 0
@@ -7613,6 +7779,7 @@ GameObject:
   - component: {fileID: 1976282130}
   - component: {fileID: 1976282129}
   - component: {fileID: 1976282128}
+  - component: {fileID: 1976282132}
   m_Layer: 5
   m_Name: VilkkuButton
   m_TagString: Untagged
@@ -7654,7 +7821,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bubble: {fileID: 0}
   bubbleText: {fileID: 0}
-  fitText: {fileID: 0}
+  garage: {fileID: 0}
   tips:
   - Rakenna auto ja aja keikka!
   - "Kokeile eri osia \u2014 mittarit muuttuvat!"
@@ -7754,6 +7921,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1976282126}
   m_CullTransparentMesh: 1
+--- !u!114 &1976282132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1976282126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2007888226
 GameObject:
   m_ObjectHideFlags: 0

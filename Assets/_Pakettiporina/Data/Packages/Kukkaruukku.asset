@@ -20,3 +20,4 @@ MonoBehaviour:
   mass: 12
   rewardPoints: 45
   meltTime: 0
+  trackScene: Maatila

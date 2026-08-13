@@ -18,6 +18,15 @@ namespace Pakettiporina.EditorTools
         // Uuden radan lisays: lisaa se sinne, ei tanne.
         const float GROUND_SCALE_X = PakettiporinaTracks.GROUND_SCALE_X;
 
+        // Scenet joissa EI KOSKAAN ole rataa (halli, valikko, pesu) - tama tyokalu on
+        // vain ajopeliscenej (Game/Puisto/Satama/Huvipuisto/Maatila...) varten. LISATTY
+        // 12.8.2026: ennen tama tyokalu lankesi "kaytetaan Rata 1:n oletusmittoja"
+        // -varafallbackiin NAISSAKIN sceneissa ja loi vahingossa niihin ylimaaraisen
+        // GroundColliderin, StartPointin ja CameraFollow-'auto puuttuu' -varoituksen
+        // Main Cameraan - haitatonta mutta turhaa roskaa. Nyt tyokalu ohittaa nama
+        // scenet kokonaan heti alussa.
+        static readonly string[] NonRaceScenes = { "MainMenu", "Garage", "Wash" };
+
         [MenuItem("Pakettiporina/Tarkistus/01 - Tarkista peliscene")]
         public static void Diagnose() { Run(false); }
 
@@ -28,12 +37,21 @@ namespace Pakettiporina.EditorTools
         {
             var log = new StringBuilder();
             string sceneName = EditorSceneManager.GetActiveScene().name;
+
+            if (System.Array.IndexOf(NonRaceScenes, sceneName) >= 0)
+            {
+                Debug.Log($"[PeliSceneSetup] '{sceneName}' ei ole ajorata (halli/valikko/pesu) - " +
+                           "tama tyokalu on vain Game/Puisto/Satama/Huvipuisto/Maatila-tyyppisille sceneille, ohitetaan.");
+                return;
+            }
+
             var dims = PakettiporinaTracks.Find(sceneName);
             if (dims == null)
             {
                 dims = PakettiporinaTracks.Find("Game");
                 log.AppendLine($"(Scenea '{sceneName}' ei tunnisteta - kaytetaan Rata 1:n oletusmittoja. " +
-                                "Lisaa se PakettiporinaTracks.cs:n ALL-tauluun jos tama on uusi rata.)");
+                                "Lisaa se PakettiporinaTracks.cs:n ALL-tauluun jos tama on uusi rata, tai jos tama " +
+                                "EI OLE rata, lisaa nimi NonRaceScenes-listaan taman tiedoston alkuun.)");
             }
             float START_Z = dims.startZ, FINISH_Z = dims.finishZ;
             log.AppendLine(fix ? $"=== KORJAUS ({sceneName}) ===" : $"=== TARKISTUS ({sceneName}) ===");
@@ -88,8 +106,14 @@ namespace Pakettiporina.EditorTools
             if (maasto == null) { log.AppendLine($"VIRHE: '{dims.maastoName}' puuttuu scenesta. Veda Art/Models/{dims.sceneName}/{dims.maastoName} sceneen."); problems++; }
             else
             {
+                // HUOM 13.8.2026: odotettu kierto luetaan TrackDef.maastoRotationY:sta (ei enaa
+                // aina Quaternion.identity) - joillain radoilla (esim. Satama) malli tarvitsee
+                // kiinteän Y-kierron nayttaakseen oikealta. Tama esti aiemman bugin jossa
+                // Sataman tarkoituksellinen 180 asteen kierto nollautui joka Korjaus/01-ajolla
+                // ja koko satama-alue kaantyi paikallaan sijaitsevien koristeiden alla.
+                var expectedRot = Quaternion.Euler(0f, dims.maastoRotationY, 0f);
                 bool bad = maasto.transform.position != Vector3.zero
-                        || maasto.transform.rotation != Quaternion.identity
+                        || Quaternion.Angle(maasto.transform.rotation, expectedRot) > 0.01f
                         || maasto.transform.localScale != Vector3.one;
                 if (bad)
                 {
@@ -100,9 +124,9 @@ namespace Pakettiporina.EditorTools
                         Undo.RecordObject(maasto.transform, "Maasto");
                         maasto.transform.SetParent(null);
                         maasto.transform.position = Vector3.zero;
-                        maasto.transform.rotation = Quaternion.identity;
+                        maasto.transform.rotation = expectedRot;
                         maasto.transform.localScale = Vector3.one;
-                        log.AppendLine("  -> korjattu (0,0,0 / 0,0,0 / 1,1,1)");
+                        log.AppendLine($"  -> korjattu (0,0,0 / kierto Y={dims.maastoRotationY} / 1,1,1)");
                     }
                 }
                 else log.AppendLine("Maasto: OK");
@@ -253,6 +277,20 @@ namespace Pakettiporina.EditorTools
                     }
                 }
                 else if (painter != null) log.AppendLine("CarPainter: OK");
+
+                // ---------- 4c. CARENGINEAUDIO (moottorin ajoaani, kaasun/nopeuden mukaan) ----------
+                var engineAudio = carGo.GetComponent<CarEngineAudio>();
+                if (engineAudio == null)
+                {
+                    log.AppendLine("VAROITUS: CarEngineAudio puuttuu (moottorin aani ei soi ajossa).");
+                    problems++;
+                    if (fix)
+                    {
+                        engineAudio = carGo.AddComponent<CarEngineAudio>();
+                        log.AppendLine("  -> lisatty (lukee AudioManager.Instance.engineLoop-klipin Startissa)");
+                    }
+                }
+                else log.AppendLine("CarEngineAudio: OK");
             }
 
             // ---------- 5. MAALI ----------

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Pakettiporina
 {
@@ -24,9 +25,26 @@ namespace Pakettiporina
         public AudioClip splashSound;     // Lätäkkö
         public AudioClip bumpSound;       // Kartio-kolhu
 
+        [Header("Halli (valinnaisia)")]
+        public AudioClip fitGoodSound;    // paketti sopii autoon (kuittaus)
+        public AudioClip unlockSound;     // osa/paketti/tarra avautuu tai ostetaan
+
+        [Header("Auton moottori (valinnainen, loopattava)")]
+        public AudioClip engineLoop;      // CarEngineAudio lukee taman ja soittaa loopina
+
         [Header("Musiikki (valinnainen)")]
         [Range(0f, 1f)] public float musicVolume = 0.6f;
         [Range(0f, 1f)] public float sfxVolume = 1f;
+
+        [Header("Taustamusiikki scenettain (valinnaisia — tyhja = ei musiikkia sille scenelle)")]
+        public AudioClip menuMusic;    // MainMenu
+        public AudioClip garageMusic;  // Garage
+        public AudioClip raceMusic;    // Game, Game2, Puisto, Satama, Huvipuisto, Maatila...
+        public AudioClip washMusic;    // Wash
+
+        // Scenet joissa raceMusic soi. Lisaa uuden radan scenen nimi tahan kun rata luodaan
+        // (esim. "Maatila"), niin musiikki alkaa automaattisesti ilman koodimuutosta muualla.
+        static readonly string[] RaceScenes = { "Game", "Game2", "Puisto", "Satama", "Huvipuisto", "Maatila" };
 
         AudioSource sfxSource;
         AudioSource musicSource;
@@ -55,12 +73,20 @@ namespace Pakettiporina
             Debug.Log("[Audio] Valmis.");
         }
 
+        void Start()
+        {
+            // Soita heti oikea musiikki sille scenelle jossa AudioManager herasi henkiin
+            // (esim. peli kaynnistetty suoraan Editorista jonkun radan scenessa).
+            HandleSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
+        }
+
         void OnEnable()
         {
             GameEvents.OnCountdown += HandleCountdown;
             GameEvents.OnGo += HandleGo;
             GameEvents.OnStarCollected += HandleStar;
             GameEvents.OnFinish += HandleFinish;
+            SceneManager.sceneLoaded += HandleSceneLoaded;
         }
 
         void OnDisable()
@@ -69,6 +95,20 @@ namespace Pakettiporina
             GameEvents.OnGo -= HandleGo;
             GameEvents.OnStarCollected -= HandleStar;
             GameEvents.OnFinish -= HandleFinish;
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
+        }
+
+        // Valitsee ja soittaa oikean taustamusiikin scenen nimen perusteella. Kaikki musiikkikentat
+        // ovat valinnaisia — jos klippia ei ole kytketty, ei tapahdu mitaan (ei virhetta).
+        void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            string name = scene.name;
+            if (name == "MainMenu") PlayMusic(menuMusic);
+            else if (name == "Garage") PlayMusic(garageMusic);
+            else if (name == "Wash") PlayMusic(washMusic);
+            else if (System.Array.IndexOf(RaceScenes, name) >= 0) PlayMusic(raceMusic);
+            // Tuntematon scene (esim. tuleva uusi rata jota ei viela lisatty RaceScenes-listaan):
+            // ei vaihdeta musiikkia, jotta ei katkaista mahdollista jo soivaa kappaletta turhaan.
         }
 
         void HandleCountdown(int n) { PlaySfx(countdownBeep); }
@@ -88,6 +128,8 @@ namespace Pakettiporina
         public void PlayBoost() { PlaySfx(boostSound); }
         public void PlaySplash() { PlaySfx(splashSound); }
         public void PlayBump() { PlaySfx(bumpSound); }
+        public void PlayFitGood() { PlaySfx(fitGoodSound); }
+        public void PlayUnlock() { PlaySfx(unlockSound); }
 
         public void PlayMusic(AudioClip clip, bool loop = true)
         {

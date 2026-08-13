@@ -24,6 +24,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Huvipuisto.unity
     guid: 5b51f8217482623448f9b6eb6b5e2c6b
   - enabled: 1
+    path: Assets/Scenes/Maatila.unity
+    guid: dfa2efa730e9493f9b82f9dee9d1585b
+  - enabled: 1
     path: Assets/Scenes/Wash.unity
     guid: f3badd5b652e3344ba6d004be98d817d
   - enabled: 0

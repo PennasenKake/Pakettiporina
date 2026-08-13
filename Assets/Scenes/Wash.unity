@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -503,6 +503,7 @@ GameObject:
   - component: {fileID: 91549300}
   - component: {fileID: 91549299}
   - component: {fileID: 91549298}
+  - component: {fileID: 91549301}
   m_Layer: 5
   m_Name: ResumeButton
   m_TagString: Untagged
@@ -624,6 +625,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91549296}
   m_CullTransparentMesh: 1
+--- !u!114 &91549301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91549296}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &151566768
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,6 +833,7 @@ GameObject:
   - component: {fileID: 160811100}
   - component: {fileID: 160811099}
   - component: {fileID: 160811098}
+  - component: {fileID: 160811101}
   m_Layer: 5
   m_Name: RestartButton
   m_TagString: Untagged
@@ -941,6 +955,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 160811096}
   m_CullTransparentMesh: 1
+--- !u!114 &160811101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160811096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &188295151
 GameObject:
   m_ObjectHideFlags: 0
@@ -2633,6 +2659,7 @@ GameObject:
   - component: {fileID: 714152220}
   - component: {fileID: 714152219}
   - component: {fileID: 714152218}
+  - component: {fileID: 714152221}
   m_Layer: 5
   m_Name: PauseButton
   m_TagString: Untagged
@@ -2754,6 +2781,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 714152216}
   m_CullTransparentMesh: 1
+--- !u!114 &714152221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714152216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &715225552
 GameObject:
   m_ObjectHideFlags: 0
@@ -3187,6 +3226,7 @@ GameObject:
   - component: {fileID: 951875946}
   - component: {fileID: 951875945}
   - component: {fileID: 951875944}
+  - component: {fileID: 951875947}
   m_Layer: 5
   m_Name: PauseMenuButton
   m_TagString: Untagged
@@ -3308,6 +3348,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 951875942}
   m_CullTransparentMesh: 1
+--- !u!114 &951875947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951875942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &973095590
 GameObject:
   m_ObjectHideFlags: 0
@@ -3463,6 +3515,7 @@ GameObject:
   - component: {fileID: 1119466667}
   - component: {fileID: 1119466666}
   - component: {fileID: 1119466665}
+  - component: {fileID: 1119466668}
   m_Layer: 5
   m_Name: MainMenuButton
   m_TagString: Untagged
@@ -3584,6 +3637,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1119466663}
   m_CullTransparentMesh: 1
+--- !u!114 &1119466668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1119466663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1171990923
 GameObject:
   m_ObjectHideFlags: 0
@@ -3671,6 +3736,7 @@ GameObject:
   - component: {fileID: 1181184746}
   - component: {fileID: 1181184745}
   - component: {fileID: 1181184744}
+  - component: {fileID: 1181184747}
   m_Layer: 5
   m_Name: OnGarageButton
   m_TagString: Untagged
@@ -3793,6 +3859,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1181184742}
   m_CullTransparentMesh: 1
+--- !u!114 &1181184747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1181184742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1206154982
 GameObject:
   m_ObjectHideFlags: 0
@@ -5720,17 +5798,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2180467f098c674c81a9ec813ab5df8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  countdownBeep: {fileID: 0}
-  goSound: {fileID: 0}
-  starPickup: {fileID: 0}
-  finishFanfare: {fileID: 0}
-  bubblePop: {fileID: 0}
-  buttonClick: {fileID: 0}
-  boostSound: {fileID: 0}
-  splashSound: {fileID: 0}
-  bumpSound: {fileID: 0}
+  countdownBeep: {fileID: 8300000, guid: e15372cab1d0f0e4da8d0138414b83b5, type: 3}
+  goSound: {fileID: 8300000, guid: 8a8c8150a25c23b4b99ed148ca5c2e33, type: 3}
+  starPickup: {fileID: 8300000, guid: 382624845fe981a4183d2363c57e2ff1, type: 3}
+  finishFanfare: {fileID: 8300000, guid: 893d14c45189392488938d1a9f94b8a3, type: 3}
+  bubblePop: {fileID: 8300000, guid: e8630c9d5975ec8418f22f8edd412a1e, type: 3}
+  buttonClick: {fileID: 8300000, guid: f44b7eeb54e634d4493084ae16011bd8, type: 3}
+  boostSound: {fileID: 8300000, guid: ed18aa7bd07e1034394add8a7ffc0898, type: 3}
+  splashSound: {fileID: 8300000, guid: c6fa94baeb5903046a6dc6768225a535, type: 3}
+  bumpSound: {fileID: 8300000, guid: 4a8a78f590f2ba14cabf2f9b2d99d749, type: 3}
+  fitGoodSound: {fileID: 8300000, guid: dba7e3091f31089418ffa432546ccb46, type: 3}
+  unlockSound: {fileID: 8300000, guid: 2d34c31c97624d94fb0152ce435a4dfa, type: 3}
+  engineLoop: {fileID: 8300000, guid: 98d4389b09e86054190d2796ce79841c, type: 3}
   musicVolume: 0.6
   sfxVolume: 1
+  menuMusic: {fileID: 8300000, guid: 1169706242c71954c9c59df93efea31d, type: 3}
+  garageMusic: {fileID: 8300000, guid: 403efaa148d122b408a4fb3b4305de1c, type: 3}
+  raceMusic: {fileID: 8300000, guid: c90926029ae3455418468d78a0dce955, type: 3}
+  washMusic: {fileID: 8300000, guid: 728b3b5e986d66d41b01a3ca0fa8da72, type: 3}
 --- !u!4 &2144476060
 Transform:
   m_ObjectHideFlags: 0

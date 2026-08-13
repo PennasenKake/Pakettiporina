@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.8397951, g: 1.1441333, b: 1.4089142, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -496,6 +496,7 @@ GameObject:
   - component: {fileID: 105459655}
   - component: {fileID: 105459654}
   - component: {fileID: 105459657}
+  - component: {fileID: 105459658}
   m_Layer: 5
   m_Name: GasButton
   m_TagString: Untagged
@@ -619,6 +620,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   car: {fileID: 2808748895449229207}
   action: 0
+--- !u!114 &105459658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 105459652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &152314896
 GameObject:
   m_ObjectHideFlags: 0
@@ -631,6 +644,7 @@ GameObject:
   - component: {fileID: 152314900}
   - component: {fileID: 152314899}
   - component: {fileID: 152314898}
+  - component: {fileID: 152314901}
   m_Layer: 5
   m_Name: RestartButton
   m_TagString: Untagged
@@ -752,6 +766,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 152314896}
   m_CullTransparentMesh: 1
+--- !u!114 &152314901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 152314896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &195489686
 GameObject:
   m_ObjectHideFlags: 0
@@ -1210,6 +1236,7 @@ MonoBehaviour:
   startPoint: {fileID: 0}
   fallY: -5
   countdownSeconds: 3
+  pointsPerStar: 10
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1853,6 +1880,7 @@ GameObject:
   - component: {fileID: 767708006}
   - component: {fileID: 767708005}
   - component: {fileID: 767708004}
+  - component: {fileID: 767708007}
   m_Layer: 5
   m_Name: ResumeButton
   m_TagString: Untagged
@@ -1974,6 +2002,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 767708002}
   m_CullTransparentMesh: 1
+--- !u!114 &767708007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 767708002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &822873037
 GameObject:
   m_ObjectHideFlags: 0
@@ -2170,6 +2210,7 @@ GameObject:
   - component: {fileID: 837262344}
   - component: {fileID: 837262343}
   - component: {fileID: 837262346}
+  - component: {fileID: 837262347}
   m_Layer: 5
   m_Name: RightButton
   m_TagString: Untagged
@@ -2293,6 +2334,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   car: {fileID: 2808748895449229207}
   action: 3
+--- !u!114 &837262347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 837262341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &854810299
 GameObject:
   m_ObjectHideFlags: 0
@@ -2869,6 +2922,7 @@ GameObject:
   - component: {fileID: 1276852251}
   - component: {fileID: 1276852250}
   - component: {fileID: 1276852249}
+  - component: {fileID: 1276852252}
   m_Layer: 5
   m_Name: PauseMenuButton
   m_TagString: Untagged
@@ -2990,6 +3044,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1276852247}
   m_CullTransparentMesh: 1
+--- !u!114 &1276852252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276852247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1285405479
 GameObject:
   m_ObjectHideFlags: 0
@@ -3136,6 +3202,7 @@ GameObject:
   - component: {fileID: 1309324360}
   - component: {fileID: 1309324359}
   - component: {fileID: 1309324358}
+  - component: {fileID: 1309324361}
   m_Layer: 5
   m_Name: PauseButton
   m_TagString: Untagged
@@ -3257,6 +3324,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1309324356}
   m_CullTransparentMesh: 1
+--- !u!114 &1309324361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309324356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1348055118
 GameObject:
   m_ObjectHideFlags: 0
@@ -3384,8 +3463,12 @@ MonoBehaviour:
   messageText: {fileID: 822873039}
   starText: {fileID: 1285405480}
   timeText: {fileID: 2123110418}
+  rewardText: {fileID: 0}
+  damageText: {fileID: 0}
   countdownText: {fileID: 1752686933}
   goVisibleSeconds: 0.7
+  washScene: Wash
+  garageScene: Garage
   mainMenuScene: MainMenu
 --- !u!114 &1348055124
 MonoBehaviour:
@@ -3400,7 +3483,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pausePanel: {fileID: 1700121025}
+  controls: {fileID: 0}
+  toggleIcon: {fileID: 0}
+  pauseSprite: {fileID: 0}
+  playSprite: {fileID: 0}
   mainMenuScene: MainMenu
+  garageScene: Garage
 --- !u!4 &1367740653 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 399a5d525e47d614f80c204b02086cc3,
@@ -3499,6 +3587,7 @@ GameObject:
   - component: {fileID: 1446064617}
   - component: {fileID: 1446064616}
   - component: {fileID: 1446064619}
+  - component: {fileID: 1446064620}
   m_Layer: 5
   m_Name: LeftButton
   m_TagString: Untagged
@@ -3634,6 +3723,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   car: {fileID: 2808748895449229207}
   action: 2
+--- !u!114 &1446064620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446064614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1458773890
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3717,6 +3818,68 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 41abbb4c02764114591bbf8c7b26d8cf, type: 3}
+--- !u!1 &1482516457
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1482516459}
+  - component: {fileID: 1482516458}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1482516458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1482516457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2180467f098c674c81a9ec813ab5df8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  countdownBeep: {fileID: 8300000, guid: e15372cab1d0f0e4da8d0138414b83b5, type: 3}
+  goSound: {fileID: 8300000, guid: 8a8c8150a25c23b4b99ed148ca5c2e33, type: 3}
+  starPickup: {fileID: 8300000, guid: 382624845fe981a4183d2363c57e2ff1, type: 3}
+  finishFanfare: {fileID: 8300000, guid: 893d14c45189392488938d1a9f94b8a3, type: 3}
+  bubblePop: {fileID: 8300000, guid: e8630c9d5975ec8418f22f8edd412a1e, type: 3}
+  buttonClick: {fileID: 8300000, guid: f44b7eeb54e634d4493084ae16011bd8, type: 3}
+  boostSound: {fileID: 8300000, guid: ed18aa7bd07e1034394add8a7ffc0898, type: 3}
+  splashSound: {fileID: 8300000, guid: c6fa94baeb5903046a6dc6768225a535, type: 3}
+  bumpSound: {fileID: 8300000, guid: 4a8a78f590f2ba14cabf2f9b2d99d749, type: 3}
+  fitGoodSound: {fileID: 8300000, guid: dba7e3091f31089418ffa432546ccb46, type: 3}
+  unlockSound: {fileID: 8300000, guid: 2d34c31c97624d94fb0152ce435a4dfa, type: 3}
+  engineLoop: {fileID: 8300000, guid: 98d4389b09e86054190d2796ce79841c, type: 3}
+  musicVolume: 0.6
+  sfxVolume: 1
+  menuMusic: {fileID: 8300000, guid: 1169706242c71954c9c59df93efea31d, type: 3}
+  garageMusic: {fileID: 8300000, guid: 403efaa148d122b408a4fb3b4305de1c, type: 3}
+  raceMusic: {fileID: 8300000, guid: c90926029ae3455418468d78a0dce955, type: 3}
+  washMusic: {fileID: 8300000, guid: 728b3b5e986d66d41b01a3ca0fa8da72, type: 3}
+--- !u!4 &1482516459
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1482516457}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1586221828
 GameObject:
   m_ObjectHideFlags: 0
@@ -4121,6 +4284,7 @@ GameObject:
   - component: {fileID: 1853647367}
   - component: {fileID: 1853647366}
   - component: {fileID: 1853647365}
+  - component: {fileID: 1853647368}
   m_Layer: 5
   m_Name: MainMenuButton
   m_TagString: Untagged
@@ -4242,6 +4406,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1853647363}
   m_CullTransparentMesh: 1
+--- !u!114 &1853647368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1853647363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855c454a6d1ab034180d777f05e8dec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2061599291
 GameObject:
   m_ObjectHideFlags: 0
@@ -4844,3 +5020,4 @@ SceneRoots:
   - {fileID: 216107554}
   - {fileID: 1650199498}
   - {fileID: 1075906067}
+  - {fileID: 1482516459}

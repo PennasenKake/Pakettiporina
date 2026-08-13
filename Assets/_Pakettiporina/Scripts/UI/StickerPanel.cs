@@ -102,6 +102,7 @@ namespace Pakettiporina
             if (bought)
             {
                 Debug.Log($"[Stickers] Ostettu: {s.sticker.displayName}");
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayUnlock();
                 Refresh();
             }
             else

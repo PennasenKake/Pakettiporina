@@ -296,6 +296,10 @@ namespace Pakettiporina
         // hiljaa jos viestien sanamuotoa joskus muutetaan).
         public FitChecker.Result CurrentFit { get; private set; }
 
+        // Soitetaan kuittausaani vain kun sopivuus VAIHTUU ei-sopivasta sopivaksi - ei joka
+        // kerta kun UpdateFit ajetaan (esim. joka osa-askeleella), muuten aani spammaisi.
+        bool wasFitting;
+
         void UpdateStats()
         {
             CarStats s = builder.Current;
@@ -317,6 +321,10 @@ namespace Pakettiporina
             }
             if (vilkkuText != null)
                 vilkkuText.text = r.fits ? "Hyvä valinta!" : "Katso mitä paketti tarvitsee.";
+
+            if (r.fits && !wasFitting && AudioManager.Instance != null)
+                AudioManager.Instance.PlayFitGood();
+            wasFitting = r.fits;
         }
 
         // "Aja keikka": tallenna paketti, mittarit JA valitut osat -> auto sailyy.
