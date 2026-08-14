@@ -11,19 +11,24 @@ namespace Pakettiporina.EditorTools
     // saippuakupla-mekaniikka"): lisaa/paivittaa Boost/Kartio/Latakko-esteita seka UUDEN
     // TrackBubble-kuplamekaniikan avoinna olevaan ratasceneen.
     //
-    // AJA se ratascene AUKI jota haluat taydentaa (Puisto/Satama/Huvipuisto - katso alla
-    // miksi juuri nama kolme), ja suorita tama tyokalu. Tallenna scene lopuksi (Ctrl+S).
+    // AJA se ratascene AUKI jota haluat taydentaa (Puisto/Satama/Huvipuisto/Maatila - katso
+    // alla), ja suorita tama tyokalu. Tallenna scene lopuksi (Ctrl+S).
     //
-    // MIKSI VAIN Puisto/Satama/Huvipuisto TASSA ERASSA (EI Game/Game2/Maatila):
-    // Nailla kolmella radalla oli jo VALMIIKSI oikein sijoitettuja Boost/Kartio/Latakko-
+    // Puisto/Satama/Huvipuisto: oli jo VALMIIKSI oikein sijoitettuja Boost/Kartio/Latakko-
     // esteita (Tehosteet/Esteet-kansioiden alla, "Map"-objektin lapsina) - naiden todellisia
-    // maailma-koordinaatteja kayttaen uudet lisaykset voidaan sijoittaa LUOTETTAVASTI radan
-    // varrelle (kloonataan olemassa oleva este ja siirretaan hieman sivuun/valiin). Game.unity,
-    // Game2.unity ja Maatila.unity eivat sisaltaneet YHTAAN valmista estetta - ilman mitaan
-    // koordinaattireferenssia radan muodosta uusien esteiden sijoittelu olisi arvausta ja
-    // saattaisi paatya ilmaan tai radan ulkopuolelle. Nailla kolmella tehdaan oma erillinen
-    // kierros myohemmin (esim. Scene-nakymasta otetun kuvakaappauksen tai manuaalisesti
-    // podetettujen koordinaattien avulla).
+    // maailma-koordinaatteja kayttaen uudet lisaykset sijoitetaan LUOTETTAVASTI radan
+    // varrelle (kloonataan olemassa oleva este ja siirretaan hieman sivuun/valiin).
+    //
+    // Maatila (LISATTY 14.8.2026): kayttaja ajoi "Tyokalut/01 - Nayta tien profiili"
+    // -tyokalun ja antoi oikean roadX(z)-taulukon konsolista. Maatilalla ei ollut yhtaan
+    // valmista Boost/Kartio/Latakko-objektia kloonattavaksi (vain Star_01), joten AddMaatila()
+    // rakentaa esteet TYHJASTA primitiiveista (sama kaava kuin CreateBubble) ja sijoittaa ne
+    // roadX(z):n paalle taman taulukon perusteella - katso AddMaatila()-metodin kommentit.
+    //
+    // Game/Game2: ei viela roadX(z)-taulukkoa eika yhtaan valmista estetta - tama tyokalu
+    // EI VIELA lisaa mitaan naihin kahteen sceneen. Aja "Tyokalut/01" ensin niissa (jos
+    // PakettiporinaTracks.cs:ssa on niille preset) ja anna tulostus, niin lisataan samalla
+    // tavalla kuin Maatilalle nyt tehtiin.
     //
     // TrackBubble (Gameplay/TrackBubble.cs, UUSI M5.16): pallo (Sphere-primitiivi, oletus-
     // materiaali - vaihda halutessasi soapy/lapikuultava materiaali Inspectorista), Is Trigger
@@ -58,15 +63,17 @@ namespace Pakettiporina.EditorTools
                 case "Huvipuisto":
                     AddHuvipuisto(map, ref s);
                     break;
+                case "Maatila":
+                    AddMaatila(map, ref s);
+                    break;
                 case "Game":
                 case "Game2":
-                case "Maatila":
                     s.AppendLine($"'{scene}':lla ei ole viela yhtaan valmista estetta jonka " +
                         "sijaintia voisi kayttaa referenssina - tama tyokalu EI lisaa mitaan " +
                         "tahan sceneen (ks. luokkakommentti). Sijoitellaan kasin tai omalla erallaan.");
                     break;
                 default:
-                    s.AppendLine($"Tuntematon scene '{scene}' - tama tyokalu tukee Puisto/Satama/Huvipuisto-ratoja.");
+                    s.AppendLine($"Tuntematon scene '{scene}' - tama tyokalu tukee Puisto/Satama/Huvipuisto/Maatila-ratoja.");
                     break;
             }
 
@@ -110,7 +117,101 @@ namespace Pakettiporina.EditorTools
             CreateBubble(kuplat, "Kupla_04", new Vector3(5f, 0.5f, 130f), ref s);
         }
 
+        // ---------- Maatila (14.8.2026): kayttaja ajoi "Tyokalut/01 - Nayta tien profiili"
+        // -tyokalun ja antoi oikean roadX(z)-taulukon (Z -150..150, tie 12 yks. levea,
+        // kaksi S-kaarretta: oikealle Z -100..-20 (huippu X=13.58 kohdassa Z -70..-60),
+        // vasemmalle Z 20..100 (huippu X=-13.58 kohdassa Z 60..70)). Maatilalla EI ollut
+        // yhtaan valmista Boost/Kartio/Latakko-objektia kloonattavaksi (vain Star_01),
+        // joten esteet rakennetaan TYHJASTA primitiiveista (sama kaava kuin CreateBubble) -
+        // vaihda materiaali/mesh Inspectorista halutessasi nayttavamman ilmeen. Kaikki
+        // sijainnit ovat roadX(z) +/- muutama yksikko (tien puolikas 6 yks.), eivat siis
+        // koskaan yli 6 yksikon paassa keskilinjasta - pysyvat aina ajettavalla tiella.
+        static void AddMaatila(Transform map, ref StringBuilder s)
+        {
+            var tehosteet = FindOrCreateContainer(map, "Tehosteet", ref s);
+            CreateBoost(tehosteet, "Boost_01", new Vector3(3f, 0.05f, -135f), ref s);      // alkusuora, roadX=0
+            CreateBoost(tehosteet, "Boost_02", new Vector3(10.58f, 0.05f, -65f), ref s);   // 1. kaarre, roadX=13.58 (sisakaarre)
+            CreateBoost(tehosteet, "Boost_03", new Vector3(-10.58f, 0.05f, 65f), ref s);   // 2. kaarre, roadX=-13.58 (sisakaarre)
+            CreateBoost(tehosteet, "Boost_04", new Vector3(3f, 0.05f, 135f), ref s);       // loppusuora, roadX=0
+
+            var esteet = FindOrCreateContainer(map, "Esteet", ref s);
+            CreateCone(esteet, "Kartio_01", new Vector3(5.64f, 0.4f, -100f), ref s);        // roadX=1.64, ulkoreuna
+            CreateCone(esteet, "Kartio_02", new Vector3(-3f, 0.4f, 0f), ref s);             // keskisuora, roadX=0
+            CreateCone(esteet, "Kartio_03", new Vector3(-5.64f, 0.4f, 100f), ref s);        // roadX=-1.64, ulkoreuna
+            CreatePuddle(esteet, "Latakko_01", new Vector3(3.78f, 0.03f, -40f), ref s);     // roadX=5.78, sisareuna
+            CreatePuddle(esteet, "Latakko_02", new Vector3(-3.78f, 0.03f, 40f), ref s);     // roadX=-5.78, sisareuna
+
+            var kuplat = FindOrCreateContainer(map, "Kuplat", ref s);
+            CreateBubble(kuplat, "Kupla_01", new Vector3(1f, 0.5f, -115f), ref s);
+            CreateBubble(kuplat, "Kupla_02", new Vector3(-2f, 0.5f, 10f), ref s);
+            CreateBubble(kuplat, "Kupla_03", new Vector3(2f, 0.5f, 115f), ref s);
+        }
+
         // ---------- Apufunktiot ----------
+
+        // Boost: ohut vihrea laatta (Cube, madallettu). Trigger-collider, Boost-komponentti.
+        static void CreateBoost(Transform container, string name, Vector3 localPos, ref StringBuilder s)
+        {
+            var existing = FindChild(container, name);
+            if (existing != null) { existing.localPosition = localPos; s.AppendLine($"{name}: paivitetty sijainti."); return; }
+
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.transform.SetParent(container, false);
+            go.transform.localPosition = localPos;
+            go.transform.localScale = new Vector3(1.8f, 0.08f, 1.8f);
+            Undo.RegisterCreatedObjectUndo(go, "Luo " + name);
+
+            var col = go.GetComponent<BoxCollider>();
+            if (col != null) col.isTrigger = true;
+            if (go.GetComponent<Boost>() == null) go.AddComponent<Boost>();
+
+            s.AppendLine($"{name}: luotu (Cube-laatta + Boost - vaihda materiaali Inspectorista " +
+                "nayttavammaksi, esim. vihrea/nuolikuvio).");
+        }
+
+        // Kartio: pysty, ohut sylinteri (paikallaan seisova este). Ei trigger - fyysinen
+        // tormays (OnCollisionEnter Cone.cs:ssa), tuntuu selvemmin "esteelta".
+        static void CreateCone(Transform container, string name, Vector3 localPos, ref StringBuilder s)
+        {
+            var existing = FindChild(container, name);
+            if (existing != null) { existing.localPosition = localPos; s.AppendLine($"{name}: paivitetty sijainti."); return; }
+
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = name;
+            go.transform.SetParent(container, false);
+            go.transform.localPosition = localPos;
+            go.transform.localScale = new Vector3(0.35f, 0.4f, 0.35f);
+            Undo.RegisterCreatedObjectUndo(go, "Luo " + name);
+
+            if (go.GetComponent<Cone>() == null) go.AddComponent<Cone>();
+
+            s.AppendLine($"{name}: luotu (Cylinder-tolppa + Cone - vaihda materiaali/mesh Inspectorista " +
+                "oikean liikennekartion nakoiseksi jos haluat).");
+        }
+
+        // Latakko: matala, leveä sylinteri (lammikko). Trigger-collider, Puddle-komponentti.
+        static void CreatePuddle(Transform container, string name, Vector3 localPos, ref StringBuilder s)
+        {
+            var existing = FindChild(container, name);
+            if (existing != null) { existing.localPosition = localPos; s.AppendLine($"{name}: paivitetty sijainti."); return; }
+
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = name;
+            go.transform.SetParent(container, false);
+            go.transform.localPosition = localPos;
+            go.transform.localScale = new Vector3(2.2f, 0.02f, 2.2f);
+            Undo.RegisterCreatedObjectUndo(go, "Luo " + name);
+
+            var col = go.GetComponent<CapsuleCollider>();
+            // CreatePrimitive(Cylinder) antaa CapsuleColliderin - Puddle vaatii vain jonkin
+            // Colliderin (RequireComponent(Collider)), joten CapsuleCollider kelpaa sellaisenaan.
+            if (col != null) col.isTrigger = true;
+            if (go.GetComponent<Puddle>() == null) go.AddComponent<Puddle>();
+
+            s.AppendLine($"{name}: luotu (Cylinder-lammikko + Puddle - vaihda materiaali Inspectorista " +
+                "tummansiniseksi/ruskeaksi lataakon nakoiseksi jos haluat).");
+        }
 
         // Loytaa tai luo "Map":n lapsikontainerin (esim. "Kuplat") - sama kaava kuin
         // olemassa olevilla Tehosteet/Esteet-kansioilla (local position nolla).

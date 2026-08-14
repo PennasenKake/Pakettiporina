@@ -30,6 +30,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Wash.unity
     guid: f3badd5b652e3344ba6d004be98d817d
   - enabled: 0
-    path: Assets/Scenes/Game2.unity
+    path: Assets/Scenes/Kyla.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects: {}
