@@ -42,6 +42,10 @@ namespace Pakettiporina.EditorTools
             public float[] boostZ;
             public float[] puddleZ;
             public (float z, float offsetX)[] cones;
+            // LISATTY 14.8.2026 (kayttaja: "sailytetaan esteina kartiot, laatikot ja
+            // latakot... niita tulee olla joka radassa riittavasti ja tasaisesti, ja
+            // ehdottomasti jokaisella radalla"). Sama (z, offsetX)-formaatti kuin cones.
+            public (float z, float offsetX)[] laatikot;
 
             // KAYTTAJAN UNITYSSA KASIN TESTAAMAT (x,z) -ylikirjoitukset - jos annettu (ei-tyhja),
             // PakettiporinaElements kayttaa naita SUORAAN eika laske X:aa road_x(z)-kaavasta.
@@ -51,6 +55,7 @@ namespace Pakettiporina.EditorTools
             // Unityssa oikeaksi todetut sijainnit voidaan kiinnittaa tassa suoraan.
             public (float z, float x)[] boostXZ;
             public (float z, float x)[] conesXZ;
+            public (float z, float x)[] laatikotXZ;
         }
 
         // Radan leveys on aina 71 -> GroundColliderin X-skaala sama kaikilla radoilla.
@@ -66,39 +71,58 @@ namespace Pakettiporina.EditorTools
         {
             new TrackDef
             {
-                // Maatila: ensimmainen "hengahdys"-rata, kaksi hyvin loivaa peltotien
-                // kaarretta. Ei kartioita/lataakoita - helppo, rauhallinen. Tahdet
-                // toimivat vaikeasuunnitelman "kolikoiden" sijasta kunnes oma
-                // kolikkosysteemi rakennetaan.
+                // Maatila: alunperin "ei esteita" -helppo hengahdysrata. LISATTY 14.8.2026
+                // (kayttaja: "esteita/tehosteita joka radalle, ehdottomasti jokaiselle") -
+                // kevyt mutta olemassaoleva esterosteri, edelleen radoista helpoin
+                // (vahiten esteita: 3 kartiota+2 laatikkoa+2 latakkoa vs. esim. Huvipuiston
+                // 4+4+4). HUOM: Lisays/10-tyokalu (PakettiporinaTrackObstaclesSetup) on jo
+                // aiemmin lisannyt taman TrackDefin OHI muutaman Boost/Kartio/Latakko/Kupla-
+                // objektin suoraan Maatila.uniin - tama TrackDef-lista on eri, "virallinen"
+                // jarjestelma (PakettiporinaElements/Lisays 02); aja Lisays/02 uudelleen
+                // TAMAN listan mukaisesti ja tarkista ettei vanhoja Lisays/10-objekteja jaa
+                // paallekkain (nimet eroavat, Kupla_ ei kuulu tahan listaan lainkaan).
                 sceneName = "Maatila", maastoName = "Maatila",
                 startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f, roadBaseX = 0f,
                 bends = new[] { (-110f, -20f, 14f), (20f, 110f, -14f) },
-                boostZ = new float[0],
-                puddleZ = new float[0],
-                cones = new (float, float)[0],
+                boostZ = new[] { -130f, -20f, 100f },
+                // LAAJENNETTU 16.8.2026 (kayttaja: "pysyvalle likamittarille (max 15) pitaa
+                // olla riittavasti lätäköitä tiellä" - 2->5 latakkoa jokaisella radalla,
+                // ks. myos GameManager.DirtMeter/DentMeter). TARKISTETTU ettei osu samaan
+                // Z:aan minkaan kartion/laatikon/boostin kanssa (0 -> 10, valttaa Kartio_02:n z=0).
+                puddleZ = new[] { -120f, -65f, 10f, 55f, 120f },
+                cones = new[] { (-90f, 3.5f), (0f, -3f), (75f, 3f) },
+                laatikot = new[] { (-45f, -3.5f), (35f, 3.5f) },
             },
             new TrackDef
             {
+                // TAYDENNETTY 14.8.2026 (kayttaja: "esteita/tehosteita joka radalle,
+                // ehdottomasti jokaiselle") - lisatty laatikko + tasapainotettu maara.
                 sceneName = "Game", maastoName = "Maasto",
                 startZ = -135f, finishZ = 135f, groundScaleZ = 30.2f, roadBaseX = 0f,
                 bends = new[] { (-100f, 0f, 20f), (0f, 100f, -20f) },
-                boostZ = new[] { -130f, 0f },
-                puddleZ = new[] { -50f },
-                cones = new[] { (45f, 3.5f), (60f, -3.5f) },
+                boostZ = new[] { -130f, -30f, 90f },
+                // LAAJENNETTU 16.8.2026 (pysyva likamittari, ks. Maatila-kommentti ylla).
+                // TARKISTETTU: 100 -> 105, valttaa Kartio_03:n z=100.
+                puddleZ = new[] { -100f, -50f, 20f, 60f, 105f },
+                cones = new[] { (-70f, -3.5f), (45f, 3.5f), (100f, -3.5f) },
+                laatikot = new[] { (-20f, 3.5f), (70f, -3.5f) },
             },
             new TrackDef
             {
-                // Puisto: pelkkia boosteja - opettaa etta keveys kannattaa (ei muita elementteja).
-                // KORJATTU 7.8.2026: oli vain 3 boostia ja kaksi niista osui tasan
-                // start/finish-linjalle (z=-150/150) - jarjeton sijainti (ennen lahtoa/
-                // jalkeen maalin). Nyt 5 boostia tasavalein z=-120..120, 30 yksikkoa
-                // marginaalia molemmissa paissa.
+                // Puisto: alunperin pelkkia boosteja (opettaa etta keveys kannattaa).
+                // TAYDENNETTY 14.8.2026 (kayttaja: "esteita/tehosteita joka radalle,
+                // ehdottomasti jokaiselle") - lisatty kevyt esterosteri boostien rinnalle,
+                // silti toiseksi helpoin Maatilan jalkeen (vahemman kartioita/laatikoita
+                // kuin Satamalla/Huvipuistolla).
                 sceneName = "Puisto", maastoName = "Puisto",
                 startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f, roadBaseX = 0f,
                 bends = new[] { (-120f, -30f, 18f), (30f, 120f, -18f) },
                 boostZ = new[] { -120f, -60f, 0f, 60f, 120f },
-                puddleZ = new float[0],
-                cones = new (float, float)[0],
+                // LAAJENNETTU 16.8.2026 (pysyva likamittari, ks. Maatila-kommentti ylla).
+                // TARKISTETTU: 0 -> 15, valttaa Boost_03:n z=0.
+                puddleZ = new[] { -90f, -50f, 15f, 50f, 90f },
+                cones = new[] { (-45f, 3.5f), (45f, -3.5f) },
+                laatikot = new[] { (-105f, -3.5f), (105f, 3.5f) },
             },
             new TrackDef
             {
@@ -112,8 +136,12 @@ namespace Pakettiporina.EditorTools
                 // puolella VAIN tassa kierrossa. AlA muuta 0:ksi, ks. maastoRotationY-kommentti.
                 maastoRotationY = 180f,
                 bends = new[] { (-100f, 0f, 10f), (0f, 100f, -6f) },
-                boostZ = new float[0],
-                puddleZ = new[] { 0f },
+                // TAYDENNETTY 14.8.2026 (kayttaja: "esteita/tehosteita joka radalle,
+                // ehdottomasti jokaiselle") - Satamalla ei ollut YHTAAN boostia, lisatty 3.
+                boostZ = new[] { -140f, -30f, 90f },
+                // LAAJENNETTU 16.8.2026 (pysyva likamittari, ks. Maatila-kommentti ylempana).
+                // TARKISTETTU: -130 -> -125, valttaa Kartio_01:n z=-130.
+                puddleZ = new[] { -125f, -70f, 0f, 60f, 100f },
                 // KORJATTU 7.8.2026: scenessa oli jo 7 kartiota (Kartio_01..07) vaikka
                 // koodissa oli vain 2 - loput 5 olivat jaaneet "orpoina" vanhasta
                 // presetista (sama ilmio kuin Puiston Boost_06). Vietiin talteen "16 -
@@ -122,6 +150,7 @@ namespace Pakettiporina.EditorTools
                 // nurmikolla eika oikeasti tuki tieta - tarkista/siirra jos halutaan
                 // sen oikeasti hidastavan.
                 cones = new[] { (-130f, 3.0f), (-110f, -3.0f), (-80f, -10.5f), (-50f, 3.5f), (50f, -3.5f), (110f, -3.0f), (125f, -3.0f) },
+                laatikot = new[] { (-95f, 3.5f), (20f, -3.5f), (140f, 3.0f) },
             },
             new TrackDef
             {
@@ -166,7 +195,9 @@ namespace Pakettiporina.EditorTools
                 startZ = -170f, finishZ = 170f, groundScaleZ = 38.0f, roadBaseX = 0f,
                 bends = new[] { (-150f, -80f, -16f), (-40f, 40f, 18f), (80f, 150f, -16f) },
                 boostZ = new[] { -140f, -100f, -65f, -20f, 20f, 60f, 99f, 130f },
-                puddleZ = new[] { -130f, -60f, 0f, 110f },
+                // LAAJENNETTU 16.8.2026 (pysyva likamittari, ks. Maatila-kommentti ylempana).
+                // TARKISTETTU: 60 -> 50, valttaa Boost-taytteen z=60.
+                puddleZ = new[] { -130f, -60f, 0f, 50f, 110f },
                 cones = new[] { (-115f, 3.5f), (-15f, -3f), (15f, 3f), (115f, -3.5f) },
 
                 // Kayttajan Unityssa kasin testaamat, tarkat sijainnit - kaytetaan naita
@@ -184,6 +215,10 @@ namespace Pakettiporina.EditorTools
                 // vastakkainen etumerkki Kartio_02:een nahden, koska ne ovat s-mutkan
                 // vastakkaisilla puolilla) - EI VIELA KASIN UNITY-TESTATTU.
                 conesXZ = new[] { (-115f, -11f), (-15f, 7f), (15f, 17.44f), (114f, -11f) },
+                // LISATTY 14.8.2026 (kayttaja: "esteita/tehosteita joka radalle, ehdottomasti
+                // jokaiselle") - lasketu suoraan (kaannetylla) bends-kaavalla, kuten uusimmat
+                // boostZ-tayteet ylla - EI VIELA KASIN UNITY-TESTATTU.
+                laatikot = new[] { (-150f, 4f), (-95f, -6f), (45f, -6f), (145f, 4f) },
             },
         };
 

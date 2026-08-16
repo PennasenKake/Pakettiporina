@@ -30,18 +30,22 @@ namespace Pakettiporina.EditorTools
     // PakettiporinaTracks.cs:ssa on niille preset) ja anna tulostus, niin lisataan samalla
     // tavalla kuin Maatilalle nyt tehtiin.
     //
-    // TrackBubble (Gameplay/TrackBubble.cs, UUSI M5.16): pallo (Sphere-primitiivi, oletus-
-    // materiaali - vaihda halutessasi soapy/lapikuultava materiaali Inspectorista), Is Trigger
-    // paalla, TrackBubble-komponentti (poksahtaa + antaa tahden, RaceManager.AddStar()) ja
-    // Spinner-komponentti (pyorii + kelluu pehmeasti, sama komponentti kuin Tahti-keraily).
+    // POISTETTU KAYTOSTA 14.8.2026 (kayttaja: "poistetaan kaikilta sceneilta kaytosta,
+    // vain tahdet keraittavissa" - Kupla oli sekoittanut kayttajaa, ei liittynyt pesuun
+    // niinkuin alkuperainen "poksauta kuplia radan jalkeen" -idea, ja oli paallekkainen
+    // konsepti tahtien kanssa). Tama tyokalu EI ENAA sijoita TrackBubble-kuplia mihinkaan
+    // sceneen - RemoveExistingBubbles() sen sijaan siivoaa pois jo olemassa olevat
+    // Kupla_-objektit (esim. Maatilalla oli 3 kpl) joka kerta kun tyokalua ajetaan.
+    // TrackBubble.cs-luokka on jatetty koodikantaan (ei poistettu tiedostona), mutta
+    // mikaan tyokalu ei enaa luo sen instansseja.
     public static class PakettiporinaTrackObstaclesSetup
     {
-        [MenuItem("Pakettiporina/Lisays/10 - Lisaa esteita, tehosteita ja kuplia avattuun rataan")]
+        [MenuItem("Pakettiporina/Lisays/10 - Lisaa esteita ja tehosteita avattuun rataan")]
         public static void AddTrackObstacles()
         {
             var s = new StringBuilder();
             string scene = EditorSceneManager.GetActiveScene().name;
-            s.AppendLine($"=== ESTEET/TEHOSTEET/KUPLAT ({scene}) ===");
+            s.AppendLine($"=== ESTEET/TEHOSTEET ({scene}) ===");
 
             var mapGo = GameObject.Find("Map");
             if (mapGo == null)
@@ -51,6 +55,8 @@ namespace Pakettiporina.EditorTools
                 return;
             }
             var map = mapGo.transform;
+
+            RemoveExistingBubbles(map, ref s);
 
             switch (scene)
             {
@@ -86,11 +92,6 @@ namespace Pakettiporina.EditorTools
             var tehosteet = FindOrCreateContainer(map, "Tehosteet", ref s);
             CloneObstacle(tehosteet, "Boost_01", "Boost_06", new Vector3(6.75f, 0.05f, -90f), ref s);
             CloneObstacle(tehosteet, "Boost_01", "Boost_07", new Vector3(-6.75f, 0.05f, 90f), ref s);
-
-            var kuplat = FindOrCreateContainer(map, "Kuplat", ref s);
-            CreateBubble(kuplat, "Kupla_01", new Vector3(4f, 0.5f, -120f), ref s);
-            CreateBubble(kuplat, "Kupla_02", new Vector3(-4f, 0.5f, 0f), ref s);
-            CreateBubble(kuplat, "Kupla_03", new Vector3(4f, 0.5f, 120f), ref s);
         }
 
         // ---------- Satama: 7 Kartiota + 1 Latakko valmiina (Z -130..125, X 5.5..28.5) ----------
@@ -100,21 +101,12 @@ namespace Pakettiporina.EditorTools
             CloneObstacle(esteet, "Kartio_01", "Kartio_08", new Vector3(10f, 0.4f, -20f), ref s);
             CloneObstacle(esteet, "Kartio_01", "Kartio_09", new Vector3(15f, 0.4f, 90f), ref s);
             CloneObstacle(esteet, "Latakko_01", "Latakko_02", new Vector3(20f, 0.03f, -100f), ref s);
-
-            var kuplat = FindOrCreateContainer(map, "Kuplat", ref s);
-            CreateBubble(kuplat, "Kupla_01", new Vector3(25f, 0.5f, -65f), ref s);
-            CreateBubble(kuplat, "Kupla_02", new Vector3(10f, 0.5f, 25f), ref s);
-            CreateBubble(kuplat, "Kupla_03", new Vector3(18f, 0.5f, 117f), ref s);
         }
 
-        // ---------- Huvipuisto: jo 8 Boost + 4 Kartio + 4 Latakko - lisataan vain kuplat ----------
+        // ---------- Huvipuisto: jo 8 Boost + 4 Kartio + 4 Latakko valmiina, ei lisattavaa ----------
         static void AddHuvipuisto(Transform map, ref StringBuilder s)
         {
-            var kuplat = FindOrCreateContainer(map, "Kuplat", ref s);
-            CreateBubble(kuplat, "Kupla_01", new Vector3(-8f, 0.5f, -140f), ref s);
-            CreateBubble(kuplat, "Kupla_02", new Vector3(12f, 0.5f, -40f), ref s);
-            CreateBubble(kuplat, "Kupla_03", new Vector3(-12f, 0.5f, 40f), ref s);
-            CreateBubble(kuplat, "Kupla_04", new Vector3(5f, 0.5f, 130f), ref s);
+            s.AppendLine("Huvipuistolla oli jo riittavasti Boost/Kartio/Latakko - ei lisatty mitaan.");
         }
 
         // ---------- Maatila (14.8.2026): kayttaja ajoi "Tyokalut/01 - Nayta tien profiili"
@@ -140,11 +132,6 @@ namespace Pakettiporina.EditorTools
             CreateCone(esteet, "Kartio_03", new Vector3(-5.64f, 0.4f, 100f), ref s);        // roadX=-1.64, ulkoreuna
             CreatePuddle(esteet, "Latakko_01", new Vector3(3.78f, 0.03f, -40f), ref s);     // roadX=5.78, sisareuna
             CreatePuddle(esteet, "Latakko_02", new Vector3(-3.78f, 0.03f, 40f), ref s);     // roadX=-5.78, sisareuna
-
-            var kuplat = FindOrCreateContainer(map, "Kuplat", ref s);
-            CreateBubble(kuplat, "Kupla_01", new Vector3(1f, 0.5f, -115f), ref s);
-            CreateBubble(kuplat, "Kupla_02", new Vector3(-2f, 0.5f, 10f), ref s);
-            CreateBubble(kuplat, "Kupla_03", new Vector3(2f, 0.5f, 115f), ref s);
         }
 
         // ---------- Apufunktiot ----------
@@ -254,38 +241,16 @@ namespace Pakettiporina.EditorTools
             s.AppendLine($"{newName}: luotu (kloonattu '{sourceName}':sta).");
         }
 
-        // Rakentaa uuden TrackBubblen tyhjasta (Sphere-primitiivi - ei tarvitse ulkoista
-        // mesh-referenssia, joten talle ei ole olemassa olevaa objektia kloonattavaksi).
-        static void CreateBubble(Transform container, string name, Vector3 localPos, ref StringBuilder s)
+        // LISATTY 14.8.2026 (kayttaja: "poistetaan kaikilta sceneilta kaytosta, vain tahdet
+        // keraittavissa") - poistaa "Kuplat"-kontainerin ja kaikki sen lapset (Kupla_01..N)
+        // jos niita loytyy jo avatusta scenesta. Ajetaan aina AddTrackObstacles():n alussa.
+        static void RemoveExistingBubbles(Transform map, ref StringBuilder s)
         {
-            var existing = FindChild(container, name);
-            if (existing != null)
-            {
-                existing.localPosition = localPos;
-                s.AppendLine($"{name}: paivitetty sijainti.");
-                return;
-            }
-
-            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = name;
-            go.transform.SetParent(container, false);
-            go.transform.localPosition = localPos;
-            go.transform.localScale = Vector3.one * 1.1f;
-            Undo.RegisterCreatedObjectUndo(go, "Luo " + name);
-
-            var col = go.GetComponent<SphereCollider>();
-            if (col != null) col.isTrigger = true;
-
-            if (go.GetComponent<TrackBubble>() == null) go.AddComponent<TrackBubble>();
-
-            var spin = go.GetComponent<Spinner>();
-            if (spin == null) spin = go.AddComponent<Spinner>();
-            spin.spinSpeed = 40f;
-            spin.bobHeight = 0.3f;
-            spin.bobSpeed = 1.5f;
-
-            s.AppendLine($"{name}: luotu (Sphere + TrackBubble + Spinner - vaihda materiaali " +
-                "Inspectorista jos haluat lapikuultavamman saippuakupla-ilmeen).");
+            var kuplat = FindChild(map, "Kuplat");
+            if (kuplat == null) return;
+            int removed = kuplat.childCount;
+            Undo.DestroyObjectImmediate(kuplat.gameObject);
+            s.AppendLine($"Poistettu 'Kuplat'-kansio ja {removed} Kupla-objektia (kaytosta poistettu 14.8.2026).");
         }
 
         static Transform FindChild(Transform parent, string name)

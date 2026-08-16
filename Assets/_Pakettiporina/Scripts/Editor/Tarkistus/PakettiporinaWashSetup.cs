@@ -22,6 +22,12 @@ namespace Pakettiporina.EditorTools
     //   DoneText        - TMP_Text DonePanelin sisalla
     //   ContinueButton  - nappi DonePanelin sisalla, vie halliin
     //   SkipButton      - valinnainen, ohittaa pesun
+    //   RepairArea      - (16.8.2026) tyhja Transform, jonka lapsina RepairTool-ikonit ovat -
+    //                      TASMALLEEN SAMA periaate kuin BubbleArea/Bubble, mutta korjaa
+    //                      kolhun likatahran sijaan. Piilossa pesun ajan.
+    //   DentSpots       - (16.8.2026) autossa nakyvat kolhu-merkit, sama periaate kuin DirtSpots
+    //   DentsText       - TMP_Text, esim. "Korjattu: 40 %"
+    //   RepairEffect    - hetken nakyva kuittausefekti kun kaikki kolhut on korjattu
     public static class PakettiporinaWashSetup
     {
         const string BUBBLE_AREA = "BubbleArea";
@@ -34,6 +40,31 @@ namespace Pakettiporina.EditorTools
         const string RESTART_BTN = "RestartButton";    // usein kopioitu Ajon maali-paneelista
         const string GARAGE_SCENE = "Garage";
         const string MAINMENU_SCENE = "MainMenu";
+
+        // LISATTY 15.8.2026 (kayttaja: "korjaa tulisi olla wash scenen kanssa samassa,
+        // ensin pestaan ja sen jalkeen korjataan"): korjausvaihe (kolhut) rakennetaan
+        // nyt tahan sceneen. Siirretty pois Halli-scenesta (PakettiporinaGarageSetup.cs)
+        // kokonaan.
+        // MUUTETTU 16.8.2026 (kayttaja: "korjaa vaihe tulisi tehda samalla tavalla kuin
+        // pesu"): yhden RepairButton-napin sijaan RepairArea (RepairTool-ikonit, sama
+        // periaate kuin BubbleArea/Bubble) + DentSpots (kolhu-merkit autossa, sama
+        // periaate kuin DirtSpots) - napauta tyokaluja korjataksesi kolhut YKSI kerrallaan.
+        const string REPAIR_AREA = "RepairArea";
+        const string DENT_SPOTS = "DentSpots";
+        const string DENTS_TEXT = "DentsText";
+        const string REPAIR_EFFECT = "RepairEffect";
+        const string DENT_SPRITE_PATH = "Assets/_Pakettiporina/Art/UI/Dirt/pakettiporina_lika_b.png";
+
+        // KORJATTU 16.8.2026 (kayttaja: "riittavan kauan pesua ja korjausta paasee tekemaan"):
+        // scenesta loytyi VANHAN yhden-napin korjaussuunnitelman jaanteet (RepairPanel +
+        // sen sisalla RepairButton, OnClick viittaa metodiin OnRepairButton jota WashScreenissa
+        // ei enaa ole). DentsText oli vahingossa taman VANHAN, aina pois paalta olevan
+        // RepairPanelin lapsena -> DentsText ei NAKYNYT KOSKAAN pelaajalle, koska Unityssa
+        // lapsen aktiivisuus riippuu koko esi-isaketjusta. Lisaksi DentSpots (kolhu-merkit
+        // autossa) puuttui scenesta kokonaan -> WashScreen.Start() laski activeDentCount:n
+        // aina nollaksi, eli korjausvaihe ohittui AINA vaikka ajossa olisi tullut kolhuja.
+        // Nailla kahdella bugilla korjausvaihetta ei siis voinut oikeasti paasta tekemaan.
+        const string LEGACY_REPAIR_PANEL = "RepairPanel"; // sisaltaa myos vanhan RepairButtonin lapsenaan
 
         [MenuItem("Pakettiporina/Tarkistus/03 - Tarkista pesu")]
         public static void Diagnose() { Run(false); }
@@ -288,6 +319,270 @@ namespace Pakettiporina.EditorTools
                 Prob("Done Panel on paalla (nakyy heti pesun alussa, vaikka kuplia ei ole viela poksautettu).");
                 if (fix) { donePanelGo.SetActive(false); s.AppendLine("  -> piilotettu"); }
             }
+            // Sama tarkistus RepairArea/RepairEffect:lle (LISATTY 15.8.2026, MUUTETTU
+            // 16.8.2026) - RepairArean tyokalut eivat saa nakya/olla napautettavissa
+            // ennen kuin pesuvaihe on valmis (WashScreen.Start() piilottaa sen koodissa,
+            // mutta jos scenea on editoitu Play-tilan ulkopuolella se voi jaada paalle).
+            var repairAreaGo = Find(REPAIR_AREA);
+            if (repairAreaGo != null && repairAreaGo.activeSelf)
+            {
+                Prob("Repair Area on paalla (tyokalut nakyisivat heti, vaikka pesuvaihe ei ole viela valmis).");
+                if (fix) { repairAreaGo.SetActive(false); s.AppendLine("  -> piilotettu"); }
+            }
+            var repairEffectGoCheck = Find(REPAIR_EFFECT);
+            if (repairEffectGoCheck != null && repairEffectGoCheck.activeSelf)
+            {
+                Prob("Repair Effect on paalla (pitaisi nakya vain hetken korjauksen yhteydessa).");
+                if (fix) { repairEffectGoCheck.SetActive(false); s.AppendLine("  -> piilotettu"); }
+            }
+
+            // ---------- 6b. Korjausvaihe (kolhut) - RepairArea/RepairTool/DentSpots/
+            // DentsText/RepairEffect (LISATTY 15.8.2026, siirretty Hallista tanne;
+            // MUUTETTU 16.8.2026 - "korjaa vaihe tulisi tehda samalla tavalla kuin
+            // pesu": RepairArea+RepairTool mirroraa BubbleArea+Bubblea, DentSpots
+            // mirroraa DirtSpotsia) ----------
+            if (canvas != null)
+            {
+                var canvasT = canvas.transform;
+
+                // --- RepairArea + muutama RepairTool-ikoni (sama periaate kuin BubbleArea) ---
+                if (wash.repairArea == null)
+                {
+                    Prob("Repair Area ei kytketty.");
+                    if (fix)
+                    {
+                        var raGo = Find(REPAIR_AREA);
+                        if (raGo == null)
+                        {
+                            raGo = new GameObject(REPAIR_AREA, typeof(RectTransform));
+                            Undo.RegisterCreatedObjectUndo(raGo, "Luo RepairArea");
+                            raGo.transform.SetParent(canvasT, false);
+                            var art = (RectTransform)raGo.transform;
+                            art.anchorMin = Vector2.zero; art.anchorMax = Vector2.one;
+                            art.offsetMin = Vector2.zero; art.offsetMax = Vector2.zero;
+
+                            // Muutama RepairTool-ikoni valmiiksi (samat liikeoletusarvot kuin
+                            // Bubble.cs:lla). MUUTETTU 16.8.2026 (kayttaja: "pelaajalle voisi
+                            // korjauksessa nakya jokin vasaran tai siihen liittyva tyokalu") -
+                            // pelkan varillisen nelion sijaan rakennetaan karkea VASARAN
+                            // SILUETTI kahdesta suorakulmiosta (varsi+paa) - ei oikeaa
+                            // sprite-kuvitusta (ei kuvituspipelinea 2D-ikoneille tassa
+                            // projektissa), mutta lukee heti "tyokalu" eika "pallo/nappula".
+                            // Vaihda Unityssa oikeaan sprite-kuvitukseen jos/kun sellainen tehdaan.
+                            for (int i = 0; i < 5; i++)
+                            {
+                                var toolGo = new GameObject($"RepairTool_{i + 1:00}", typeof(RectTransform));
+                                toolGo.transform.SetParent(raGo.transform, false);
+                                var trt2 = (RectTransform)toolGo.transform;
+                                trt2.sizeDelta = new Vector2(140, 140);
+
+                                // Nakymaton koko-osan Image: itse napautusalue (RequireComponent
+                                // RepairTool.cs:ssa vaatii Imagen taalla) - alpha 0, mutta
+                                // raycastTarget toimii silti lapinakymattomasta huolimatta.
+                                var timg = toolGo.AddComponent<Image>();
+                                timg.color = new Color(1f, 1f, 1f, 0f);
+                                timg.raycastTarget = true;
+                                toolGo.AddComponent<RepairTool>();
+
+                                // Varsi: ohut, vino suorakulmio.
+                                var handle = new GameObject("Handle", typeof(RectTransform));
+                                handle.transform.SetParent(toolGo.transform, false);
+                                var handleRt = (RectTransform)handle.transform;
+                                handleRt.sizeDelta = new Vector2(16, 90);
+                                handleRt.anchoredPosition = new Vector2(0, -10);
+                                handleRt.localRotation = Quaternion.Euler(0, 0, -35);
+                                var handleImg = handle.AddComponent<Image>();
+                                handleImg.color = new Color(0.36f, 0.24f, 0.14f, 1f); // puuvarsi
+                                handleImg.raycastTarget = false;
+
+                                // Paa: leveampi suorakulmio varren ylapaassa, sama kierto.
+                                var head = new GameObject("Head", typeof(RectTransform));
+                                head.transform.SetParent(toolGo.transform, false);
+                                var headRt = (RectTransform)head.transform;
+                                headRt.sizeDelta = new Vector2(54, 26);
+                                headRt.anchoredPosition = new Vector2(26, 27);
+                                headRt.localRotation = Quaternion.Euler(0, 0, -35);
+                                var headImg = head.AddComponent<Image>();
+                                headImg.color = new Color(0.55f, 0.55f, 0.58f, 1f); // metallipaa
+                                headImg.raycastTarget = false;
+                            }
+                            s.AppendLine("  -> RepairArea + 5 vasara-muotoista RepairTool-ikonia luotu " +
+                                         "(koko Canvasin kokoinen, sama periaate kuin BubbleArea) - " +
+                                         "placeholder-siluetti, vaihda Unityssa oikeaan sprite-kuvitukseen jos haluat.");
+                        }
+                        wash.repairArea = raGo.transform;
+                        s.AppendLine("  -> kytketty (" + REPAIR_AREA + ")");
+                    }
+                }
+                if (wash.repairArea != null)
+                {
+                    int toolCount = wash.repairArea.GetComponentsInChildren<RepairTool>(true).Length;
+                    if (toolCount == 0)
+                        Prob("RepairArean alla ei ole yhtaan RepairTool-komponenttia. Lisaa muutama tyokalu-objekti.");
+                    else
+                        s.AppendLine($"RepairTooleja RepairArean alla: {toolCount}");
+
+                    foreach (var rtComp in wash.repairArea.GetComponentsInChildren<RepairTool>(true))
+                    {
+                        var img = rtComp.GetComponent<Image>();
+                        if (img != null && !img.raycastTarget)
+                        {
+                            Prob($"RepairTool '{rtComp.name}': Image Raycast Target on pois paalta (ei reagoi napautukseen).");
+                            if (fix) { img.raycastTarget = true; s.AppendLine("  -> korjattu"); }
+                        }
+                    }
+                }
+
+                // --- DentSpots (kolhu-merkit autossa, sama periaate kuin DirtSpots) ---
+                // KORJATTU 16.8.2026: aiemmin tama vain valitti puuttuvasta DentSpotsista
+                // eika luonut sita - koska DentSpots puuttui scenesta KOKONAAN,
+                // WashScreen.Start()in activeDentCount laski aina nollaksi ja korjausvaihe
+                // ohittui AINA, vaikka radalla olisi tullut kolhuja. Nyt DentSpots + muutama
+                // kolhu-Image luodaan automaattisesti KORJAA-tilassa, samaan tapaan kuin
+                // RepairArea+RepairTool -ikonit ylla.
+                if (wash.dentSpotsParent == null && (wash.dentSpots == null || wash.dentSpots.Count == 0))
+                {
+                    var dentGo = Find(DENT_SPOTS);
+                    bool justCreatedDentSpots = false;
+                    if (dentGo == null)
+                    {
+                        Prob("Kolhu-merkkeja (DentSpots) ei loydy scenesta ollenkaan - korjausvaihe EI VOI koskaan " +
+                             "loytaa yhtaan korjattavaa, vaikka pelaaja ajaisi kolhuja radalla.");
+                        if (fix)
+                        {
+                            justCreatedDentSpots = true;
+                            dentGo = new GameObject(DENT_SPOTS, typeof(RectTransform));
+                            Undo.RegisterCreatedObjectUndo(dentGo, "Luo DentSpots");
+                            dentGo.transform.SetParent(canvasT, false);
+                            var dsSprite = AssetDatabase.LoadAssetAtPath<Sprite>(DENT_SPRITE_PATH);
+
+                            // Klusteri auton alaosassa, erillaan DirtSpotsin klusterista
+                            // (joka on ylempana) - ei mene paallekkain, harmaa/metallinen
+                            // sävy erottaa kolhun likatahrasta vaikka sprite on sama placeholder.
+                            (float x, float y)[] spotPos = {
+                                (350f, 1250f), (700f, 1250f), (400f, 1170f),
+                                (650f, 1170f), (520f, 1290f), (520f, 1130f),
+                            };
+                            for (int i = 0; i < spotPos.Length; i++)
+                            {
+                                var dGo = new GameObject($"DentSpot_{i + 1:00}", typeof(RectTransform));
+                                dGo.transform.SetParent(dentGo.transform, false);
+                                var drt = (RectTransform)dGo.transform;
+                                drt.anchorMin = new Vector2(0, 1); drt.anchorMax = new Vector2(0, 1);
+                                drt.sizeDelta = new Vector2(90, 90);
+                                drt.anchoredPosition = new Vector2(spotPos[i].x, -spotPos[i].y);
+                                var dImg = dGo.AddComponent<Image>();
+                                if (dsSprite != null) dImg.sprite = dsSprite;
+                                dImg.color = new Color(0.55f, 0.53f, 0.52f, 1f); // harmaa "kolhu", ei ruskea "lika"
+                            }
+                            s.AppendLine($"  -> DentSpots + {spotPos.Length} kolhu-merkkia luotu (placeholder-grafiikka, " +
+                                         "vaihda Unityssa oikeaan kolhu-sprite jos/kun sellainen tehdaan).");
+                        }
+                    }
+                    if (dentGo != null)
+                    {
+                        if (!justCreatedDentSpots) Prob("Dent Spots Parent ei kytketty.");
+                        if (fix) { wash.dentSpotsParent = dentGo.transform; s.AppendLine("  -> kytketty (" + DENT_SPOTS + ")"); }
+                    }
+                }
+                if (wash.dentSpotsParent != null)
+                {
+                    int dentCount = wash.dentSpotsParent.GetComponentsInChildren<Image>(true).Length;
+                    s.AppendLine($"Kolhu-merkkeja DentSpotsin alla: {dentCount}");
+                }
+                else if (wash.dentSpots != null && wash.dentSpots.Count > 0)
+                {
+                    s.AppendLine($"Kolhu-merkkeja Dent Spots -listassa: {wash.dentSpots.Count}");
+                }
+
+                // --- DentsText: PITAA olla suoraan Canvasin lapsi (kuten ProgressText),
+                // EI minkaan paneelin sisalla joka voi olla pois paalta. KORJATTU 16.8.2026:
+                // loytyi vahingossa vanhan RepairPanelin (pois paalta koko ajan) lapsena,
+                // jolloin se ei nakynyt pelaajalle KOSKAAN, vaikka WashScreen paivitti sen
+                // tekstia oikein koko ajan taustalla.
+                var dentsTextGo = Find(DENTS_TEXT);
+                if (dentsTextGo != null && dentsTextGo.transform.parent != canvasT)
+                {
+                    Prob("Dents Text on jonkin paneelin sisalla (ei suoraan Canvasin lapsi) - " +
+                         "jos se paneeli on pois paalta, teksti ei nay pelaajalle KOSKAAN.");
+                    if (fix)
+                    {
+                        Undo.SetTransformParent(dentsTextGo.transform, canvasT, "Siirra DentsText Canvasin alle");
+                        var dtrt = (RectTransform)dentsTextGo.transform;
+                        dtrt.anchorMin = new Vector2(0, 1); dtrt.anchorMax = new Vector2(0, 1);
+                        dtrt.anchoredPosition = new Vector2(22, -280);
+                        dtrt.sizeDelta = new Vector2(600, 100);
+                        s.AppendLine("  -> siirretty suoraan Canvasin alle, ProgressTextin alapuolelle");
+                    }
+                }
+                if (wash.dentsText == null)
+                {
+                    Prob("Dents Text ei kytketty.");
+                    if (fix)
+                    {
+                        var dtGo = Find(DENTS_TEXT);
+                        var dt = dtGo != null ? dtGo.GetComponent<TMP_Text>() : null;
+                        if (dt != null) { wash.dentsText = dt; s.AppendLine("  -> kytketty (" + DENTS_TEXT + ")"); }
+                        else s.AppendLine("  -> objektia '" + DENTS_TEXT + "' ei loytynyt, luo TMP_Text ja kytke kasin");
+                    }
+                }
+
+                // --- Vanhan yhden-napin korjaussuunnitelman jaanteet: RepairPanel+RepairButton
+                // (LISATTY 16.8.2026). Nama korvattiin RepairArea+RepairTool-mekaniikalla
+                // 16.8., mutta vanhat objektit jaivat sceneen. RepairButtonin OnClick viittaa
+                // metodiin OnRepairButton jota WashScreenissa ei enaa ole (rikki, mutta ei
+                // aiheuta kaannosvirhetta koska UnityEvent tallentaa metodin nimen tekstina).
+                var legacyPanelGo = Find(LEGACY_REPAIR_PANEL);
+                if (legacyPanelGo != null)
+                {
+                    Prob("Vanhan korjaus-napin jaanteet loytyivat scenesta (RepairPanel/RepairButton) - " +
+                         "korvattu RepairArea+RepairTool-mekaniikalla, nama ovat rikkinaista kuollutta koodia.");
+                    if (fix)
+                    {
+                        Undo.DestroyObjectImmediate(legacyPanelGo); // vie RepairButton-lapsen mukana
+                        s.AppendLine("  -> RepairPanel (ja sen sisalla RepairButton) poistettu.");
+                    }
+                }
+
+                // RepairEffect: pieni, hetken nakyva kuittausefekti korjauksen yhteydessa
+                // (kayttaja: "korjaamiseen tulisi liittya jokin aani ja efekti"). Yksinkertainen
+                // keskitetty kuittausteksti - vaihda Unityssa naeyttavampaan jos haluat
+                // (esim. partikkelijarjestelma tai kipina-sprite Bubble-tyylin sijaan).
+                var effectGo = Find(REPAIR_EFFECT);
+                if (effectGo == null)
+                {
+                    Prob("RepairEffect puuttuu Pesusta - rakennetaan.");
+                    if (fix)
+                    {
+                        effectGo = new GameObject(REPAIR_EFFECT, typeof(RectTransform));
+                        Undo.RegisterCreatedObjectUndo(effectGo, "Luo RepairEffect");
+                        effectGo.transform.SetParent(canvasT, false);
+                        var ert = (RectTransform)effectGo.transform;
+                        ert.anchorMin = new Vector2(0.5f, 0.5f);
+                        ert.anchorMax = new Vector2(0.5f, 0.5f);
+                        ert.pivot = new Vector2(0.5f, 0.5f);
+                        ert.anchoredPosition = new Vector2(0, 120);
+                        ert.sizeDelta = new Vector2(420, 100);
+
+                        var etmp = effectGo.AddComponent<TextMeshProUGUI>();
+                        etmp.text = "Korjattu!";
+                        etmp.fontSize = 52;
+                        etmp.fontStyle = FontStyles.Bold;
+                        etmp.color = new Color(0.95f, 0.55f, 0.25f, 1f);
+                        etmp.alignment = TextAlignmentOptions.Center;
+
+                        effectGo.SetActive(false);
+                        s.AppendLine("  -> RepairEffect luotu (yksinkertainen kuittausteksti, hetken nakyvissa " +
+                                     "korjauksen yhteydessa) - vaihda Unityssa naeyttavampaan jos haluat.");
+                    }
+                }
+                else s.AppendLine("RepairEffect: OK (loytyi jo scenesta).");
+                if (wash.repairEffect == null && effectGo != null)
+                {
+                    Prob("Repair Effect ei kytketty.");
+                    if (fix) { wash.repairEffect = effectGo; s.AppendLine("  -> kytketty (RepairEffect)"); }
+                }
+            }
 
             // ---------- 7. Napit ----------
             // HUOM: KORJAA-tilassa OnClick asetetaan AINA uudelleen oikeaksi, ei vain kun se on tyhja.
@@ -323,6 +618,7 @@ namespace Pakettiporina.EditorTools
             Wire(SKIP_BTN, wash.OnSkipButton, "Ohita-nappi", false);           // valinnainen
             Wire(MAINMENU_BTN, wash.OnMainMenuButton, "Koti-nappi (paavalikko)", false);
             Wire(RESTART_BTN, wash.OnRestartButton, "Uudestaan-nappi (aloita pesu uudestaan)", false);
+            // Korjaus EI enaa kaytä yhta nappia (16.8.2026) - ks. RepairArea/RepairTool ylla.
 
             // ---------- 8. Scenejen nimet ----------
             if (wash.garageSceneName != GARAGE_SCENE)

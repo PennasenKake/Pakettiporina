@@ -27,7 +27,13 @@ namespace Pakettiporina
         // Kerroin kiihtyvyydelle JA huippunopeudelle - molemmat skaalautuvat yhdessa, jotta
         // "Hidas" tuntuu oikeasti rauhallisemmalta autolta eika vain matalammalta katolta
         // (pelkka maxSpeed-rajoitus ilman kiihtyvyyden pienennysta tuntuisi vain "tukkoiselta").
-        static readonly float[] SpeedTierMultiplier = { 0.72f, 1f, 1.32f };
+        // KORJATTU 16.8.2026 (kayttaja: "en huomaa vaihtelu eroa hitaan, keski ja nopean
+        // valilla"): vanha vaihteluvali 0.72-1.32 (kerroin ~1.8x hitaimman ja nopeimman
+        // valilla) ei ollut riittavan iso erottumaan puhelimen nakymassa, jossa nopeuden
+        // AISTIMINEN on muutenkin vaimeampaa kuin isolla naytolla (ei liikeepasumaa/FOV-
+        // venymaa). Levennetty ~3x kerroinvaliin (0.55-1.7) - Hidas ja Nopea nyt selvasti,
+        // yksiselitteisesti eri tuntuisia sekä kiihdytyksessa etta huippunopeudessa.
+        static readonly float[] SpeedTierMultiplier = { 0.55f, 1f, 1.7f };
         float baseAcceleration = -1f, baseMaxSpeed = -1f;
 
         [Header("Debug")]

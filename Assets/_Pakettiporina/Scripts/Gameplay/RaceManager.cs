@@ -40,8 +40,10 @@ namespace Pakettiporina
             StopAllCoroutines();
             Stars = 0; Elapsed = 0f; IsRacing = false;
 
-            // M5: uusi keikka alkaa aina ehjalla, puhtaalla autolla.
-            if (GameManager.Instance != null) GameManager.Instance.ResetRaceDamage();
+            // M5.17/16.8.2026: EI enaa nollata lika-/kolhumittaria ajon alussa - mittari on
+            // nyt PYSYVA (kayttaja: "pysyy seuraavaan ajoon asti"), puretaan vain Pesussa.
+            // (Aiemmin tassa oli GameManager.Instance.ResetRaceDamage() - poistettu koska
+            // metodikin poistui GameManagerista, ks. sen kommentti.)
 
             // Jos scenessa on TrackManager, arvo rata ja kayta sen StartPointia.
             // Muuten kaytetaan vanhaa, sceneen kiinteasti asetettua startPointia.

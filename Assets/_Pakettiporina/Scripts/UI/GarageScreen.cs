@@ -59,13 +59,10 @@ namespace Pakettiporina
         [Tooltip("Nakyy kun selattu paketti (ja sen rata) on viela lukossa. Valinnainen.")]
         public TMP_Text packageLockText;
 
-        [Header("M5: Kolhut (kartioihin osuminen edellisella keikalla)")]
-        [Tooltip("Esim. 'Kolhuja: 2' tai 'Auto ehja!'. Valinnainen.")]
-        public TMP_Text dentsText;
-        [Tooltip("'Korjaa kolhut' -nappi. Ei-interaktiivinen jos kolhuja ei ole.")]
-        public Button repairDentsButton;
-        [Tooltip("Pistetta jokaisesta korjatusta kolhusta (pieni palkkio, kuten pesussa)")]
-        public int pointsPerDentRepair = 3;
+        // M5/15.8.2026: Kolhu-UI ("Kolhuja: N" + "Korjaa"-nappi) SIIRRETTY Pesu-sceneen
+        // (WashScreen.cs) - kayttaja: "korjaa tulisi olla wash scenen kanssa samassa,
+        // ensin pestaan ja sen jalkeen korjataan". Halli ei enaa nayta/korjaa kolhuja
+        // ollenkaan - katso WashScreen.dentsText/repairArea + RepairTool.cs.
 
         readonly Dictionary<PartCategory, List<PartData>> byCat = new Dictionary<PartCategory, List<PartData>>();
         readonly Dictionary<PartCategory, int> indexByCat = new Dictionary<PartCategory, int>();
@@ -81,33 +78,7 @@ namespace Pakettiporina
             RestorePackage();                      // <- lataa tallennettu paketti jos on
             SetCategory((int)PartCategory.Kori);
             UpdateStats();
-            UpdateDents();
             Debug.Log("[Garage] Halli valmis.");
-        }
-
-        // M5: nayttaa edellisen keikan kolhut (GameManager.RaceDents) ja paivittaa
-        // "Korjaa"-napin interaktiivisuuden.
-        void UpdateDents()
-        {
-            int dents = GameManager.Instance != null ? GameManager.Instance.RaceDents : 0;
-            if (dentsText != null)
-                dentsText.text = dents > 0 ? $"Kolhuja: {dents}" : "Auto on ehja!";
-            if (repairDentsButton != null)
-                repairDentsButton.interactable = dents > 0;
-        }
-
-        // "Korjaa kolhut" -napin OnClick: korjaa kaikki kolhut kerralla ja palkitsee
-        // pienesta "tyosta" (sama periaate kuin Pesu-scenen likatahroissa).
-        public void OnRepairDents()
-        {
-            var gm = GameManager.Instance;
-            if (gm == null || gm.RaceDents <= 0) return;
-
-            int reward = pointsPerDentRepair * gm.RaceDents;
-            gm.RepairDents();
-            gm.AddPoints(reward);
-            UpdateDents();
-            Debug.Log($"[Garage] Kolhut korjattu, palkkio +{reward}.");
         }
 
         // "Tiedot"/"i"-napin OnClick: avaa/sulkee tilastopaneelin.

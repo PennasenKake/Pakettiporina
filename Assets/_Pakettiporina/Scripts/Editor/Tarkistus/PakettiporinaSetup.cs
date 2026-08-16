@@ -1,8 +1,10 @@
 #if UNITY_EDITOR
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using TMPro;
 
 namespace Pakettiporina.EditorTools
 {
@@ -67,6 +69,40 @@ namespace Pakettiporina.EditorTools
             var ground    = GameObject.Find("GroundCollider");
             var startObj  = GameObject.Find("StartPoint");
             var audioMgr  = Object.FindObjectOfType<AudioManager>(true);
+            var gameMgr   = Object.FindObjectOfType<GameManager>(true);
+
+            // ---------- -1. GAMEMANAGER (LISATTY 16.8.2026) ----------
+            // KORJATTU: puuttui tasta tyokalusta kokonaan, vaikka AudioManager/SaveManager
+            // -turvaverkko oli jo olemassa. Seuraus: jos ratascene avataan ja Play painetaan
+            // SUORAAN (ei MainMenu -> Halli -> Aja keikka -kautta), GameManager.Instance on
+            // null koko ajon ajan - kaikki GameManager.Instance!=null -tarkistukset (Cone/
+            // Laatikko/Puddle: AddDent/AddDirtHit, RaceHUD: lika-/kolhupalkkien tilaus,
+            // RaceManager.FinishRace: pisteet) ohittuvat AANETTOMASTI. Tama on todennakoisin
+            // syy kayttajan havaintoon "progress bar ei nayta osumia" - palkit eivat
+            // yksinkertaisesti koskaan saaneet yhtaan tapahtumaa tilattavaksi.
+            if (gameMgr == null)
+            {
+                log.AppendLine("VAROITUS: GameManager puuttuu (pisteet/lika-kolhumittarit eivat toimi " +
+                                "jos testaat tasta scenesta suoraan - todennakoinen syy jos HUD:in " +
+                                "lika-/kolhupalkit eivat nayta mitaan).");
+                problems++;
+                if (fix)
+                {
+                    // KORJATTU 16.8.2026: scenessa saattaa jo olla TYHJA "GameManager"-niminen
+                    // GameObject (vain Transform, ei itse skriptikomponenttia - nakyy Hierarkiassa
+                    // oikealta nimeltaan mutta ei oikeasti tee mitaan). Kaytetaan se uudelleen
+                    // sen sijaan etta luotaisiin toinen samanniminen objekti paalekkain.
+                    var existingGo = GameObject.Find("GameManager");
+                    var go = existingGo != null ? existingGo : new GameObject("GameManager");
+                    if (existingGo == null) Undo.RegisterCreatedObjectUndo(go, "GameManager");
+                    else Undo.RegisterCompleteObjectUndo(go, "Lisaa GameManager-komponentti");
+                    gameMgr = go.AddComponent<GameManager>();
+                    log.AppendLine(existingGo != null
+                        ? "  -> loytyi tyhja 'GameManager'-objekti, GameManager-komponentti lisatty siihen"
+                        : "  -> luotu");
+                }
+            }
+            else log.AppendLine("GameManager: OK");
 
             // ---------- 0. AUDIOMANAGER ----------
             if (audioMgr == null)
@@ -412,6 +448,227 @@ namespace Pakettiporina.EditorTools
             {
                 log.AppendLine("PausePanel on paalla."); problems++;
                 if (fix) { pp.SetActive(false); log.AppendLine("  -> piilotettu"); }
+            }
+
+            // ---------- 9. Maali-paneelin "Pesuun"-nappi (LISATTY 16.8.2026) ----------
+            // Kayttaja kysyi "kuinka paasee autoa pesemaan ja korjaamaan radan ajon jalkeen"
+            // - tutkittuna nappi ITSE ON kytketty oikein (RaceHUD.OnGarageButton vie
+            // washScene-sceneen), MUTTA sen GameObjectin nimi on "OnGarageButton" (metodin
+            // nimi, ei pelaajalle nakyva teksti) JA sen ikoni on pakettiporina_ikoni_halli_2
+            // (HALLI-ikoni) vaikka nappi vie ENSIN Pesuun eika suoraan halliin - pelaaja ei
+            // voinut tietaa etta juuri tama nappi on oikea, koska ikoni lupaa vaaraa paikkaa
+            // eika tekstia ole ollenkaan. Korjataan lisaamalla selkea "Pesuun"-teksti napin
+            // lapselle (Text (TMP)) ja vaihtamalla ikoni neutraalimpaan "jatka"-nuoleen.
+            var garageBtnGo = GameObject.Find("OnGarageButton");
+            if (garageBtnGo != null)
+            {
+                var label = garageBtnGo.GetComponentInChildren<TMP_Text>(true);
+                if (label != null && string.IsNullOrEmpty(label.text))
+                {
+                    log.AppendLine("Maalin 'Pesuun'-napissa ei ole tekstia (vain ikoni, sekoittui halli-ikoniin).");
+                    problems++;
+                    if (fix)
+                    {
+                        label.text = "Pesuun";
+                        EditorUtility.SetDirty(label);
+                        log.AppendLine("  -> teksti asetettu ('Pesuun')");
+                    }
+                }
+
+                var icon = garageBtnGo.GetComponentsInChildren<Image>(true);
+                foreach (var img in icon)
+                {
+                    if (img.sprite != null && img.sprite.name == "pakettiporina_ikoni_halli_2")
+                    {
+                        log.AppendLine("Maalin 'Pesuun'-napin ikoni on Halli-ikoni (harhaanjohtava, nappi vie Pesuun ENSIN).");
+                        problems++;
+                        if (fix)
+                        {
+                            var jatkaIcon = AssetDatabase.LoadAssetAtPath<Sprite>(
+                                "Assets/_Pakettiporina/Art/UI/Icons/pakettiporina_ikoni_jatka.png");
+                            if (jatkaIcon != null)
+                            {
+                                img.sprite = jatkaIcon;
+                                EditorUtility.SetDirty(img);
+                                log.AppendLine("  -> ikoni vaihdettu (jatka-nuoli)");
+                            }
+                            else
+                            {
+                                log.AppendLine("  -> VAROITUS: pakettiporina_ikoni_jatka.png ei loytynyt, ikonia ei vaihdettu");
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                log.AppendLine("(Maalin 'Pesuun'-nappia (OnGarageButton) ei loytynyt tasta scenesta - jos FinishPanel " +
+                                "on rakennettu eri tavalla, tarkista kasin etta jokin nappi vie washScene-sceneen.)");
+            }
+
+            // ---------- 10. Lika-/kolhumittarit RaceHUD:ssa (LISATTY 16.8.2026, M5.17) ----------
+            // Kayttaja: "progressbar lialle ja korjaukselle... nakyy ajossa, kasvaa osumista".
+            // RaceHUD:in MUUT UI-viittaukset (rewardText/damageText/starText jne.) ovat aina
+            // olleet TAYSIN KASIN kytkettyja taman tyokalun historiassa - mutta koska naille
+            // kahdelle uudelle palkille ei ole viela mitaan GameObjectia missaan viidesta
+            // ratascenesta, luodaan ne automaattisesti KORJAA-tilassa (sama periaate kuin
+            // Pesun RepairArea/DentSpots, PakettiporinaWashSetup.cs).
+            var hud = Object.FindObjectOfType<RaceHUD>(true);
+            var hudCanvas = Object.FindObjectOfType<Canvas>(true);
+            if (hud != null && hudCanvas != null)
+            {
+                // KORJATTU 16.8.2026 (kayttaja: "progress barja tulisi muokata siistimmaksi,
+                // sijoittelu pause-painikkeen paalle ja samalla sita laskea tilanteen mukaan"):
+                // aiempi versio arvasi kiintean (24,-40)/(24,-74) -sijainnin sokkona. Nyt
+                // sijainti LASKETAAN oikeasti PauseButtonin TODELLISESTA RectTransformista -
+                // jos PauseButtonia joskus siirretaan, palkit seuraavat mukana kun tyokalu
+                // ajetaan uudelleen. Myos kooltaan pienempi/siistimpi (180x16 aiemman 320x28
+                // sijaan) ja pieni TMP-teksti kertoo kumpi palkki on kumpikin ("Lika"/"Kolhut").
+                // (Katso alta 2. KORJATTU-kommentti 16.8.2026 - ensimmainen yritys taman
+                // sijainnin laskemiseksi oli itsessaan viallinen, siina oli oikea bugi.)
+                var hudCanvasRt = hudCanvas.transform as RectTransform;
+                var pauseBtnGo = GameObject.Find("PauseButton");
+                var pauseRt = pauseBtnGo != null ? pauseBtnGo.GetComponent<RectTransform>() : null;
+
+                // KORJATTU 16.8.2026 (kayttaja: "korjaa peliscene poistaa kokonaan progress
+                // barit"): TODELLINEN BUGI loytyi - edellinen versio kopioi PauseButtonin
+                // anchorMin/anchorMax/anchoredPosition SELLAISENAAN uusille palkeille, mutta
+                // PauseButton EI ole suoraan Canvasin lapsi - scene-YAML paljasti etta se on
+                // "Header"-nimisen valikontainerin sisalla, ja Header on ankkuroitu Canvasin
+                // KESKELLE (anchorMin/Max 0.5,0.5), ei ylareunaan. PauseButtonin oma
+                // anchoredPosition (0,800) on siis Headerin PAIKALLISESSA koordinaatistossa,
+                // ei Canvasin. Kun uudet palkit liitettiin SUORAAN Canvasin alle mutta niiden
+                // sijainti laskettiin ikaan kuin ne olisivat Headerin sisalla (ja lisaksi
+                // vaarin oletettiin PauseButtonin pivotiksi keskipivotti, vaikka se on
+                // oikeasti ylapivotti 0.5,1), palkit paatyivat n. 850+ yksikkoa liian ylas -
+                // reilusti nakymaalueen ULKOPUOLELLE. Kayttajalle tama nayttaytyi "palkit
+                // poistettu kokonaan" vaikka GameObjectit oikeasti loytyivat Hierarkiasta,
+                // ne vain renderoityivat kuvaruudun ulkopuolelle.
+                //
+                // KORJAUS: lasketaan PauseButtonin YLAREUNAN KESKIKOHTA MAAILMAKOORDINAATEISSA
+                // (GetWorldCorners - toimii oikein riippumatta valikontainereiden maarasta/
+                // asettelusta valissa) ja muunnetaan se Canvasin OMAAN paikalliseen tilaan
+                // (InverseTransformPoint). Uudet palkit liitetaan Canvasin alle KESKI-
+                // ankkuroituna (sama konventio kuin Canvasin oma pivotti) sen sijaan etta
+                // yritettaisiin matkia PauseButtonin ankkureita - talloin sijainti on aina
+                // oikea riippumatta UI-hierarkian rakenteesta.
+                Vector2 pauseTopCenterLocal;
+                if (pauseRt != null && hudCanvasRt != null)
+                {
+                    var corners = new Vector3[4];
+                    pauseRt.GetWorldCorners(corners); // 0=ala-vasen,1=yla-vasen,2=yla-oikea,3=ala-oikea
+                    Vector3 topCenterWorld = (corners[1] + corners[2]) * 0.5f;
+                    Vector3 local = hudCanvasRt.InverseTransformPoint(topCenterWorld);
+                    pauseTopCenterLocal = new Vector2(local.x, local.y);
+                }
+                else
+                {
+                    pauseTopCenterLocal = new Vector2(0f, 350f); // varafallback jos PauseButtonia/Canvasia ei loydy
+                }
+
+                const float barW = 180f, barH = 16f, gap = 6f, marginAbovePause = 14f;
+
+                Transform MakeMeterBar(string bgName, Color fillColor, string label, int stackIndex)
+                {
+                    var bg = GameObject.Find(bgName);
+                    bool justCreated = bg == null;
+                    if (bg == null)
+                    {
+                        bg = new GameObject(bgName, typeof(RectTransform));
+                        Undo.RegisterCreatedObjectUndo(bg, "Luo " + bgName);
+                        bg.transform.SetParent(hudCanvas.transform, false);
+                        var bgImg0 = bg.AddComponent<Image>();
+                        bgImg0.color = new Color(0f, 0f, 0f, 0.4f);
+                    }
+
+                    // Sijainti/koko paivitetaan JOKA ajolla (myos jos objekti oli jo olemassa
+                    // vanhalla sijainnilla) - siksi taman ulkopuolella, ei vain justCreated-haarassa.
+                    // KESKI-ankkuroitu (0.5,0.5) suoraan Canvasin alle, EI PauseButtonin
+                    // ankkureita - ks. korjauskommentti ylla (pauseTopCenterLocal on jo
+                    // muunnettu Canvasin paikalliseen tilaan GetWorldCorners+InverseTransformPoint
+                    // -yhdistelmalla, joten se on aina oikein riippumatta UI-hierarkiasta).
+                    var bgRt = (RectTransform)bg.transform;
+                    bgRt.anchorMin = new Vector2(0.5f, 0.5f); bgRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    bgRt.pivot = new Vector2(0.5f, 0f);
+                    float y = pauseTopCenterLocal.y + marginAbovePause + stackIndex * (barH + gap);
+                    bgRt.anchoredPosition = new Vector2(pauseTopCenterLocal.x, y);
+                    bgRt.sizeDelta = new Vector2(barW, barH);
+
+                    var fillName = bgName + "_Fill";
+                    var fillGo = bg.transform.Find(fillName)?.gameObject;
+                    if (fillGo == null)
+                    {
+                        fillGo = new GameObject(fillName, typeof(RectTransform));
+                        Undo.RegisterCreatedObjectUndo(fillGo, "Luo " + fillName);
+                        fillGo.transform.SetParent(bg.transform, false);
+                        var fillImg = fillGo.AddComponent<Image>();
+                        fillImg.color = fillColor;
+                        fillImg.type = Image.Type.Filled;
+                        fillImg.fillMethod = Image.FillMethod.Horizontal;
+                        fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
+                        fillImg.fillAmount = 0f;
+                    }
+                    var fillRt = (RectTransform)fillGo.transform;
+                    // Pieni marginaali reunoista -> palkki nayttaa "kehyksen sisassa olevalta",
+                    // siistimman naköinen kuin taysin reunasta reunaan tayttyva laatikko.
+                    fillRt.anchorMin = Vector2.zero; fillRt.anchorMax = Vector2.one;
+                    fillRt.offsetMin = new Vector2(1.5f, 1.5f); fillRt.offsetMax = new Vector2(-1.5f, -1.5f);
+
+                    // Pieni label-teksti palkin sisassa (esim. "Lika") - auttaa erottamaan
+                    // kumpi palkki on kumpikin ilman erillista kuvaketta.
+                    var labelGo = bg.transform.Find(bgName + "_Label")?.gameObject;
+                    if (labelGo == null)
+                    {
+                        labelGo = new GameObject(bgName + "_Label", typeof(RectTransform));
+                        Undo.RegisterCreatedObjectUndo(labelGo, "Luo label");
+                        labelGo.transform.SetParent(bg.transform, false);
+                        var lrt = (RectTransform)labelGo.transform;
+                        lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                        lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
+                        var tmp = labelGo.AddComponent<TMPro.TextMeshProUGUI>();
+                        tmp.text = label;
+                        tmp.fontSize = 11;
+                        tmp.alignment = TMPro.TextAlignmentOptions.Center;
+                        tmp.color = Color.white;
+                        tmp.raycastTarget = false;
+                    }
+
+                    if (justCreated)
+                        log.AppendLine($"{bgName}: luotu ({label}, siisti tayttyva palkki PauseButtonin ylapuolella).");
+                    else
+                        log.AppendLine($"{bgName}: sijainti/koko paivitetty (PauseButtonin ylapuolelle).");
+                    return bg.transform.Find(fillName);
+                }
+
+                // HUOM: MakeMeterBar-kutsu ei ole enaa vain "jos hud.dirtMeterBar == null" -
+                // haarassa, koska silloin jo KYTKETYN palkin sijaintia ei olisi koskaan
+                // paivitetty PauseButtonin ylapuolelle vaikka tyokalua ajaisi uudelleen (taman
+                // korjauksen koko tarkoitus). KORJAA-tilassa sijainti paivitetaan AINA.
+                if (hud.dirtMeterBar == null)
+                {
+                    log.AppendLine("Dirt Meter Bar ei kytketty."); problems++;
+                }
+                if (fix)
+                {
+                    var t = MakeMeterBar("DirtMeterBar", new Color(0.55f, 0.4f, 0.2f, 1f), "Lika", 0);
+                    hud.dirtMeterBar = t.GetComponent<Image>();
+                    EditorUtility.SetDirty(hud);
+                }
+
+                if (hud.dentMeterBar == null)
+                {
+                    log.AppendLine("Dent Meter Bar ei kytketty."); problems++;
+                }
+                if (fix)
+                {
+                    var t = MakeMeterBar("DentMeterBar", new Color(0.6f, 0.25f, 0.2f, 1f), "Kolhut", 1);
+                    hud.dentMeterBar = t.GetComponent<Image>();
+                    EditorUtility.SetDirty(hud);
+                }
+            }
+            else if (hud == null)
+            {
+                log.AppendLine("(RaceHUD-komponenttia ei loydy scenesta - lika-/kolhumittareita ei voitu tarkistaa.)");
             }
 
             log.AppendLine(problems == 0 ? "\nKaikki kunnossa!" : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty." : " Aja 'Pakettiporina/Korjaus/01 - KORJAA peliscene'."));

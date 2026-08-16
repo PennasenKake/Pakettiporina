@@ -36,5 +36,13 @@ namespace Pakettiporina
         // vieda viela loppuun asti"). Oletus false, jotta vanhat tallennukset eivat muuta
         // mitaan. Kun teema toteutetaan oikeasti, tama arvo luetaan silloin.
         public bool darkMode = false;
+
+        // M5.17, 16.8.2026: pysyva lika-/kolhumittari (kayttaja: "kylla mielellaan jos
+        // se on mahdollista" - sailyy sovelluksen uudelleenkaynnistyksen yli). Oletus 0,
+        // joten vanhat tallennukset (ennen tata kenttaa) lataavat puhtaan/ehjan auton -
+        // sama "ei muuta mitaan vanhoille tallennuksille" -periaate kuin muillakin
+        // kentilla tassa luokassa. Katot (15/6) ovat GameManager.DIRT_MAX/DENT_MAX:ssa.
+        public int dirtMeter = 0;
+        public int dentMeter = 0;
     }
 }

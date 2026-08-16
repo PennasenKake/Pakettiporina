@@ -3465,6 +3465,8 @@ MonoBehaviour:
   timeText: {fileID: 2123110418}
   rewardText: {fileID: 0}
   damageText: {fileID: 0}
+  dirtMeterBar: {fileID: 0}
+  dentMeterBar: {fileID: 0}
   countdownText: {fileID: 1752686933}
   goVisibleSeconds: 0.7
   washScene: Wash
@@ -3858,9 +3860,12 @@ MonoBehaviour:
   bumpSound: {fileID: 8300000, guid: 4a8a78f590f2ba14cabf2f9b2d99d749, type: 3}
   fitGoodSound: {fileID: 8300000, guid: dba7e3091f31089418ffa432546ccb46, type: 3}
   unlockSound: {fileID: 8300000, guid: 2d34c31c97624d94fb0152ce435a4dfa, type: 3}
+  repairSound: {fileID: 8300000, guid: fc710fcebb128ad4d8d13e867e1de667, type: 3}
   engineLoop: {fileID: 8300000, guid: 98d4389b09e86054190d2796ce79841c, type: 3}
   musicVolume: 0.6
   sfxVolume: 1
+  sfxPitchVariance: 0.06
+  musicCrossfadeDuration: 0.6
   menuMusic: {fileID: 8300000, guid: 1169706242c71954c9c59df93efea31d, type: 3}
   garageMusic: {fileID: 8300000, guid: 403efaa148d122b408a4fb3b4305de1c, type: 3}
   raceMusic: {fileID: 8300000, guid: c90926029ae3455418468d78a0dce955, type: 3}

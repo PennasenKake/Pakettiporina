@@ -11,7 +11,9 @@ namespace Pakettiporina.EditorTools
     // ei vaikutusta ajoon. Tarkoitus tehda jokaisesta radasta silmailla erottuva
     // omalla teemallaan sen sijaan etta ne nayttaisivat samalta vain eri varilla.
     //
-    // Kaytto: Pakettiporina -> 12 - Lisaa teemakoristeet talle radalle
+    // Kaytto: Pakettiporina -> Lisays/03 - Lisaa teemakoristeet talle radalle
+    // (KORJATTU 16.8.2026: tama kommentti sanoi vanhentuneesti "12" - numerointi
+    // jarjestettiin 11.8. neljaksi omaksi valikoksi, oikea numero on Lisays/03.)
     // HUOM: FBX-mallit pitaa olla Unityn jo tuomia (AssetDatabase paivittynyt) ennen
     // ajoa - jos juuri loit ne Blenderista, odota etta Unity tuo ne automaattisesti
     // (tapahtuu kun Editor-ikkuna saa fokuksen) tai paina Assets -> Refresh kasin.
@@ -95,6 +97,19 @@ namespace Pakettiporina.EditorTools
                 // pelatti + tuulimylly toisen kaarteen molemmin puolin maamerkkeina.
                 // Kaikki sijainnit tarkistettu RoadX(z):aa vasten - vahintaan ~10-18
                 // yksikkoa piennaresta (piennar paattyy ~7,8 keskilinjasta).
+                //
+                // UUDELLEENJARJESTELTY 15.8.2026 (kayttaja: "varmista sijainnit jarkeviksi
+                // ja koot, ja varit oikeiksi - maissipelto ja yksi traktori ennen maalia
+                // tien oikealla puolella, elainaitaukset tien oikealla puolella, muut
+                // objektit lahdosta alkaen tiesta katsottuna vasemmalla puolella"):
+                // KAIKKI NELJA elainaitausta (Lehma/Hevonen/Lammas/Kana) ovat nyt roadX(z):n
+                // OIKEALLA puolella kahtena rivina (Lehma+Hevonen lahempi rivi X~18, Lammas+
+                // Kana kauempi rivi X~28) - ei enaa vasen/oikea-peilikuvaa. Maissipelto+
+                // Traktori_2 pysyivat oikealla (jo ennestaan oikein, ennen maalia z=80-85).
+                // KAIKKI MUUT (Navetta, Heinapaalit, Variksenpelatti, Tuulimylly, Traktori
+                // (ensimmainen), Siilo, Kaivo) ovat roadX(z):n VASEMMALLA puolella - Varik-
+                // senpelatti ja Kaivo siirretty oikealta vasemmalle. Samalla korjattu
+                // Heinapaali_G:n liian pieni (5,3 yks.) marginaali roadX:aan.
                 sceneName = "Maatila",
                 items = new[]
                 {
@@ -135,7 +150,11 @@ namespace Pakettiporina.EditorTools
                     // Tuulimylly on X-20,Z90 - paalit sen tuntumaan, ei kuitenkaan tornin
                     // tyveen kiinni eika tielle (roadX(90)=n. -5,8, kaikki paalit selvasti
                     // lansipuolella eli tuulimyllyn kanssa samalla puolella).
-                    new DecorItem { modelName = "Maatila_Heinapaali", instanceName = "Maatila_Heinapaali_G", pos = new Vector3(-14f, 0f, 84f), rotX = -90f, rotY = 40f, scale = 1.0f },
+                    // KORJATTU 15.8.2026 (kayttaja: "varmista sijainnit jarkeviksi"): X=-14
+                    // antoi vain 5,3 yksikon marginaalin roadX(84)=-8,7:aan (tien reuna+
+                    // piennar tarvitsee ~10) - paali oli siis lahes tiella. Siirretty X -14
+                    // -> -20 (marginaali nyt 11,3, sama puoli/tuulimylly-klusteri sailyy).
+                    new DecorItem { modelName = "Maatila_Heinapaali", instanceName = "Maatila_Heinapaali_G", pos = new Vector3(-20f, 0f, 84f), rotX = -90f, rotY = 40f, scale = 1.0f },
                     new DecorItem { modelName = "Maatila_Heinapaali", instanceName = "Maatila_Heinapaali_H", pos = new Vector3(-13f, 0f, 94f), rotX = -90f, rotY = 300f, scale = 0.9f },
                     new DecorItem { modelName = "Maatila_Heinapaali", instanceName = "Maatila_Heinapaali_I", pos = new Vector3(-26f, 0f, 87f), rotX = -90f, rotY = 120f, scale = 1.05f },
 
@@ -149,10 +168,13 @@ namespace Pakettiporina.EditorTools
                     // tyylia - ongelma oli vain etta segmentit oli aiemmin sijoitettu 5-8 yksikon
                     // valein (rei'illa). Nyt jokainen aitaus on 5,04x5,04 nelio, 2 segmenttia/sivu
                     // (segmentin pituus 2,52), PAAT OSUVAT TASAN YHTEEN joka nurkassa - ei rakoja.
-                    // Sijoitus: Lehma+Hevonen OIKEALLE (positiivinen X, sama avoin suora Z -10..24
-                    // missa vanha laidun oli), Lammas+Kana VASEMMALLE (negatiivinen X, peilikuva) -
-                    // kaikki reilusti (>9 yks.) tien 6 yksikon reunasta. Vanhat vapaana kavelevat
-                    // Kana_A/B/C navetan pihalta POISTETTU ja korvattu omalla aitauksellaan.
+                    // Sijoitus (ALKUPERAINEN 14.8.2026, KORVATTU 15.8.2026 - katso yllempi
+                    // "UUDELLEENJARJESTELTY 15.8.2026" -kommentti): Lehma+Hevonen OIKEALLE,
+                    // Lammas+Kana VASEMMALLE (peilikuva). Kayttaja pyysi 15.8.2026 etta KAIKKI
+                    // NELJA aitausta ovat oikealla - Lammas+Kana siirretty toiseksi riviksi
+                    // Lehma+Hevonen-rivin taakse (X~28), ei enaa peilikuvana vasemmalla.
+                    // Vanhat vapaana kavelevat Kana_A/B/C navetan pihalta POISTETTU ja
+                    // korvattu omalla aitauksellaan.
                     //
                     // SUURENNETTU 14.8.2026 (kayttaja: "aitauksista isompia elaimia varten").
                     // Kaikki 4 aitausta 5,04x5,04 -> 7,56x7,56 (segmentin scale 1.0->1.5,
@@ -184,37 +206,53 @@ namespace Pakettiporina.EditorTools
                     new DecorItem { modelName = "Maatila_Aita", instanceName = "Hevonen_Aita_E2", pos = new Vector3(21.78f, 0f, 9.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
                     new DecorItem { modelName = "Maatila_Hevonen", pos = new Vector3(18f, 0f, 8f), rotX = -90f, rotY = 300f, scale = 1.1f },
 
-                    // --- LAMMAS-AITAUS (vasen, keskus -18,-4 - peilikuva Lehma-aitauksesta) ---
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_N1", pos = new Vector3(-19.89f, 0f, -0.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_N2", pos = new Vector3(-16.11f, 0f, -0.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_S1", pos = new Vector3(-19.89f, 0f, -7.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_S2", pos = new Vector3(-16.11f, 0f, -7.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_W1", pos = new Vector3(-21.78f, 0f, -5.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_W2", pos = new Vector3(-21.78f, 0f, -2.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_E1", pos = new Vector3(-14.22f, 0f, -5.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_E2", pos = new Vector3(-14.22f, 0f, -2.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Lammas", instanceName = "Maatila_Lammas_A", pos = new Vector3(-19f, 0f, -5.5f), rotX = -90f, rotY = 90f, scale = 1.0f },
-                    new DecorItem { modelName = "Maatila_Lammas", instanceName = "Maatila_Lammas_B", pos = new Vector3(-17f, 0f, -5.5f), rotX = -90f, rotY = 250f, scale = 1.0f },
-                    new DecorItem { modelName = "Maatila_Lammas", instanceName = "Maatila_Lammas_C", pos = new Vector3(-18f, 0f, -2.5f), rotX = -90f, rotY = 30f, scale = 0.9f },
+                    // --- LAMMAS-AITAUS (UUDELLEENJARJESTETTY 16.8.2026, kayttaja: "elainten
+                    // aitaukset jono asetelmana" - aiempi 2x2-ruudukko (Lehma/Hevonen vasen
+                    // sarake, Lammas/Kana oikea sarake samalla X:lla +10) korvattu YHDELLA
+                    // rivilla samaa X-kaistaa (14,22..21,78, sama kuin Lehma/Hevonen) pitkin
+                    // Z-suunnassa: Lehma(-4) -> Hevonen(8) -> Lammas(20) -> Kana(32), aina
+                    // 12 yksikon keskiovali (sama vali kuin alkuperainen Lehma-Hevonen-pari,
+                    // 4,44 yksikon aitausten valinen rako sailyy). Tarkistettu ettei osu
+                    // Maatilan bends-mutkaan (roadX(20..32) on 0..-2,3, siis tien puolella
+                    // josta paddockit ovat jo ennestaan kaukana +X:ssa) eika muihin
+                    // koristeisiin (Variksenpelatti Z=45 on vasemmalla/-X puolella tieta). ---
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_N1", pos = new Vector3(16.11f, 0f, 23.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_N2", pos = new Vector3(19.89f, 0f, 23.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_S1", pos = new Vector3(16.11f, 0f, 16.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_S2", pos = new Vector3(19.89f, 0f, 16.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_W1", pos = new Vector3(14.22f, 0f, 18.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_W2", pos = new Vector3(14.22f, 0f, 21.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_E1", pos = new Vector3(21.78f, 0f, 18.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Lammas_Aita_E2", pos = new Vector3(21.78f, 0f, 21.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Lammas", instanceName = "Maatila_Lammas_A", pos = new Vector3(17f, 0f, 18.5f), rotX = -90f, rotY = 90f, scale = 1.0f },
+                    new DecorItem { modelName = "Maatila_Lammas", instanceName = "Maatila_Lammas_B", pos = new Vector3(19f, 0f, 18.5f), rotX = -90f, rotY = 250f, scale = 1.0f },
+                    new DecorItem { modelName = "Maatila_Lammas", instanceName = "Maatila_Lammas_C", pos = new Vector3(18f, 0f, 21.5f), rotX = -90f, rotY = 30f, scale = 0.9f },
 
-                    // --- KANA-AITAUS (vasen, keskus -18,8 - peilikuva Hevonen-aitauksesta).
-                    // Vanhat vapaana kavelevat Kana_A/B/C navetan pihalta siirretty tanne. ---
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_N1", pos = new Vector3(-19.89f, 0f, 11.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_N2", pos = new Vector3(-16.11f, 0f, 11.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_S1", pos = new Vector3(-19.89f, 0f, 4.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_S2", pos = new Vector3(-16.11f, 0f, 4.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_W1", pos = new Vector3(-21.78f, 0f, 6.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_W2", pos = new Vector3(-21.78f, 0f, 9.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_E1", pos = new Vector3(-14.22f, 0f, 6.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_E2", pos = new Vector3(-14.22f, 0f, 9.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
-                    new DecorItem { modelName = "Maatila_Kana", instanceName = "Maatila_Kana_A", pos = new Vector3(-19f, 0f, 6.7f), rotX = -90f, rotY = 0f, scale = 1.0f },
-                    new DecorItem { modelName = "Maatila_Kana", instanceName = "Maatila_Kana_B", pos = new Vector3(-17f, 0f, 6.7f), rotX = -90f, rotY = 120f, scale = 1.0f },
-                    new DecorItem { modelName = "Maatila_Kana", instanceName = "Maatila_Kana_C", pos = new Vector3(-18f, 0f, 9.3f), rotX = -90f, rotY = 250f, scale = 1.0f },
+                    // --- KANA-AITAUS (UUDELLEENJARJESTETTY 16.8.2026, sama syy kuin Lammas
+                    // ylla) - neljas ja viimeinen aitaus jonossa, keskus (18,32). ---
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_N1", pos = new Vector3(16.11f, 0f, 35.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_N2", pos = new Vector3(19.89f, 0f, 35.78f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_S1", pos = new Vector3(16.11f, 0f, 28.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_S2", pos = new Vector3(19.89f, 0f, 28.22f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_W1", pos = new Vector3(14.22f, 0f, 30.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_W2", pos = new Vector3(14.22f, 0f, 33.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_E1", pos = new Vector3(21.78f, 0f, 30.11f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Aita", instanceName = "Kana_Aita_E2", pos = new Vector3(21.78f, 0f, 33.89f), rotX = -90f, rotY = 90f, scale = 1.5f },
+                    new DecorItem { modelName = "Maatila_Kana", instanceName = "Maatila_Kana_A", pos = new Vector3(17f, 0f, 30.7f), rotX = -90f, rotY = 0f, scale = 1.0f },
+                    new DecorItem { modelName = "Maatila_Kana", instanceName = "Maatila_Kana_B", pos = new Vector3(19f, 0f, 30.7f), rotX = -90f, rotY = 120f, scale = 1.0f },
+                    new DecorItem { modelName = "Maatila_Kana", instanceName = "Maatila_Kana_C", pos = new Vector3(18f, 0f, 33.3f), rotX = -90f, rotY = 250f, scale = 1.0f },
 
                     // --- Toisen kaarteen maamerkit ---
                     // SUURENNETTU 14.8.2026 (kayttaja: "pelatinta voi suurentaa"). Scale 1.2->1.6.
-                    new DecorItem { modelName = "Maatila_Variksenpelatti", pos = new Vector3(10f, 0f, 45f), rotX = -90f, rotY = 0f, scale = 1.6f },
-                    new DecorItem { modelName = "Maatila_Tuulimylly", pos = new Vector3(-20f, 0f, 90f), rotX = -90f, rotY = 0f, scale = 1.2f },
+                    // SIIRRETTY 15.8.2026 (kayttaja: "muut objektit vasemmalla puolella") - X=10
+                    // oli tien OIKEALLA puolella (roadX(45)=-8,22, marginaali +18,22), mutta
+                    // Variksenpelatti ei ole aitaus/pelto/traktori joten sen kuuluu olla
+                    // vasemmalla. Peilattu X -20 (marginaali -11,78, sama Z sailyi).
+                    new DecorItem { modelName = "Maatila_Variksenpelatti", pos = new Vector3(-20f, 0f, 45f), rotX = -90f, rotY = 0f, scale = 1.6f },
+                    // KORJATTU 16.8.2026 (kayttaja: "tuulimylly 180 kaantaa") - rotY 0 -> 180,
+                    // sama pos/rotX/scale, vain kiertosuunta vaihtuu (siivet/etupuoli
+                    // osoittavat nyt vastakkaiseen suuntaan).
+                    new DecorItem { modelName = "Maatila_Tuulimylly", pos = new Vector3(-20f, 0f, 90f), rotX = -90f, rotY = 180f, scale = 1.2f },
 
                     // --- LISATTY 14.8.2026 (Blenderilla uudelleenrakennettu Maatila-erä):
                     // Navetta/Tuulimylly/Variksenpelatti korvattu yksityiskohtaisemmilla
@@ -261,11 +299,20 @@ namespace Pakettiporina.EditorTools
                     // ITAPUOLELLE. Uusi malli Maatila_Maissipelto.fbx (paikallismitat
                     // 15,4 x 8,2, skaalattu 1,4 -> 21,6 x 11,5). roadX(85)=n. -8,2, pellon
                     // sisareuna X=6,2 -> yli 8 yksikon marginaali piennaresta.
-                    new DecorItem { modelName = "Maatila_Maissipelto", pos = new Vector3(17f, 0f, 85f), rotX = -90f, rotY = 0f, scale = 1.4f },
+                    // KORJATTU 16.8.2026 (kayttaja: "maissi pelto 90 astetta kaantaa") - rotY
+                    // 0 -> 90. Paikallismitat 15,4 (pitka sivu) x 8,2 (lyhyt sivu): rotY=0:lla
+                    // pitka sivu oli tiehen pain (sisareuna X~6,3), rotY=90:lla lyhyt sivu
+                    // (8,2*1,4/2=5,7) on nyt tiehen pain -> sisareuna X~11,3, ELI VAIN
+                    // ENEMMAN marginaalia tiehen kuin ennen, ei riskia etta pelto tukkisi tien.
+                    new DecorItem { modelName = "Maatila_Maissipelto", pos = new Vector3(17f, 0f, 85f), rotX = -90f, rotY = 90f, scale = 1.4f },
                     // SUURENNETTU 14.8.2026 (kayttaja: "kasvata siilon kokoa"). Scale 1.0->1.6.
                     new DecorItem { modelName = "Maatila_Siilo", pos = new Vector3(-23f, 0f, -90f), rotX = -90f, rotY = 0f, scale = 1.6f },
                     // SUURENNETTU 14.8.2026 (kayttaja: "kaivoa voi suurentaa"). Scale 1.0->1.5.
-                    new DecorItem { modelName = "Maatila_Kaivo", pos = new Vector3(18f, 0f, -15f), rotX = -90f, rotY = 0f, scale = 1.5f },
+                    // SIIRRETTY 15.8.2026 (kayttaja: "muut objektit vasemmalla puolella") - X=18
+                    // oli tien oikealla puolella (roadX(-15)=0, marginaali +18) samalla Z-alueella
+                    // kuin Lehma-aitaus. Kaivo ei ole aitaus/pelto/traktori -> peilattu X -18
+                    // (marginaali -18, vapaa alue koska Lammas-aitaus siirtyi pois talta kohdalta).
+                    new DecorItem { modelName = "Maatila_Kaivo", pos = new Vector3(-18f, 0f, -15f), rotX = -90f, rotY = 0f, scale = 1.5f },
                 },
             },
             new DecorPreset

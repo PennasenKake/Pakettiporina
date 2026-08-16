@@ -21,13 +21,37 @@ namespace Pakettiporina
         // Pysyvasti avatut tarrat (ostettu pisteilla). Sailyy tallennuksen yli.
         public HashSet<string> UnlockedStickerNames { get; private set; } = new HashSet<string>();
 
-        // M5: Kolhut (Cone) ja lika (Puddle) kertyvat AJON aikana. Nollataan aina uuden
-        // keikan alussa (RaceManager.StartRace). Kolhut sailyvat autossa kunnes pelaaja
-        // korjaa ne Hallissa (GarageScreen.OnRepairDents); lika sailyy kunnes pelaaja
-        // pesee sen Pesu-scenessa (WashScreen) - molemmat GameManager sailyttaa
-        // scenejen ylitse (DontDestroyOnLoad), joten tieto kulkee Ajo -> Pesu -> Halli.
-        public int RaceDents { get; private set; }
-        public int RaceDirtHits { get; private set; }
+        // M5.17/16.8.2026 (kayttaja: "progressbar lialle ja korjaukselle, joka kasvaa
+        // osumista ja pysyy seuraavaan ajoon asti, tyhjenee Pesussa poksauttelemalla"):
+        // PYSYVA lika-/kolhumittari. AIEMMIN (14.-15.8.) RaceDents/RaceDirtHits nollautuivat
+        // JOKAISEN ajon alussa (RaceManager.StartRace -> ResetRaceDamage) - tietoinen
+        // paatos silloin ("edellisen keikan korjaamattomat kolhut eivat kasaannu
+        // loputtomiin"), mutta kayttaja halusi nyt PAINVASTAISEN kayttaytymisen: mittari
+        // kasvaa Cone/Laatikko/Puddle-osumista AJON AIKANA (nakyy myos live-palkkina
+        // RaceHUD:ssa), EI nollaudu ajon alussa, ja purkautuu vain Pesussa asteittain
+        // (yksi napautus = yksi yksikko pois, ks. CleanOneDirt/RepairOneDent). Ei pakota
+        // pesuun - taynna oleva mittari on vain visuaalinen vihje, ei este.
+        // Katto (DIRT_MAX/DENT_MAX) tasmaa WashScreenin dirtSpots(15)/dentSpots(6)
+        // -kuvakemaariin, joten yksi mittariyksikko = yksi nakyva merkki autossa, ei
+        // tarvitse erillista skaalausta.
+        public const int DIRT_MAX = 15;
+        public const int DENT_MAX = 6;
+
+        // LISATTY 16.8.2026 (kayttaja: "osumat voisivat toimia kertoimina (esimerkiksi 2x)
+        // pesulle ja korjaukselle, huomaan etta loppuu liian nopeasti pesu ja korjaus"):
+        // yksi oikea osuma radalla kasvattaa mittaria HIT_MULTIPLIER-verran (katto pitaa
+        // silti kiinni DIRT_MAX/DENT_MAX:sta). Nain mittari tayttyy nopeammin ajon aikana,
+        // eli pelaaja paatyy Pesuun useammalla likatahralla/kolhulla siivottavana - Pesu-
+        // ja korjausvaihe kestaa pidempaan yhdella ajolla ansaituista osumista.
+        public const int HIT_MULTIPLIER = 2;
+
+        public int DirtMeter { get; private set; }
+        public int DentMeter { get; private set; }
+
+        // RaceHUD tilaa nama paivittaakseen palkit reaaliaikaisesti heti kun osuma
+        // tapahtuu, ilman pollausta joka ruudulla. (nykyinen, max).
+        public event System.Action<int, int> OnDirtMeterChanged;
+        public event System.Action<int, int> OnDentMeterChanged;
 
         // Ilmoittaa AINA kun Points-arvo muuttuu (lisays, lataus tallennuksesta, tarraosto).
         // UI-komponentit (esim. PointsDisplay) voivat tilata taman sen sijaan etta luottavat
@@ -120,37 +144,61 @@ namespace Pakettiporina
             Debug.Log($"[GameManager] Ladattu {UnlockedStickerNames.Count} avattua tarraa tallennuksesta.");
         }
 
-        // --- M5: Kolhut (Cone) ja lika (Puddle) ---
+        // --- M5.17: pysyva lika-/kolhumittari (Cone/Laatikko/Puddle taytta, Pesu tyhjentaa) ---
+        // HUOM: ei enaa ResetRaceDamage()-metodia/kutsua RaceManager.StartRace():ssa -
+        // mittari EI nollaudu ajon alussa (kayttajan 16.8.2026 paatos, ks. yllaoleva
+        // luokkakommentti). Jos joskus halutaan palata vanhaan per-ajo-kayttaytymiseen,
+        // katso Git-historiaa taman kommentin kohdalta.
 
-        // Kutsutaan RaceManager.StartRace():sta ENNEN lahtolaskentaa - uusi keikka alkaa
-        // aina puhtaalla, ehjalla autolla (edellisen keikan korjaamattomat kolhut/lika
-        // eivat kasaannu loputtomiin).
-        public void ResetRaceDamage()
-        {
-            RaceDents = 0;
-            RaceDirtHits = 0;
-            Debug.Log("[GameManager] Ajon kolhut/lika nollattu (uusi keikka).");
-        }
-
-        // Kutsutaan Cone.cs:sta kun auto osuu kartioon.
+        // HUOM tallennuksesta: AddDent/AddDirtHit/CleanOneDirt/RepairOneDent EIVAT kutsu
+        // SaveManager.Save():a suoraan (toisin kuin AddPoints) - osumia voi tulla useita
+        // sekunnissa huonolla ajolla, eika levylle kirjoittamista haluta joka osumalla.
+        // Mittarit tallentuvat silti luotettavasti: (1) AddPoints() (tahdet/maalipalkkio/
+        // pesu-/korjauspalkkio) kutsuu Save():n JA lukee talloin GameManagerin senhetkiset
+        // DirtMeter/DentMeter-arvot mukaan, (2) SaveManager.OnApplicationPause/Quit
+        // tallentaa aina taustalle siirryttaessa/suljettaessa.
+        // Kutsutaan Cone.cs/Laatikko.cs:sta kun auto osuu esteeseen.
         public void AddDent()
         {
-            RaceDents++;
-            Debug.Log($"[GameManager] Kolhu! Yhteensa taman keikan aikana: {RaceDents}");
+            DentMeter = Mathf.Min(DentMeter + HIT_MULTIPLIER, DENT_MAX);
+            OnDentMeterChanged?.Invoke(DentMeter, DENT_MAX);
+            Debug.Log($"[GameManager] Kolhu! Mittari: {DentMeter}/{DENT_MAX}");
         }
 
         // Kutsutaan Puddle.cs:sta kun auto ajaa latakon lapi.
         public void AddDirtHit()
         {
-            RaceDirtHits++;
-            Debug.Log($"[GameManager] Roiske! Likatahroja taman keikan aikana: {RaceDirtHits}");
+            DirtMeter = Mathf.Min(DirtMeter + HIT_MULTIPLIER, DIRT_MAX);
+            OnDirtMeterChanged?.Invoke(DirtMeter, DIRT_MAX);
+            Debug.Log($"[GameManager] Roiske! Mittari: {DirtMeter}/{DIRT_MAX}");
         }
 
-        // Kutsutaan GarageScreen.OnRepairDents():sta - korjaa kaikki kolhut kerralla.
-        public void RepairDents()
+        // Kutsutaan WashScreen.CleanNextSpot():sta JOKAISEN poksautetun kuplan jalkeen
+        // (ei enaa kerralla lopussa) - pysyva mittari puretaan asteittain, jotta osittainen
+        // pesu (esim. jos pelaaja poistuu Pesusta kesken kaiken) ei haihdu tyhjiin.
+        public void CleanOneDirt()
         {
-            RaceDents = 0;
-            Debug.Log("[GameManager] Kolhut korjattu Hallissa.");
+            DirtMeter = Mathf.Max(0, DirtMeter - 1);
+            OnDirtMeterChanged?.Invoke(DirtMeter, DIRT_MAX);
+        }
+
+        // Kutsutaan WashScreen.RepairNextDent():sta jokaisen RepairTool-napautuksen
+        // jalkeen. Sama periaate kuin CleanOneDirt.
+        public void RepairOneDent()
+        {
+            DentMeter = Mathf.Max(0, DentMeter - 1);
+            OnDentMeterChanged?.Invoke(DentMeter, DENT_MAX);
+        }
+
+        // SaveManagerin kayttoon: palauttaa mittarit levylta sovelluksen
+        // uudelleenkaynnistyksen jalkeen (kayttaja: "kylla mielellaan jos mahdollista").
+        public void ApplyLoadedDamage(int dirt, int dents)
+        {
+            DirtMeter = Mathf.Clamp(dirt, 0, DIRT_MAX);
+            DentMeter = Mathf.Clamp(dents, 0, DENT_MAX);
+            OnDirtMeterChanged?.Invoke(DirtMeter, DIRT_MAX);
+            OnDentMeterChanged?.Invoke(DentMeter, DENT_MAX);
+            Debug.Log($"[GameManager] Lika-/kolhumittarit ladattu tallennuksesta: {DirtMeter}/{DIRT_MAX}, {DentMeter}/{DENT_MAX}.");
         }
     }
 }

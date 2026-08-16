@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -29,12 +30,31 @@ namespace Pakettiporina
         public AudioClip fitGoodSound;    // paketti sopii autoon (kuittaus)
         public AudioClip unlockSound;     // osa/paketti/tarra avautuu tai ostetaan
 
+        [Header("Pesu (valinnaisia)")]
+        // LISATTY 15.8.2026 (kayttaja: "korjaamiseen tulisi liittya jokin aani ja
+        // efekti") - kolhujen korjaus siirtyi Halli->Pesu-sceneen samalla, katso
+        // WashScreen.OnRepairToolTapped() / RepairTool.cs.
+        public AudioClip repairSound;     // "Korjaa kolhut" -napin aani Pesussa
+
         [Header("Auton moottori (valinnainen, loopattava)")]
         public AudioClip engineLoop;      // CarEngineAudio lukee taman ja soittaa loopina
 
         [Header("Musiikki (valinnainen)")]
         [Range(0f, 1f)] public float musicVolume = 0.6f;
         [Range(0f, 1f)] public float sfxVolume = 1f;
+
+        // M6.3/16.8.2026 (kokonaisvaltainen aanien parannus): kaksi yleista "juice"-
+        // parannusta jotka eivat vaadi uusia aaniklippeja.
+        [Header("Aanen vaihtelu ja pehmeys (M6.3, 16.8.2026)")]
+        [Tooltip("Kuinka paljon usein toistuvien aanien (kolhu/roiske/kupla/korjaus/tahti/nappi) " +
+                 "sävelkorkeus vaihtelee satunnaisesti per toisto - estaa robottimaisen " +
+                 "'aina tasan sama aani' -tunteen. 0 = ei vaihtelua.")]
+        [Range(0f, 0.3f)] public float sfxPitchVariance = 0.06f;
+        [Tooltip("Kuinka pitkaan musiikin vaihto (esim. Ajo -> Pesu) haivyttaa vanhan pois " +
+                 "ja uuden sisaan yhteensa - pehmentaa aiemman kovan katkaisu+aloitus-vaihdon.")]
+        public float musicCrossfadeDuration = 0.6f;
+
+        Coroutine musicFadeRoutine;
 
         [Header("Taustamusiikki scenettain (valinnaisia — tyhja = ei musiikkia sille scenelle)")]
         public AudioClip menuMusic;    // MainMenu
@@ -111,38 +131,93 @@ namespace Pakettiporina
             // ei vaihdeta musiikkia, jotta ei katkaista mahdollista jo soivaa kappaletta turhaan.
         }
 
+        // Lahtolaskenta pysyy tarkoituksella KIINTEALLA sävelkorkeudella (3-2-1-rytmin
+        // pitaa kuulostaa aina samalta, ei "vaihtelevalta") - samoin "AJA!" ja maalifanfaari
+        // (kumpikin soi vain kerran per keikka, ei toistu tarpeeksi usein hyotyakseen
+        // vaihtelusta). Tahti sen sijaan VOI toistua monta kertaa samalla radalla, joten
+        // se saa saman pienen vaihtelun kuin muut usein toistuvat aanet.
         void HandleCountdown(int n) { PlaySfx(countdownBeep); }
         void HandleGo() { PlaySfx(goSound); }
-        void HandleStar(int total) { PlaySfx(starPickup); }
+        void HandleStar(int total) { PlaySfx(starPickup, sfxPitchVariance); }
         void HandleFinish() { PlaySfx(finishFanfare); }
 
         // --- Yleiset kutsut muualta koodista ---
-        public void PlaySfx(AudioClip clip)
+        // PlaySfx(clip) sailyy ennallaan (kiintea sävelkorkeus) - vanhat kutsupaikat eivat
+        // muutu. Uusi ylikuormitus PlaySfx(clip, pitchVariance) lisaa satunnaisen, pienen
+        // sävelkorkeuden vaihtelun - kaytetaan usein toistuvissa aanissa alla.
+        public void PlaySfx(AudioClip clip) => PlaySfx(clip, 0f);
+
+        public void PlaySfx(AudioClip clip, float pitchVariance)
         {
             if (clip == null || sfxSource == null) return;
+            // HUOM: AudioSource.PlayOneShot "ottaa talteen" senhetkisen source.pitch-arvon
+            // taman yhden soiton ajaksi, joten peräkkäiset PlaySfx-kutsut eri pitch-arvoilla
+            // eivat sotke toisiaan vaikka aanet menisivat paallekkain.
+            sfxSource.pitch = pitchVariance > 0f ? 1f + Random.Range(-pitchVariance, pitchVariance) : 1f;
             sfxSource.PlayOneShot(clip, sfxVolume);
         }
 
-        public void PlayBubblePop() { PlaySfx(bubblePop); }
-        public void PlayButtonClick() { PlaySfx(buttonClick); }
-        public void PlayBoost() { PlaySfx(boostSound); }
-        public void PlaySplash() { PlaySfx(splashSound); }
-        public void PlayBump() { PlaySfx(bumpSound); }
+        // M6.3/16.8.2026: usein/moneen kertaan samalla keikalla toistuvat aanet (osumat,
+        // napautukset) saavat pienen sävelkorkeuden vaihtelun - vahemman robottimaista.
+        // Harvoin soivat/kertaluontoiset aanet (FitGood, Unlock) pysyvat kiinteina.
+        public void PlayBubblePop() { PlaySfx(bubblePop, sfxPitchVariance); }
+        public void PlayButtonClick() { PlaySfx(buttonClick, sfxPitchVariance); }
+        public void PlayBoost() { PlaySfx(boostSound, sfxPitchVariance); }
+        public void PlaySplash() { PlaySfx(splashSound, sfxPitchVariance); }
+        public void PlayBump() { PlaySfx(bumpSound, sfxPitchVariance); }
         public void PlayFitGood() { PlaySfx(fitGoodSound); }
         public void PlayUnlock() { PlaySfx(unlockSound); }
+        public void PlayRepair() { PlaySfx(repairSound, sfxPitchVariance); }
 
+        // M6.3/16.8.2026: musiikin vaihto haivyttaa nyt pehmeasti (ei enaa kova
+        // katkaisu+aloitus, esim. Ajo->Pesu-siirtymassa). Sama julkinen signatuuri kuin
+        // ennen, joten mikaan olemassaoleva kutsupaikka ei muutu.
         public void PlayMusic(AudioClip clip, bool loop = true)
         {
             if (musicSource == null || clip == null) return;
             if (musicSource.clip == clip && musicSource.isPlaying) return;
+
+            if (musicFadeRoutine != null) StopCoroutine(musicFadeRoutine);
+            musicFadeRoutine = StartCoroutine(CrossfadeMusicRoutine(clip, loop));
+        }
+
+        IEnumerator CrossfadeMusicRoutine(AudioClip clip, bool loop)
+        {
+            float half = Mathf.Max(0.05f, musicCrossfadeDuration * 0.5f);
+
+            // Haivyta nykyinen kappale pois (jos jotain jo soi).
+            if (musicSource.isPlaying)
+            {
+                float startVol = musicSource.volume;
+                float t = 0f;
+                while (t < half)
+                {
+                    t += Time.deltaTime;
+                    musicSource.volume = Mathf.Lerp(startVol, 0f, t / half);
+                    yield return null;
+                }
+            }
+
             musicSource.clip = clip;
             musicSource.loop = loop;
-            musicSource.volume = musicVolume;
+            musicSource.volume = 0f;
             musicSource.Play();
+
+            // Haivyta uusi kappale sisaan.
+            float t2 = 0f;
+            while (t2 < half)
+            {
+                t2 += Time.deltaTime;
+                musicSource.volume = Mathf.Lerp(0f, musicVolume, t2 / half);
+                yield return null;
+            }
+            musicSource.volume = musicVolume;
+            musicFadeRoutine = null;
         }
 
         public void StopMusic()
         {
+            if (musicFadeRoutine != null) { StopCoroutine(musicFadeRoutine); musicFadeRoutine = null; }
             if (musicSource != null) musicSource.Stop();
         }
 

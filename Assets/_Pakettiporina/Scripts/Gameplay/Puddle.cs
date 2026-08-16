@@ -9,8 +9,9 @@ namespace Pakettiporina
     // CarStats.pito (Hallissa valittu) lieventaa vaikutusta: hyva pito -> auto tuskin
     // huomaa latakkoa, huono pito -> selva liukastus. Tarkoitus opettaa etta pito
     // kannattaa pito-painotteisilla radoilla (esim. "Satama").
-    // M5: jokainen osuma kerryttaa GameManager.RaceDirtHits - maara nakyy likatahroina
-    // autossa Pesu-scenessa (WashScreen) heti keikan jalkeen, ennen Hallia.
+    // M5.17/16.8.2026: jokainen osuma kasvattaa PYSYVAA GameManager.DirtMeter-mittaria
+    // (max 15, nakyy live-palkkina RaceHUD:ssa, EI nollaudu ajon alussa) - maara nakyy
+    // likatahroina autossa Pesu-scenessa (WashScreen) kun pelaaja siella kayy.
     [RequireComponent(typeof(Collider))]
     public class Puddle : MonoBehaviour
     {

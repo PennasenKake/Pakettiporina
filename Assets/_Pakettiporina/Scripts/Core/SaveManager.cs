@@ -94,6 +94,8 @@ namespace Pakettiporina
             data.controlMode = controlMode;
             data.carSpeedTier = carSpeedTier;
             data.darkMode = darkMode;
+            data.dirtMeter = gm.DirtMeter;
+            data.dentMeter = gm.DentMeter;
 
             try
             {
@@ -148,6 +150,7 @@ namespace Pakettiporina
 
             gm.ApplyLoadedSelection(pkg, parts);
             gm.ApplyLoadedStickers(data.unlockedStickerNames);
+            gm.ApplyLoadedDamage(data.dirtMeter, data.dentMeter);
 
             var audio = AudioManager.Instance;
             if (audio != null)
@@ -185,6 +188,11 @@ namespace Pakettiporina
                 gm.SetPoints(0);
                 gm.ApplyLoadedSelection(null, new List<PartData>());
                 gm.ApplyLoadedStickers(new List<string>());
+                // KORJATTU 16.8.2026 (tarkistuksessa loydetty puute): pysyva lika-/
+                // kolhumittari (M5.17) EI nollautunut "Nollaa edistyminen" -napista,
+                // vaikka kaikki muu pelietenemys nollautui - auto olisi jaanyt
+                // likaiseksi/kolhuiseksi taysin tyhjan tallennuksen kanssa.
+                gm.ApplyLoadedDamage(0, 0);
             }
         }
 

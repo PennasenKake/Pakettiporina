@@ -56,6 +56,11 @@ namespace Pakettiporina.EditorTools
             var boost = Load($"{SFX_DIR}/pakettiporina_aani_boost.wav");
             var latakko = Load($"{SFX_DIR}/pakettiporina_aani_latakko.wav");
             var kolhu = Load($"{SFX_DIR}/pakettiporina_aani_kolhu.wav");
+            // LISATTY 15.8.2026 (kayttaja: "korjaamiseen tulisi liittya jokin aani ja
+            // efekti") - "Korjaa kolhut" -napin oma aani Pesu-scenessa, eri klippi kuin
+            // itse kolhun osumisaani (kolhu, ylla) jotta tormays ja korjaus kuulostavat
+            // selvasti erilaisilta.
+            var korjaus = Load($"{SFX_DIR}/pakettiporina_aani_korjaus.wav");
             var sopii = Load($"{SFX_DIR}/pakettiporina_aani_sopii.wav");
             var avaus = Load($"{SFX_DIR}/pakettiporina_aani_avaus.wav");
             var moottori = Load($"{SFX_DIR}/pakettiporina_aani_moottori.wav");
@@ -68,7 +73,7 @@ namespace Pakettiporina.EditorTools
             {
                 ("countdown", countdown), ("go", go), ("tahti", tahti), ("maali", maali),
                 ("kupla", kupla), ("nappi", nappi), ("boost", boost), ("latakko", latakko),
-                ("kolhu", kolhu), ("sopii", sopii), ("avaus", avaus), ("moottori", moottori),
+                ("kolhu", kolhu), ("korjaus", korjaus), ("sopii", sopii), ("avaus", avaus), ("moottori", moottori),
                 ("musiikki: valikko", musValikko), ("musiikki: halli", musHalli),
                 ("musiikki: rata", musRata), ("musiikki: pesu", musPesu),
             };
@@ -148,6 +153,7 @@ namespace Pakettiporina.EditorTools
                     Assign("Boost Sound", ref mgr.boostSound, boost);
                     Assign("Splash Sound", ref mgr.splashSound, latakko);
                     Assign("Bump Sound", ref mgr.bumpSound, kolhu);
+                    Assign("Repair Sound", ref mgr.repairSound, korjaus);
                     Assign("Fit Good Sound", ref mgr.fitGoodSound, sopii);
                     Assign("Unlock Sound", ref mgr.unlockSound, avaus);
                     Assign("Engine Loop", ref mgr.engineLoop, moottori);

@@ -454,6 +454,13 @@ namespace Pakettiporina.EditorTools
                 s.AppendLine("Valilehtien OnClick -> SetCategory(0..5) kytketty.");
             }
 
+            // ---------- 10b. Kolhut + "Korjaa"-nappi: POISTETTU Hallista 15.8.2026 ----------
+            // (kayttaja: "korjaa tulisi olla wash scenen kanssa samassa, ensin pestaan ja
+            // sen jalkeen korjataan"). Kolhu-UI rakennetaan nyt Pesu-sceneen, katso
+            // PakettiporinaWashSetup.cs. Jos vanha DentsPanel/RepairDentsButton on jaanyt
+            // tahan Halli-sceneen aiemmasta ajosta, se voi poistaa kasin (ei enaa kytketty
+            // mihinkaan GarageScreen-kenttaan, joten se on pelkka irrallinen UI-objekti).
+
             // ---------- 11. Scenejen nimet ----------
             if (garage.gameSceneName != GAME_SCENE)
             {

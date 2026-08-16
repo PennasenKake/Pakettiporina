@@ -5,9 +5,10 @@ namespace Pakettiporina
     // Kartio (tai muu pieni fyysinen este): "kolhu" jos auto osuu siihen - leikkaa
     // hetkeksi nopeudesta palan. EI pysayta peliä eika vie pisteita; reilu, lyhyt
     // rangaistus ilman aikarajaa tai menetysta, sopii 6-10-vuotiaille.
-    // M5: kolhu JAA nakyviin autoon keikan ajaksi (GameManager.RaceDents) - ei haittaa
-    // ajamista millaan tavalla, mutta pelaaja korjaa sen kivana pienena "tyona" Hallissa
-    // radan jalkeen (GarageScreen.OnRepairDents).
+    // M5.17/16.8.2026: kolhu kasvattaa PYSYVAA GameManager.DentMeter-mittaria (max 6,
+    // nakyy live-palkkina RaceHUD:ssa, EI nollaudu ajon alussa) - pelaaja purkaa sen
+    // pois kivana pienena "tyona" Pesu-scenessa napauttamalla RepairTool-tyokaluja
+    // (sama periaate kuin kuplien napautus pesussa).
     //
     // Toimii KAHDELLA tavalla riippuen Collider-asetuksesta:
     //  - Is Trigger POIS (oletus, CreatePrimitive): auto tormaa fyysisesti kartioon

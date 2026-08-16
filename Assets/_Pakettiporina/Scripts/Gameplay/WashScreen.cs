@@ -11,6 +11,20 @@ namespace Pakettiporina
     // MIELLYTTAVASTI taustalla (ei rangaistusta, ei karkaamista) - jokainen
     // napautus poistaa YHDEN likatahran nakyvista autosta. Kun kaikki likatahrat
     // on poistettu, pesu on valmis ja antaa palkkion.
+    //
+    // M5/16.8.2026 (kayttaja: "korjaa vaihe tulisi tehda samalla tavalla kuin pesu"):
+    // korjausvaihe (kolhut) toimii NYT TASMALLEEN SAMALLA PERIAATTEELLA kuin pesu -
+    // ei enaa yhta "Korjaa kolhut" -nappia, vaan RepairArean sisalla kelluu
+    // RepairTool-ikoneja (sama liike/napautus-logiikka kuin Bubble.cs:ssa) joita
+    // napauttamalla poistetaan YKSI kolhu kerrallaan autosta (DentSpots), aivan
+    // kuten kuplien napautus poistaa likatahroja. Jarjestys: PESU EKA (BubbleArea+
+    // DirtSpots), sitten KORJAUS (RepairArea+DentSpots), vasta sen jalkeen Jatkoon.
+    //
+    // M5.17/16.8.2026 (kayttaja: "progressbar lialle ja korjaukselle... pysyy
+    // seuraavaan ajoon asti... tyhjenee Wash scenessa"): dirtSpots/dentSpots-maara
+    // luetaan nyt GameManager.DirtMeter/DentMeter -PYSYVISTA mittareista (ei enaa
+    // vain taman yhden ajon osumista), ja jokainen napautus purkaa mittaria heti
+    // yhdella (GameManager.CleanOneDirt/RepairOneDent) - ei vain kerralla lopussa.
     public class WashScreen : MonoBehaviour
     {
         public static WashScreen Instance { get; private set; }
@@ -27,7 +41,7 @@ namespace Pakettiporina
         [Tooltip("Likatahran haviamisanimaation kesto")]
         public float dirtFadeDuration = 0.25f;
 
-        [Header("Edistyminen")]
+        [Header("Edistyminen (pesu)")]
         [Tooltip("Esim. 'Puhtaus: 40 %'")]
         public TMP_Text progressText;
         [Tooltip("Valinnainen mittari (Image, Image Type = Filled), tayttyy puhtauden mukaan")]
@@ -41,9 +55,33 @@ namespace Pakettiporina
         public GameObject donePanel;
         public TMP_Text doneText;
 
-        [Header("Palkkio")]
+        [Header("Palkkio (pesu)")]
         [Tooltip("Pistetta jokaisesta poistetusta likatahrasta")]
         public int pointsPerDirt = 5;
+
+        // M5/16.8.2026 (kayttaja: "korjaa vaihe tulisi tehda samalla tavalla kuin pesu"):
+        // RepairArea = BubbleArean vastine (RepairTool-ikonit kelluvat ja napautetaan),
+        // DentSpots = DirtSpotsin vastine (nakyvat kolhu-merkit autossa, yksi haviaa per
+        // napautus). RepairArea on POIS PAALTA pesun ajan ja aktivoituu vasta kun pesu
+        // on valmis - DentSpots sen sijaan NAKYY heti alusta asti (kuten likatahratkin)
+        // koska kolhut ovat jo autossa, vain niiden KORJAAMINEN odottaa pesun jalkeen.
+        [Header("Korjaus (kolhut, kartioihin/laatikoihin osuminen)")]
+        [Tooltip("RepairTool-ikonien yhteinen vanhempi (sama periaate kuin Bubble Area). Piilossa pesun ajan.")]
+        public Transform repairArea;
+        [Tooltip("Nakyvat kolhu-merkit autossa. Jos tyhja ja Dent Spots Parent on asetettu, kerataan sen lapsista.")]
+        public List<Image> dentSpots = new List<Image>();
+        [Tooltip("Valinnainen: vanhempi jonka Image-lapset kerataan automaattisesti Dent Spots -listaan Startissa.")]
+        public Transform dentSpotsParent;
+        [Tooltip("Kolhu-merkin haviamisanimaation kesto")]
+        public float dentFadeDuration = 0.25f;
+        [Tooltip("Esim. 'Korjattu: 40 %' tai 'Kolhuja: 2'")]
+        public TMP_Text dentsText;
+        [Tooltip("Lyhyt visuaalinen efekti joka nakyy hetken KAIKKIEN kolhujen korjauduttua (esim. kipinat).")]
+        public GameObject repairEffect;
+        [Tooltip("Kuinka pitkaan Repair Effect nakyy ennen Valmis-paneeliin siirtymista")]
+        public float repairEffectDuration = 0.9f;
+        [Tooltip("Pistetta jokaisesta korjatusta kolhusta")]
+        public int pointsPerDentRepair = 3;
 
         [Header("Scene")]
         public string garageSceneName = "Garage";
@@ -51,7 +89,12 @@ namespace Pakettiporina
 
         int cleanedCount;
         int activeSpotCount;   // M5: kuinka monta likatahraa TÄLLÄ kertaa nakyy (ks. Start)
+        int repairedCount;
+        int activeDentCount;   // kuinka monta kolhua TALLA kertaa korjataan (ks. Start)
         bool finished;
+        bool repairPhaseActive;
+        int washReward;        // talteen yhdistettya Valmis-tekstia varten
+        int repairReward;
 
         void Awake() { Instance = this; }
 
@@ -59,33 +102,53 @@ namespace Pakettiporina
         {
             if (dirtSpots.Count == 0 && dirtSpotsParent != null)
                 dirtSpots.AddRange(dirtSpotsParent.GetComponentsInChildren<Image>(true));
+            if (dentSpots.Count == 0 && dentSpotsParent != null)
+                dentSpots.AddRange(dentSpotsParent.GetComponentsInChildren<Image>(true));
 
-            // M5: likatahrojen maara riippuu OIKEASTI siita kuinka moneen latakkoon
-            // pelaaja ajoi radalla (GameManager.RaceDirtHits) - ei enaa aina kaikkia
-            // scenen tahroja nakyviin. Puhtaasti ajettu keikka -> ei likaa, ei pesua.
-            int hits = GameManager.Instance != null ? GameManager.Instance.RaceDirtHits : dirtSpots.Count;
+            // M5.17/16.8.2026: likatahrojen/kolhujen maara tulee nyt PYSYVASTA mittarista
+            // (GameManager.DirtMeter/DentMeter) - ei enaa vain taman yhden ajon osumista,
+            // vaan kaikesta mika on kertynyt siita asti kun edellisen kerran pesit/korjasit.
+            // Jos mittari on tyhja, pesu/korjaus ohitetaan aivan kuten ennenkin.
+            int hits = GameManager.Instance != null ? GameManager.Instance.DirtMeter : dirtSpots.Count;
             activeSpotCount = Mathf.Clamp(hits, 0, dirtSpots.Count);
+            int dents = GameManager.Instance != null ? GameManager.Instance.DentMeter : 0;
+            activeDentCount = Mathf.Clamp(dents, 0, dentSpots.Count);
 
             for (int i = 0; i < dirtSpots.Count; i++)
             {
                 var d = dirtSpots[i];
                 if (d == null) continue;
-                bool show = i < activeSpotCount;
-                d.gameObject.SetActive(show);
+                d.gameObject.SetActive(i < activeSpotCount);
+                SetAlpha(d, 1f);
+            }
+            // Kolhu-merkit nakyvissa heti alusta (kolhut ovat jo autossa) - vain
+            // RepairArean tyokalut (napautettavat) odottavat pesun valmistumista.
+            for (int i = 0; i < dentSpots.Count; i++)
+            {
+                var d = dentSpots[i];
+                if (d == null) continue;
+                d.gameObject.SetActive(i < activeDentCount);
                 SetAlpha(d, 1f);
             }
 
             if (shineEffect != null) shineEffect.SetActive(false);
             if (donePanel != null) donePanel.SetActive(false);
+            if (repairEffect != null) repairEffect.SetActive(false);
+            if (repairArea != null) repairArea.gameObject.SetActive(false);
 
             cleanedCount = 0;
+            repairedCount = 0;
             finished = false;
+            repairPhaseActive = false;
+            washReward = 0;
+            repairReward = 0;
             UpdateProgress();
+            UpdateDentsText();
 
             if (activeSpotCount == 0)
             {
-                Debug.Log("[Wash] Auto oli jo puhdas (ei latakko-osumia) - siirrytaan suoraan halliin.");
-                Finish();
+                Debug.Log("[Wash] Auto oli jo puhdas (ei latakko-osumia) - pesuvaihe ohitetaan.");
+                StartRepairPhase();
             }
             else
             {
@@ -107,8 +170,11 @@ namespace Pakettiporina
             {
                 var spot = dirtSpots[i];
                 if (spot == null || !spot.gameObject.activeSelf) continue;
-                StartCoroutine(FadeOutSpot(spot));
+                StartCoroutine(FadeOutSpot(spot, dirtFadeDuration));
                 cleanedCount++;
+                // M5.17/16.8.2026: puretaan PYSYVAA mittaria heti per napautus (ei vain
+                // kerralla lopussa) - jos pelaaja poistuu Pesusta kesken, tehty tyo jaa talteen.
+                GameManager.Instance?.CleanOneDirt();
                 UpdateProgress();
                 Debug.Log($"[Wash] Likatahra puhdistettu ({cleanedCount}/{activeSpotCount}).");
                 if (cleanedCount >= activeSpotCount) Finish();
@@ -116,13 +182,13 @@ namespace Pakettiporina
             }
         }
 
-        IEnumerator FadeOutSpot(Image spot)
+        IEnumerator FadeOutSpot(Image spot, float duration)
         {
             float t = 0f;
-            while (t < dirtFadeDuration)
+            while (t < duration)
             {
                 t += Time.deltaTime;
-                SetAlpha(spot, Mathf.Lerp(1f, 0f, t / dirtFadeDuration));
+                SetAlpha(spot, Mathf.Lerp(1f, 0f, t / duration));
                 yield return null;
             }
             SetAlpha(spot, 0f);
@@ -145,19 +211,129 @@ namespace Pakettiporina
             if (cleanBar != null) cleanBar.fillAmount = cleanedCount / (float)total;
         }
 
+        // Pesuvaihe valmis (kaikki likatahrat poistettu, tai niita ei ollut). Ei viela
+        // Valmis-paneelia - siirrytaan seuraavaksi korjausvaiheeseen.
         void Finish()
+        {
+            if (finished) return;
+
+            washReward = pointsPerDirt * cleanedCount;
+            if (washReward > 0 && GameManager.Instance != null) GameManager.Instance.AddPoints(washReward);
+
+            if (shineEffect != null) shineEffect.SetActive(cleanedCount > 0);
+
+            Debug.Log($"[Wash] Pesu valmis! Palkkio +{washReward}. Siirrytaan korjausvaiheeseen.");
+            StartRepairPhase();
+        }
+
+        // ---------- Korjausvaihe (kolhut) - SAMA MEKANIIKKA KUIN PESU ----------
+
+        void StartRepairPhase()
+        {
+            // KORJATTU 16.8.2026 (tarkistuksessa loydetty softlock-riski): tarkistetaan
+            // repairedCount >= activeDentCount EIKA vain activeDentCount <= 0 - muuten
+            // jos pelaaja painaa "Uudestaan" pesuvaiheen jalkeen kun korjaus oli JO tehty
+            // taman Pesu-kaynnin aikana (repairedCount == activeDentCount, kaikki
+            // DentSpotit jo pois paalta), tama olisi avannut RepairArean uudestaan
+            // vaikka mitaan napautettavaa ei enaa ollut - DonePanel (ja sen sisalla
+            // Jatkoon-nappi) ei olisi koskaan naytetty uudelleen -> pelaaja jumissa.
+            if (activeDentCount <= 0 || repairedCount >= activeDentCount)
+            {
+                Debug.Log("[Wash] Ei kolhuja korjattavana - korjausvaihe ohitetaan.");
+                ShowDone();
+                return;
+            }
+
+            repairPhaseActive = true;
+            if (repairArea != null) repairArea.gameObject.SetActive(true);
+            UpdateDentsText();
+            Debug.Log($"[Wash] Korjausvaihe alkoi. Kolhuja: {activeDentCount}. Napauta tyokaluja korjataksesi.");
+        }
+
+        // Kutsutaan RepairTool-skriptista, kun pelaaja napauttaa tyokalua (sama periaate
+        // kuin Bubble.cs -> OnBubblePopped, ks. luokkakommentti).
+        public void OnRepairToolTapped()
+        {
+            if (finished || !repairPhaseActive) return;
+            RepairNextDent();
+        }
+
+        void RepairNextDent()
+        {
+            // etsi seuraava viela nakyva kolhu-merkki
+            for (int i = 0; i < dentSpots.Count; i++)
+            {
+                var spot = dentSpots[i];
+                if (spot == null || !spot.gameObject.activeSelf) continue;
+                StartCoroutine(FadeOutSpot(spot, dentFadeDuration));
+                repairedCount++;
+                // M5.17/16.8.2026: puretaan PYSYVAA mittaria heti per napautus, sama
+                // periaate kuin CleanNextSpot()/CleanOneDirt yllä.
+                GameManager.Instance?.RepairOneDent();
+                UpdateDentsText();
+                Debug.Log($"[Wash] Kolhu korjattu ({repairedCount}/{activeDentCount}).");
+                if (repairedCount >= activeDentCount) FinishRepairAll();
+                return;
+            }
+        }
+
+        void UpdateDentsText()
+        {
+            if (dentsText == null) return;
+            if (activeDentCount <= 0) { dentsText.text = "Ei kolhuja"; return; }
+            if (!repairPhaseActive) { dentsText.text = $"Kolhuja: {activeDentCount}"; return; }
+            int pct = Mathf.RoundToInt(100f * repairedCount / Mathf.Max(1, activeDentCount));
+            dentsText.text = $"Korjattu: {pct} %";
+        }
+
+        // Kaikki kolhut korjattu - palkkio, aani+efekti (kayttaja: "korjaamiseen tulisi
+        // liittya jokin aani ja efekti"), sitten Valmis-paneeliin.
+        void FinishRepairAll()
+        {
+            var gm = GameManager.Instance;
+            repairReward = pointsPerDentRepair * repairedCount;
+            // M5.17/16.8.2026: EI enaa gm.RepairDents() tassa - DentMeter puretaan jo
+            // asteittain RepairNextDent()issa (gm.RepairOneDent() per napautus).
+            if (gm != null && repairReward > 0)
+            {
+                gm.AddPoints(repairReward);
+            }
+
+            // Aani soi jo joka napautuksella (RepairTool.cs, sama periaate kuin
+            // Bubble.cs/bubblePop) - tassa vain visuaalinen "kaikki valmis" -efekti,
+            // aivan kuten shineEffect nakyy pesun paatteeksi ilman erillista aanta.
+            repairPhaseActive = false;
+            if (repairEffect != null) repairEffect.SetActive(true);
+
+            Debug.Log($"[Wash] Kaikki kolhut korjattu! Palkkio +{repairReward}.");
+            StartCoroutine(FinishRepairAfterEffect());
+        }
+
+        IEnumerator FinishRepairAfterEffect()
+        {
+            yield return new WaitForSeconds(repairEffectDuration);
+            if (repairEffect != null) repairEffect.SetActive(false);
+            if (repairArea != null) repairArea.gameObject.SetActive(false);
+            ShowDone();
+        }
+
+        // Molemmat vaiheet (pesu+korjaus) ohi -> nayta yhdistetty Valmis-paneeli.
+        void ShowDone()
         {
             if (finished) return;
             finished = true;
 
-            int total = pointsPerDirt * cleanedCount;
-            if (GameManager.Instance != null) GameManager.Instance.AddPoints(total);
-
-            if (shineEffect != null) shineEffect.SetActive(true);
+            int total = washReward + repairReward;
             if (donePanel != null) donePanel.SetActive(true);
-            if (doneText != null) doneText.text = $"Kiiltavan puhdas auto! Palkkio: +{total}";
+            if (doneText != null)
+            {
+                string msg = "Kiiltavan puhdas ja ehja auto!";
+                if (washReward > 0 && repairReward > 0) msg = "Pesty ja korjattu!";
+                else if (repairReward > 0) msg = "Korjattu!";
+                doneText.text = $"{msg} Palkkio: +{total}";
+            }
 
-            Debug.Log($"[Wash] Pesu valmis! Palkkio +{total}.");
+            Debug.Log($"[Wash] Kaikki valmis! Yhteispalkkio +{total} (pesu {washReward} + korjaus {repairReward}).");
         }
 
         // "Jatkoon"-napin OnClick.
@@ -181,7 +357,12 @@ namespace Pakettiporina
             SceneManager.LoadScene(mainMenuScene);
         }
 
-        // "Uudestaan"-nappi: kaynnistaa PESUN uudestaan (likatahrat palaavat nakyviin).
+        // "Uudestaan"-nappi: kaynnistaa PESUN uudestaan. HUOM: korjaa vain pesuvaiheen -
+        // jos kolhut oli jo korjattu, ne pysyvat korjattuina (DentMeter on jo purettu
+        // GameManagerissa per-napautus). RestartWash() lukee likamaaran TUOREENA
+        // GameManager.DirtMeterista (ei vanhasta activeSpotCount-arvosta) - jos lika on
+        // jo pesty, "Uudestaan" ei anna uutta pesupalkkiota tyhjasta (ks. RestartWash-
+        // kommentti, 16.8.2026 tarkistuksessa loydetty ja korjattu bugi).
         public void OnRestartButton()
         {
             Debug.Log("[Wash] Pesu aloitetaan uudestaan.");
@@ -192,17 +373,33 @@ namespace Pakettiporina
         {
             finished = false;
             cleanedCount = 0;
+
+            // KORJATTU 16.8.2026 (tarkistuspyynnon yhteydessa loydetty bugi): activeSpotCount
+            // EI enaa oteta vanhasta "mika oli taman kaynnin ALUSSA" -arvosta, vaan luetaan
+            // TUOREENA GameManager.DirtMeterista - muuten "Uudestaan"-nappia pystyi
+            // painamaan loputtomiin ja keraamaan pesupalkkion (pointsPerDirt * cleanedCount)
+            // uudelleen ja uudelleen SAMASTA lika-annoksesta, vaikka DirtMeter oli jo oikeasti
+            // purkautunut nollaan ensimmaisella pesukerralla (CleanOneDirt per napautus).
+            int hits = GameManager.Instance != null ? GameManager.Instance.DirtMeter : 0;
+            activeSpotCount = Mathf.Clamp(hits, 0, dirtSpots.Count);
+
             if (donePanel != null) donePanel.SetActive(false);
             if (shineEffect != null) shineEffect.SetActive(false);
             for (int i = 0; i < dirtSpots.Count; i++)
             {
                 var d = dirtSpots[i];
                 if (d == null) continue;
-                d.gameObject.SetActive(i < activeSpotCount);   // sama maara kuin alunperin taman keikan jalkeen
+                d.gameObject.SetActive(i < activeSpotCount);
                 SetAlpha(d, 1f);
             }
             UpdateProgress();
-            Debug.Log($"[Wash] Pesu nollattu. Likatahroja: {activeSpotCount}");
+            Debug.Log($"[Wash] Pesu nollattu. Likatahroja jaljella: {activeSpotCount}");
+
+            if (activeSpotCount == 0)
+            {
+                Debug.Log("[Wash] Ei enaa likaa (jo pesty) - ei uutta pesupalkkiota, tarkistetaan korjausvaihe.");
+                StartRepairPhase();
+            }
         }
     }
 }
