@@ -35,7 +35,8 @@ namespace Pakettiporina.EditorTools
             var p = PakettiporinaTracks.Find(sceneName);
             if (p == null)
             {
-                Debug.LogWarning($"'{sceneName}': ei tunnettua ratapresettia. Tuetut: Game, Puisto, Satama, Huvipuisto.");
+                var supported = string.Join(", ", System.Array.ConvertAll(PakettiporinaTracks.ALL, t => t.sceneName));
+                Debug.LogWarning($"'{sceneName}': ei tunnettua ratapresettia. Tuetut: {supported}."); // KORJATTU 20.8.2026: teksti oli jaanyt jalkeen (puuttui Maatila/Kyla), nyt dynaaminen lista ALL-taulusta
                 return;
             }
 

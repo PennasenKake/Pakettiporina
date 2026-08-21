@@ -70,11 +70,21 @@ namespace Pakettiporina
                 yield return new WaitForSeconds(1f);
             }
             Debug.Log("[Race] AJA!");
-            GameEvents.Go();
+            // KORJATTU 19.8.2026 (kayttaja: "edellisen muutoksen jalkeen auto ei liiku
+            // startissa" - koko pelin tarkistuksessa loydetty juurisyy): PELIN YDINTILA
+            // (auton vapautus jaadytyksesta + IsRacing=true) asetetaan NYT ENNEN
+            // GameEvents.Go() -kutsua, ei enaa jalkeen. Aiemmin jarjestys oli painvastainen:
+            // jos JOKIN OnGo-tilaajista (esim. RaceHUD.HandleGo, CarInput.CalibrateTilt)
+            // heittaisi poikkeuksen (esim. StartCoroutine epaonnistuu jos GameObject on jo
+            // pois paalta), koko CountdownRoutine-coroutine keskeytyisi VALITTOMASTI eika
+            // FreezeCar(false)/IsRacing=true koskaan ehtisi suorittua - auto jaisi ikuisesti
+            // jaadytettyna ("ei liiku startissa"), vaikka lahtolaskenta nayttaisi paattyneen.
+            // Nyt auton fysiikka kaynnistyy AINA, vaikka joku UI-kuuntelija kaatuisikin.
             FreezeCar(false);
             IsCountingDown = false;
             IsRacing = true;
             if (GameManager.Instance != null) GameManager.Instance.SetPhase(GameManager.Phase.Racing);
+            GameEvents.Go();
         }
 
         void Update()

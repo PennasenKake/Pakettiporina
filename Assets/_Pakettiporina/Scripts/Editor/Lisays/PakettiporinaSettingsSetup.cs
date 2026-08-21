@@ -615,9 +615,11 @@ namespace Pakettiporina.EditorTools
             btn.targetGraphic = img;
 
             MakeBadgedIcon(go.transform, "Icon", icon, circleSprite, new Vector2(-188, 0), 44, badgeColor);
-            MakeLabel(go.transform, "Label", label, 26, new Vector2(-28, 0),
+            var labelTmp = MakeLabel(go.transform, "Label", label, 26, new Vector2(-28, 0),
                 new Vector2(210, 60), TextAlignmentOptions.Left, TextDark);
-            MakeIcon(go.transform, "Chevron", chevronSprite, new Vector2(200, 0), new Vector2(22, 22), ChevronGray);
+            labelTmp.raycastTarget = false; // ks. MakeBadgedIcon-kommentti - koko rivi on jo Button
+            var chevron = MakeIcon(go.transform, "Chevron", chevronSprite, new Vector2(200, 0), new Vector2(22, 22), ChevronGray);
+            chevron.raycastTarget = false;
             return btn;
         }
 
@@ -1015,6 +1017,12 @@ namespace Pakettiporina.EditorTools
 
         // Idempotentti: loytaa olemassa olevan tai luo uuden, ja paivittaa AINA sijainnin/koon/
         // varin. sprite=null -> kaytetaan pelkkaa varitettya suorakaidetta (esim. erotinviiva).
+        // raycastTarget: OLETUS true (ei muuteta vanhaa kayttaytymista) - MUTTA huom.
+        // BuildToggleSwitch (alla) kayttaa taman palauttamaa "Track"-Imagea suoraan
+        // Toggle.targetGraphicina JA sen raycast-kohteena (Toggle-GameObjectilla itsellaan
+        // ei ole omaa Imagea) - jos joku kutsupaikka joskus tarvitsee raycastTarget=false,
+        // aseta se KUTSUJASSA erikseen (ks. BuildChevronRow), ala muuta tata oletusta
+        // globaalisti, koska se rikkoisi kaikki liukukytkimet aanettomasti.
         static Image MakeIcon(Transform parent, string name, Sprite sprite, Vector2 anchoredPos, Vector2 size, Color color)
         {
             var existing = FindChild(parent, name);
@@ -1039,8 +1047,17 @@ namespace Pakettiporina.EditorTools
         static void MakeBadgedIcon(Transform parent, string name, Sprite icon, Sprite circleSprite,
             Vector2 pos, float size, Color badgeColor)
         {
-            MakeIcon(parent, name, circleSprite, pos, new Vector2(size, size), badgeColor);
-            MakeIcon(parent, name + "Fg", icon, pos, new Vector2(size * 0.56f, size * 0.56f), Color.white);
+            // KORJATTU 20.8.2026 (kayttaja: "Aikuiselle-otsikon alta voisi parantaa
+            // klikkaamista tekstista - avaa seuraavan paneelin"): nama badge-ikonit istuvat
+            // AINA BuildChevronRow'n koko-rivin Buttonin PAALLA (rivilla on oma Image+Button
+            // taustana) - ikonien ei pida itse siepata raycastia, muuten nopea napautus
+            // TASMALLEEN ikonin paalla saattaisi kasittya toisin kuin napautus rivin muun
+            // alueen (esim. tekstin) paalla. raycastTarget=false varmistaa etta koko rivi,
+            // ikoni mukaan lukien, laukaisee aina saman Button-klikin.
+            var badge = MakeIcon(parent, name, circleSprite, pos, new Vector2(size, size), badgeColor);
+            badge.raycastTarget = false;
+            var fg = MakeIcon(parent, name + "Fg", icon, pos, new Vector2(size * 0.56f, size * 0.56f), Color.white);
+            fg.raycastTarget = false;
         }
 
         // Pyoristetty "kortti": 9-slice-tausta, palauttaa GameObjectin (lapsille).

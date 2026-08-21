@@ -68,6 +68,14 @@ namespace Pakettiporina
 
             var car = FindObjectOfType<ArcadeCarController>();
             if (car != null) car.ApplySpeedTier(carSpeedTier);
+
+            // LISATTY 20.8.2026 (kayttaja: "Yotila toggle ei tee mitaan, toteutetaan se
+            // loppuun"): sama "yksi per scene, paivitetaan aina scenen latautuessa"
+            // -periaate kuin ohjaustavalla/nopeustasolla ylla. FindObjectOfType(true)
+            // koska kalvo saattaa olla passiivisena (ei tassa relevantti, mutta
+            // johdonmukaisuuden vuoksi sama kutsutapa kuin muuallakin koodissa).
+            var overlay = FindObjectOfType<DarkModeOverlay>(true);
+            if (overlay != null) overlay.Refresh();
         }
 
         public void Save()
@@ -164,7 +172,7 @@ namespace Pakettiporina
             darkMode = data.darkMode;
             ApplyToScene();
 
-            Debug.Log($"[Save] Ladattu: {data.points} pistetta, {parts.Count}/{data.selectedPartNames.Count} osaa loytyi, {data.unlockedStickerNames?.Count ?? 0} tarraa avattu, aanet {data.musicVolume:0.00}/{data.sfxVolume:0.00}, varahtely {data.vibrationOn}, ohjaus {data.controlMode}, nopeus {data.carSpeedTier}, yotila {data.darkMode} (ei viela visuaalinen).");
+            Debug.Log($"[Save] Ladattu: {data.points} pistetta, {parts.Count}/{data.selectedPartNames.Count} osaa loytyi, {data.unlockedStickerNames?.Count ?? 0} tarraa avattu, aanet {data.musicVolume:0.00}/{data.sfxVolume:0.00}, varahtely {data.vibrationOn}, ohjaus {data.controlMode}, nopeus {data.carSpeedTier}, yotila {data.darkMode}.");
         }
 
         // "Nollaa edistyminen" (M5.11) -asetusnapin kutsuma: poistaa tallennustiedoston ja

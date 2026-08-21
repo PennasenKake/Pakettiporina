@@ -96,6 +96,19 @@ namespace Pakettiporina
         int washReward;        // talteen yhdistettya Valmis-tekstia varten
         int repairReward;
 
+        // KORJATTU 19.8.2026 (kayttaja: "wash scenessa virheellisesti menee yli 100%
+        // prosentin"): FadeOutSpot() piilottaa (SetActive(false)) tahran vasta
+        // dirtFadeDuration/dentFadeDuration sekunnin kuluttua, mutta CleanNextSpot()/
+        // RepairNextDent() valitsee "seuraavan viela activeSelf-tahran" HETI. Jos
+        // pelaaja napautti useampaa kuplaa/tyokalua nopeasti peräkkäin ENNEN kuin
+        // ensimmainen tahra ehti kokonaan hava (esim. 0.25s sisalla), loydettiin
+        // SAMA vielä-hipumassa-oleva tahra uudelleen ja cleanedCount/repairedCount
+        // kasvoi useammin kuin tahroja oikeasti oli -> yli 100%. Nailla "varattu heti"
+        // -taulukoilla tahra merkitaan varatuksi VALITTOMASTI napautushetkella (ei
+        // vasta fadeen paatyttya), joten samaa tahraa ei voi valita kahdesti.
+        bool[] dirtClaimed = new bool[0];
+        bool[] dentClaimed = new bool[0];
+
         void Awake() { Instance = this; }
 
         void Start()
@@ -142,6 +155,8 @@ namespace Pakettiporina
             repairPhaseActive = false;
             washReward = 0;
             repairReward = 0;
+            dirtClaimed = new bool[dirtSpots.Count];
+            dentClaimed = new bool[dentSpots.Count];
             UpdateProgress();
             UpdateDentsText();
 
@@ -165,11 +180,13 @@ namespace Pakettiporina
 
         void CleanNextSpot()
         {
-            // etsi seuraava viela nakyva likatahra
+            // etsi seuraava viela nakyva JA VARAAMATON likatahra (ks. dirtClaimed-kommentti)
             for (int i = 0; i < dirtSpots.Count; i++)
             {
                 var spot = dirtSpots[i];
                 if (spot == null || !spot.gameObject.activeSelf) continue;
+                if (i < dirtClaimed.Length && dirtClaimed[i]) continue;
+                if (i < dirtClaimed.Length) dirtClaimed[i] = true;
                 StartCoroutine(FadeOutSpot(spot, dirtFadeDuration));
                 cleanedCount++;
                 // M5.17/16.8.2026: puretaan PYSYVAA mittaria heti per napautus (ei vain
@@ -205,10 +222,24 @@ namespace Pakettiporina
 
         void UpdateProgress()
         {
+            // KORJATTU 19.8.2026 (kayttaja: "progress text kohtaa tulisi muuttaa
+            // tilanteeseen paremmin sopivaksi"): jos autossa ei ole yhtaan likaa
+            // (activeSpotCount == 0), teksti naytti aiemmin harhaanjohtavasti
+            // "Puhtaus: 0 %" - vaikka auto on jo TAYSIN puhdas, ei 0% puhdas.
+            // Sama periaate kuin UpdateDentsText():ssa jo on kolhuille ("Ei kolhuja").
+            if (activeSpotCount <= 0)
+            {
+                if (progressText != null) progressText.text = "Ei likaa";
+                if (cleanBar != null) cleanBar.fillAmount = 1f;
+                return;
+            }
             int total = Mathf.Max(1, activeSpotCount);
-            int pct = Mathf.RoundToInt(100f * cleanedCount / total);
+            // KORJATTU 19.8.2026: varmuuden vuoksi clampataan 0-100% talla tasolla
+            // MYOS, vaikka juurisyy (dirtClaimed-kaksoislaskenta) on nyt korjattu -
+            // nain prosentti ei voi enaa nayttaa esim. 113% missaan tilanteessa.
+            int pct = Mathf.Clamp(Mathf.RoundToInt(100f * cleanedCount / total), 0, 100);
             if (progressText != null) progressText.text = $"Puhtaus: {pct} %";
-            if (cleanBar != null) cleanBar.fillAmount = cleanedCount / (float)total;
+            if (cleanBar != null) cleanBar.fillAmount = Mathf.Clamp01(cleanedCount / (float)total);
         }
 
         // Pesuvaihe valmis (kaikki likatahrat poistettu, tai niita ei ollut). Ei viela
@@ -260,11 +291,13 @@ namespace Pakettiporina
 
         void RepairNextDent()
         {
-            // etsi seuraava viela nakyva kolhu-merkki
+            // etsi seuraava viela nakyva JA VARAAMATON kolhu-merkki (ks. dentClaimed-kommentti)
             for (int i = 0; i < dentSpots.Count; i++)
             {
                 var spot = dentSpots[i];
                 if (spot == null || !spot.gameObject.activeSelf) continue;
+                if (i < dentClaimed.Length && dentClaimed[i]) continue;
+                if (i < dentClaimed.Length) dentClaimed[i] = true;
                 StartCoroutine(FadeOutSpot(spot, dentFadeDuration));
                 repairedCount++;
                 // M5.17/16.8.2026: puretaan PYSYVAA mittaria heti per napautus, sama
@@ -282,7 +315,7 @@ namespace Pakettiporina
             if (dentsText == null) return;
             if (activeDentCount <= 0) { dentsText.text = "Ei kolhuja"; return; }
             if (!repairPhaseActive) { dentsText.text = $"Kolhuja: {activeDentCount}"; return; }
-            int pct = Mathf.RoundToInt(100f * repairedCount / Mathf.Max(1, activeDentCount));
+            int pct = Mathf.Clamp(Mathf.RoundToInt(100f * repairedCount / Mathf.Max(1, activeDentCount)), 0, 100);
             dentsText.text = $"Korjattu: {pct} %";
         }
 
@@ -340,21 +373,21 @@ namespace Pakettiporina
         public void OnContinueButton()
         {
             Debug.Log("[Wash] Jatketaan halliin: " + garageSceneName);
-            SceneManager.LoadScene(garageSceneName);
+            SceneFader.LoadScene(garageSceneName); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         // Valinnainen "Ohita pesu" -nappi (esim. testausta varten).
         public void OnSkipButton()
         {
             Debug.Log("[Wash] Pesu ohitettu.");
-            SceneManager.LoadScene(garageSceneName);
+            SceneFader.LoadScene(garageSceneName); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         // "Koti"-nappi (sama kuva/toiminto kuin Ajon maali-paneelissa) -> paavalikkoon.
         public void OnMainMenuButton()
         {
             Debug.Log("[Wash] Paavalikkoon: " + mainMenuScene);
-            SceneManager.LoadScene(mainMenuScene);
+            SceneFader.LoadScene(mainMenuScene); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         // "Uudestaan"-nappi: kaynnistaa PESUN uudestaan. HUOM: korjaa vain pesuvaiheen -
@@ -382,6 +415,7 @@ namespace Pakettiporina
             // purkautunut nollaan ensimmaisella pesukerralla (CleanOneDirt per napautus).
             int hits = GameManager.Instance != null ? GameManager.Instance.DirtMeter : 0;
             activeSpotCount = Mathf.Clamp(hits, 0, dirtSpots.Count);
+            dirtClaimed = new bool[dirtSpots.Count];
 
             if (donePanel != null) donePanel.SetActive(false);
             if (shineEffect != null) shineEffect.SetActive(false);

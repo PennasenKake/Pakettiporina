@@ -64,7 +64,11 @@ namespace Pakettiporina
 
         // Scenet joissa raceMusic soi. Lisaa uuden radan scenen nimi tahan kun rata luodaan
         // (esim. "Maatila"), niin musiikki alkaa automaattisesti ilman koodimuutosta muualla.
-        static readonly string[] RaceScenes = { "Game", "Game2", "Puisto", "Satama", "Huvipuisto", "Maatila" };
+        // KORJATTU 19.8.2026 (koko pelin tarkistuksessa loydetty puute): "Kyla" lisatty -
+        // uusi rata jai aiemmin listan ulkopuolelle, jolloin musiikki ei olisi vaihtunut
+        // sielle (hiljainen puute, ei virhe - mutta turha silti korjata nyt kun rata on jo
+        // olemassa, vaikka koristelu onkin viela kesken).
+        static readonly string[] RaceScenes = { "Game", "Game2", "Puisto", "Satama", "Huvipuisto", "Maatila", "Kyla" };
 
         AudioSource sfxSource;
         AudioSource musicSource;

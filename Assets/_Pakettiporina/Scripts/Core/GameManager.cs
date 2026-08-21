@@ -31,11 +31,20 @@ namespace Pakettiporina
         // RaceHUD:ssa), EI nollaudu ajon alussa, ja purkautuu vain Pesussa asteittain
         // (yksi napautus = yksi yksikko pois, ks. CleanOneDirt/RepairOneDent). Ei pakota
         // pesuun - taynna oleva mittari on vain visuaalinen vihje, ei este.
-        // Katto (DIRT_MAX/DENT_MAX) tasmaa WashScreenin dirtSpots(15)/dentSpots(6)
-        // -kuvakemaariin, joten yksi mittariyksikko = yksi nakyva merkki autossa, ei
-        // tarvitse erillista skaalausta.
-        public const int DIRT_MAX = 15;
-        public const int DENT_MAX = 6;
+        // Katto (DIRT_MAX/DENT_MAX) tasmaa WashScreenin dirtSpots/dentSpots-kuvakemaariin,
+        // joten yksi mittariyksikko = yksi nakyva merkki autossa, ei tarvitse erillista
+        // skaalausta.
+        // MUUTETTU 20.8.2026 (kayttaja: "lika ja kolhut olisivat 10 ja 10 kertoimella 2,
+        // koska nyt oli lika 16 [15] ja kolhut 6 niin naiden suhde tasoittaa ja tee
+        // jarkevaksi"): aiemmin DIRT_MAX=15/DENT_MAX=6 oli epatasapainossa - kolhumittari
+        // tayttyi lahes 3x nopeammin kuin likamittari samalla HIT_MULTIPLIERilla, mika teki
+        // Pesu-vaiheen kahdesta palkista epaloogisen nakoisen (toinen taynna, toinen tuskin
+        // liikkunut). Nyt molemmat katot samat (10/10) - suhde on sama joka scenessa eika
+        // riipu siita kumpaa esteista (Kartio/Laatikko vs. Latakko) radalla sattuu enemman
+        // olemaan. WashScreenin DirtSpots/DentSpots-kuvakemaarat paivitetty vastaamaan
+        // (ks. PakettiporinaWashSetup.cs - aja Korjaus/07 ja tallenna Wash-scene).
+        public const int DIRT_MAX = 10;
+        public const int DENT_MAX = 10;
 
         // LISATTY 16.8.2026 (kayttaja: "osumat voisivat toimia kertoimina (esimerkiksi 2x)
         // pesulle ja korjaukselle, huomaan etta loppuu liian nopeasti pesu ja korjaus"):
@@ -43,6 +52,8 @@ namespace Pakettiporina
         // silti kiinni DIRT_MAX/DENT_MAX:sta). Nain mittari tayttyy nopeammin ajon aikana,
         // eli pelaaja paatyy Pesuun useammalla likatahralla/kolhulla siivottavana - Pesu-
         // ja korjausvaihe kestaa pidempaan yhdella ajolla ansaituista osumista.
+        // (20.8.2026: pidetty 2:ssa - kayttajan pyynto oli tasoittaa DIRT_MAX/DENT_MAX,
+        // ei kertointa.)
         public const int HIT_MULTIPLIER = 2;
 
         public int DirtMeter { get; private set; }

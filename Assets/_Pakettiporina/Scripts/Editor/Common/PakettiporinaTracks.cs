@@ -81,6 +81,16 @@ namespace Pakettiporina.EditorTools
                 // jarjestelma (PakettiporinaElements/Lisays 02); aja Lisays/02 uudelleen
                 // TAMAN listan mukaisesti ja tarkista ettei vanhoja Lisays/10-objekteja jaa
                 // paallekkain (nimet eroavat, Kupla_ ei kuulu tahan listaan lainkaan).
+                //
+                // TARKISTETTU 18.8.2026 ("TEE KAIKKIEN SCENEJEN TARKISTUS"): Blenderin
+                // tekstuurivari-diagnostiikka NAYTTI etumerkin olevan vaarinpain (sama kuvio
+                // kuin Game/Puisto/Satamalla), mutta EI korjattu koodiin, ks. Huvipuisto-
+                // TrackDefin 18.8.2026-kommentti: sama menetelma antoi Huvipuistolle 8.8.2026
+                // TODISTETUSTI vaaran vastauksen Unityyn verrattuna, joten pelkkaan Blender-
+                // diagnostiikkaan ei voi luottaa ilman Unity-vahvistusta - eika Maatilasta
+                // ole tullut kayttajalta yhtaan ilmoitusta oikeasti vaarassa kohdassa olevista
+                // esteista/tehosteista. Ei muutettu. JOS Maatilassa esteet nakyvat vaarassa
+                // kohtaa, vaihda etumerkit taalla (14,-14 -> -14,14).
                 sceneName = "Maatila", maastoName = "Maatila",
                 startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f, roadBaseX = 0f,
                 bends = new[] { (-110f, -20f, 14f), (20f, 110f, -14f) },
@@ -97,6 +107,26 @@ namespace Pakettiporina.EditorTools
             {
                 // TAYDENNETTY 14.8.2026 (kayttaja: "esteita/tehosteita joka radalle,
                 // ehdottomasti jokaiselle") - lisatty laatikko + tasapainotettu maara.
+                //
+                // KORJATTU 18.8.2026, PERUTTU SAMANA PAIVANA: bends-amplitudin etumerkki
+                // kaannettiin ensin Blender-tekstuurivari-diagnostiikan perusteella
+                // (Maasto.fbx:n tie-pintojen UV-varit vs RoadX-kaava), MUTTA kayttaja
+                // testasi tuloksen Unityssa (Lisays/02 uudelleen Game-scenessa) ja vahvisti
+                // etta Latakko_02 (z=-50, kaannetylla kaavalla X=-20) on YHA vaarassa
+                // kohdassa ("lätäköt aseteltu väärin Game scenessä"). Tama on nyt SUORA,
+                // konkreettinen todiste etta Blender-tekstuurivari-menetelma antoi vaaran
+                // etumerkin taalla - sama ilmio kuin Huvipuistolla 8.8.2026 (ks. Huvipuisto-
+                // TrackDefin kommentti: "Unity-testi on tassa auktoriteetti" - Blenderin
+                // FBX-tarkistus ei ole luotettava etumerkin suhteen). PERUTTU takaisin
+                // alkuperaiseen etumerkkiin. HUOM: alkuperainen etumerkki oli SE MIKA
+                // aiheutti kayttajan ALKUPERAISEN valituksen ("Game scenessa tehosteet ja
+                // esteet viela asettelut ja rotaatiot pielessa") - eli sign-flip EI
+                // ilmeisesti ollutkaan oikea selitys sille valitukselle. Todennakoisempi
+                // selitys loytyi samana paivana: Kartio/Boost/Laatikko-prefabit olivat
+                // KYLJELLAAN (puuttuva Quaternion.identity-nollaus PakettiporinaElements.cs:
+                // ssa, ks. sen kommentti) - "asettelut ja rotaatiot pielessa" saattoi
+                // tarkoittaa TATA, ei bends-etumerkkia. ALA kaanna etumerkkia uudelleen
+                // ilman UUTTA, tuoretta Unity-vahvistusta.
                 sceneName = "Game", maastoName = "Maasto",
                 startZ = -135f, finishZ = 135f, groundScaleZ = 30.2f, roadBaseX = 0f,
                 bends = new[] { (-100f, 0f, 20f), (0f, 100f, -20f) },
@@ -116,6 +146,22 @@ namespace Pakettiporina.EditorTools
                 // kuin Satamalla/Huvipuistolla).
                 sceneName = "Puisto", maastoName = "Puisto",
                 startZ = -150f, finishZ = 150f, groundScaleZ = 34.0f, roadBaseX = 0f,
+                // KORJATTU 18.8.2026, PERUTTU 19.8.2026: bends kaannettiin 18.8. saman
+                // paivan sisalla, samaan "puisto scenessä ei boostit ja lätäköt näy tai
+                // erotu" -valitukseen vedoten, PELKALLA generaattori-Huvipuisto-analogialla
+                // (ei kasin Unity-testattu Puistossa itsessaan - toisin kuin Huvipuiston
+                // 8.8. flippi tai Gamen 18.8. peruutus, jotka molemmat perustuivat suoraan
+                // kayttajan Unity-havaintoon). Sama paiva paljasti (ks. M-LISTA.md
+                // "jatko 6/7") etta TODELLINEN syy koko "ei nay" -valitukselle KAIKISSA
+                // sceneissa oli Boost/Latakko-objektien hautautuminen maaston oikean
+                // pintakorkeuden alle (Y oletettiin aina 0), EI bends-etumerkki - korjattu
+                // PakettiporinaElements.cs:aan terrain-raycastilla. Maatila/Huvipuisto/Game
+                // (ei bends-flippia tehty) korjaantuivat talla suoraan. Puisto (AINOA jolle
+                // myos tama todistamaton bends-flippi tehtiin) EI korjaantunut samalla -
+                // vahva viite etta flippi oli virheellinen alusta asti (sama ilmio kuin
+                // Gamen 18.8. peratty flippi). Palautettu ALKUPERAISEEN, generaattorin
+                // TASMALLEEN vastaavaan arvoon. ALA kaanna uudelleen ilman TUORETTA,
+                // suoraa Unity-vahvistusta Puistossa itsessaan.
                 bends = new[] { (-120f, -30f, 18f), (30f, 120f, -18f) },
                 boostZ = new[] { -120f, -60f, 0f, 60f, 120f },
                 // LAAJENNETTU 16.8.2026 (pysyva likamittari, ks. Maatila-kommentti ylla).
@@ -135,6 +181,18 @@ namespace Pakettiporina.EditorTools
                 // scenen m_LocalEulerAnglesHint.y=180-arvosta) - laituri/vesi ovat oikealla
                 // puolella VAIN tassa kierrossa. AlA muuta 0:ksi, ks. maastoRotationY-kommentti.
                 maastoRotationY = 180f,
+                // TARKISTETTU 18.8.2026 ("TEE KAIKKIEN SCENEJEN TARKISTUS"): Blenderin
+                // tekstuurivari-diagnostiikka (Satama.fbx:n Satama_Paletti-tekstuurin
+                // varit + 0.01 FBX-tuontiskaala + 180 asteen kierto huomioiden) NAYTTI etta
+                // seka roadBaseX etta bends-amplitudit olisivat vaarinpain. EI kuitenkaan
+                // korjattu koodiin - ks. Huvipuisto-TrackDefin 18.8.2026-kommentti: sama
+                // Blender-tekstuurivari-menetelma antoi Huvipuistolle 8.8.2026 TODISTETUSTI
+                // VAARAN vastauksen verrattuna kayttajan Unityssa kasin testaamaan oikeaan
+                // sijaintiin - pelkkaan Blender-diagnostiikkaan ei voi luottaa etumerkin
+                // suhteen ilman Unity-vahvistusta. Ei muutettu. JOS Satamassa esteet/
+                // tehosteet/tahdet nakyvat vaarassa kohtaa (esim. vedessa eika laiturilla/
+                // tiella), tama on ensimmainen paikka tarkistaa - vaihda etumerkit taalla
+                // (roadBaseX 15->-15, bends (10,-6)->(-10,6)) JOS Unity-testi vahvistaa sen.
                 bends = new[] { (-100f, 0f, 10f), (0f, 100f, -6f) },
                 // TAYDENNETTY 14.8.2026 (kayttaja: "esteita/tehosteita joka radalle,
                 // ehdottomasti jokaiselle") - Satamalla ei ollut YHTAAN boostia, lisatty 3.
@@ -219,6 +277,35 @@ namespace Pakettiporina.EditorTools
                 // jokaiselle") - lasketu suoraan (kaannetylla) bends-kaavalla, kuten uusimmat
                 // boostZ-tayteet ylla - EI VIELA KASIN UNITY-TESTATTU.
                 laatikot = new[] { (-150f, 4f), (-95f, -6f), (45f, -6f), (145f, 4f) },
+            },
+            new TrackDef
+            {
+                // LISATTY 19.8.2026 (kayttaja: "Kylä voisi olla viimeinen tältä erää oleva
+                // scene ... rata profiili selkeästi vaikeampi kuin muut"). Kyla.unity oli
+                // pitkaan tyhja runko (ks. M-LISTA.md - "GroundCollinder"-kirjoitusvirhe,
+                // ei autoa, ei maastomallia, ei aania) - PERUSTA rakennettu nyt (Korjaus/09):
+                // kirjoitusvirhe korjattu ("GroundCollider"), Car.prefab instantioitu ja
+                // kytketty RaceManageriin, StartPoint luotu, pohjatasoon lisatty nakyva
+                // (vihrea) MeshRenderer etta rata ei nay tyhjana. EI VIELA: taloja, pihoja,
+                // autoja pihoissa, puita, postilaatikoita tms. koristeita (kayttaja paatti
+                // "aloita perustasta" - koristeet/talot tulevat omana myohempana vaiheena,
+                // samaan tapaan kuin Lisays/03 tekee muille radoille).
+                //
+                // VAIKEUSTASO: kuusi bend-segmenttia (muilla radoilla 2-3) jotka vaihtavat
+                // suuntaa TIHEASTI (zigzag/chicane koko radan matkalla) amplitudilla jopa 22
+                // (muilla radoilla max ~20) - eniten suunnanvaihtoja ja jyrkin kaarto kaikista
+                // radoista, kuten kayttaja pyysi.
+                sceneName = "Kyla", maastoName = "GroundCollider",
+                startZ = -145f, finishZ = 145f, groundScaleZ = 30.2f, roadBaseX = 0f,
+                bends = new[]
+                {
+                    (-145f, -100f, -20f), (-100f, -55f, 22f), (-55f, -10f, -22f),
+                    (-10f, 35f, 20f), (35f, 80f, -22f), (80f, 145f, 18f),
+                },
+                boostZ = new float[0],
+                puddleZ = new float[0],
+                cones = new (float, float)[0],
+                laatikot = new (float, float)[0],
             },
         };
 

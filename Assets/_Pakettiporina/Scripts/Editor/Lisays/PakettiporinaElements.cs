@@ -15,7 +15,10 @@ namespace Pakettiporina.EditorTools
     // Aja-uudelleen-turvallinen: ei luo duplikaatteja, paivittaa vain sijainnin jos
     // objektit on jo olemassa (samat nimet).
     //
-    // Tukee: "Game" (Rata 1, nykyinen S-mutka), "Puisto", "Satama", "Huvipuisto".
+    // Tukee kaikkia PakettiporinaTracks.cs:n ALL-taulussa olevia ratoja (KORJATTU
+    // 20.8.2026 - teksti oli jaanyt jalkeen: tukee jo Game/Puisto/Satama/Huvipuisto/
+    // Maatila/Kyla, ei vain nelja ensimmaista - itse toiminta oli aina ollut oikein,
+    // vain tama kommentti ja alla oleva virheviesti olivat vanhentuneet).
     // Ratadata (bends/baseX/boostZ/puddleZ/cones) tulee PakettiporinaTracks.cs:sta -
     // uuden radan lisays tehdaan sinne, ei tanne.
     public static class PakettiporinaElements
@@ -32,7 +35,8 @@ namespace Pakettiporina.EditorTools
             if (preset == null)
             {
                 s.AppendLine($"VIRHE: scenelle '{sceneName}' ei ole valmista elementtipresettia.");
-                s.AppendLine("Tuetut scenet: Game, Puisto, Satama, Huvipuisto.");
+                var supported = string.Join(", ", System.Array.ConvertAll(PakettiporinaTracks.ALL, t => t.sceneName));
+                s.AppendLine($"Tuetut scenet: {supported}.");
                 s.AppendLine("Uuden radan voi lisata PakettiporinaTracks.cs:n ALL-tauluun " +
                               "samoilla bends-arvoilla kuin Blenderin ratageneraattorissa.");
                 Debug.LogWarning(s.ToString());
@@ -58,6 +62,43 @@ namespace Pakettiporina.EditorTools
             if (cleared > 0)
                 s.AppendLine($"Siivottu {cleared} vanhaa pelielementtia (myos nykyisessa listassa enaa esiintymattomat).");
 
+            // LISATTY 18.8.2026 (jatko 6): kayttaja totesi etta Boost/Latakko eivat naykyneet
+            // PELISSA LAINKAAN vaikka tormays/aani toimivat normaalisti - todistettu
+            // PakettiporinaSceneDumpin uudella maasto-korkeustestilla etta Boost/Latakko
+            // istuivat aivan Maaston oikean pinnan tasalla, osa jopa hieman SEN ALLA
+            // (esim. Latakko_03: -0.05, Boost_01/03/05: -0.01) - vanha kiintea Y (0.05/0.03)
+            // oletti Maaston pinnan olevan tasan Y=0 kaikkialla, mutta se vaihtelee muutaman
+            // sentin verran radan matkalla (todennakoisesti Blenderin puolelta peraisin,
+            // esim. reunakorokkeen/mesh-tarkkuuden takia) - riittaa hautaamaan nain ohuen
+            // (0.03 yksikkoa paksun) tason nakymattomiin. Kartio/Laatikko (Y=0.4) eivat
+            // koskaan olleet ongelma koska niilla on reilusti enemman marginaalia.
+            // KORJAUS: lisataan Maastoon valiaikainen MeshCollider (jos silla ei jo ole
+            // Collideria), luetaan sen avulla TODELLINEN maaston pintakorkeus jokaisen
+            // Boost/Latakko/Kartio/Laatikko-objektin XZ-kohdalla ja istutetaan objekti
+            // SEN paalle + riittava marginaali - ei enaa kiinteaa, olettamukseen perustuvaa
+            // Y-arvoa. Sama periaate kuin PakettiporinaSceneDumpin korkeustestissa.
+            GameObject maastoGo = null;
+            foreach (var tr in Object.FindObjectsOfType<Transform>(true))
+                if (tr.name == preset.maastoName) { maastoGo = tr.gameObject; break; }
+
+            Collider maastoCol = null;
+            MeshCollider tempMaastoCollider = null;
+            if (maastoGo != null)
+            {
+                maastoCol = maastoGo.GetComponent<Collider>();
+                if (maastoCol == null)
+                {
+                    tempMaastoCollider = maastoGo.AddComponent<MeshCollider>();
+                    maastoCol = tempMaastoCollider;
+                }
+                s.AppendLine($"Maaston pintakorkeus luetaan '{preset.maastoName}':sta (Boost/Latakko eivat enaa haudu maan alle).");
+            }
+            else
+            {
+                s.AppendLine($"HUOM: Maasto-objektia '{preset.maastoName}' ei loytynyt - Boost/Latakko/Kartio/Laatikko " +
+                              "kayttavat vanhaa kiinteaa Y-arvoa (voi haudata ne maan alle jos Maaston pinta ei ole Y=0).");
+            }
+
             // KAYTTAJAN TESTAAMAT (x,z) -YLIKIRJOITUKSET: jos preset.boostXZ/conesXZ on
             // annettu (ei-tyhja), kaytetaan naita SUORAAN eika lasketa X:aa road_x(z):sta.
             // Lisatty 8.8.2026 Huvipuistolle, koska kayttaja totesi Unityssa etta kaavasta
@@ -66,28 +107,28 @@ namespace Pakettiporina.EditorTools
             if (preset.boostXZ != null && preset.boostXZ.Length > 0)
             {
                 foreach (var (z, x) in preset.boostXZ)
-                    PlaceBoostXZ($"Boost_{i++:00}", x, z, s);
+                    PlaceBoostXZ($"Boost_{i++:00}", x, z, s, maastoCol);
             }
             else
             {
                 foreach (var z in preset.boostZ)
-                    PlaceBoost($"Boost_{i++:00}", z, preset.bends, preset.roadBaseX, s);
+                    PlaceBoost($"Boost_{i++:00}", z, preset.bends, preset.roadBaseX, s, maastoCol);
             }
 
             i = 1;
             foreach (var z in preset.puddleZ)
-                PlacePuddle($"Latakko_{i++:00}", z, preset.bends, preset.roadBaseX, s);
+                PlacePuddle($"Latakko_{i++:00}", z, preset.bends, preset.roadBaseX, s, maastoCol);
 
             i = 1;
             if (preset.conesXZ != null && preset.conesXZ.Length > 0)
             {
                 foreach (var (z, x) in preset.conesXZ)
-                    PlaceConeXZ($"Kartio_{i++:00}", x, z, s);
+                    PlaceConeXZ($"Kartio_{i++:00}", x, z, s, maastoCol);
             }
             else
             {
                 foreach (var (z, offset) in preset.cones)
-                    PlaceCone($"Kartio_{i++:00}", z, offset, preset.bends, preset.roadBaseX, s);
+                    PlaceCone($"Kartio_{i++:00}", z, offset, preset.bends, preset.roadBaseX, s, maastoCol);
             }
 
             // LISATTY 14.8.2026 (kayttaja: "sailytetaan esteina kartiot, laatikot ja
@@ -96,23 +137,42 @@ namespace Pakettiporina.EditorTools
             if (preset.laatikotXZ != null && preset.laatikotXZ.Length > 0)
             {
                 foreach (var (z, x) in preset.laatikotXZ)
-                    PlaceLaatikkoXZ($"Laatikko_{i++:00}", x, z, s);
+                    PlaceLaatikkoXZ($"Laatikko_{i++:00}", x, z, s, maastoCol);
             }
             else if (preset.laatikot != null)
             {
                 foreach (var (z, offset) in preset.laatikot)
-                    PlaceLaatikko($"Laatikko_{i++:00}", z, offset, preset.bends, preset.roadBaseX, s);
+                    PlaceLaatikko($"Laatikko_{i++:00}", z, offset, preset.bends, preset.roadBaseX, s, maastoCol);
             }
 
             if (preset.boostZ.Length == 0 && preset.puddleZ.Length == 0 && preset.cones.Length == 0
                 && (preset.laatikot == null || preset.laatikot.Length == 0))
                 s.AppendLine("(Tälle radalle ei ole maaritelty yhtaan elementtia presetissa.)");
 
+            // Siivotaan valiaikainen MeshCollider pois - ei jateta pysyvasti Maastoon,
+            // GroundCollider hoitaa fysiikan omillaan kuten ennenkin.
+            if (tempMaastoCollider != null)
+                Object.DestroyImmediate(tempMaastoCollider);
+
             s.AppendLine("\nValmis. Muokkaa/duplikoi objekteja Hierarkiassa jos haluat lisaa. " +
                          "Aani (Boost/Lätäkkö/Kartio) kytkeytyy AudioManagerin kenttiin jos niihin " +
                          "on raahattu AudioClip - muuten hiljaista, ei virhetta.");
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Debug.Log(s.ToString());
+        }
+
+        // UUSI 18.8.2026 (jatko 6): lukee Maaston TODELLISEN pintakorkeuden annetussa XZ-
+        // kohdassa rykaisemalla pystysuoraan alaspain korkealta - palauttaa fallbackY:n
+        // (vanha, oletettu Y=0-pohjainen arvo) jos Maastolla ei ole Collideria kaytettavissa.
+        // margin lisataan pinnan PAALLE (esim. 0.08 ohuelle Boost/Latakko-tasolle) jotta
+        // pieni maaston paikallinen korkeusvaihtelu ei enaa haudo ohuita objekteja.
+        static float GroundY(float x, float z, Collider maastoCol, float fallbackY, float margin)
+        {
+            if (maastoCol == null) return fallbackY;
+            var ray = new Ray(new Vector3(x, 200f, z), Vector3.down);
+            if (maastoCol.Raycast(ray, out var hit, 500f))
+                return hit.point.y + margin;
+            return fallbackY;
         }
 
         // GameObject.Find loytaa vain AKTIIVISET objektit - jos Boost/Latakko/Kartio oli
@@ -194,77 +254,95 @@ namespace Pakettiporina.EditorTools
             return new Material(shader) { name = name, color = c };
         }
 
-        static void PlaceBoost(string name, float z, (float, float, float)[] bends, float baseX, StringBuilder s)
+        static void PlaceBoost(string name, float z, (float, float, float)[] bends, float baseX, StringBuilder s, Collider maastoCol)
         {
             var go = FindOrCreateModel(name, "Boost", PrimitiveType.Cube, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.TEHOSTEET), false);
             float x = PakettiporinaTracks.RoadX(z, bends, baseX);
-            go.transform.position = new Vector3(x, 0.05f, z);
+            // KORJATTU 18.8.2026 (jatko 6): Y luetaan nyt Maaston oikealta pinnalta + 0.08
+            // marginaali, ei enaa kiintea 0.05 - ks. AddElements()-kommentti/GroundY().
+            float y = GroundY(x, z, maastoCol, 0.05f, 0.08f);
+            go.transform.position = new Vector3(x, y, z);
+            // KORJATTU 18.8.2026 (kayttaja: "kartiot ja boostit näyttävät olevan kyljellään"):
+            // Boost.fbx-prefabin OMA tuontitransformi kantaa Unityn FBX-tuonnin -90 asteen
+            // X-kiertoa (todistettu suoraan Game.unity:n tallennetusta PrefabInstance-datasta,
+            // m_LocalRotation = (-0.7071,0,0,0.7071) = -90 astetta X:ssa) - koska tama metodi ei
+            // koskaan asettanut rotaatiota, jokainen instanssi peri talle kyljelleen kaatuneen
+            // oletuskierron identiteetin sijaan. Pakotetaan identity joka ajolla.
+            go.transform.rotation = Quaternion.identity;
             go.transform.localScale = new Vector3(3f, 0.1f, 3f);
             EnsureCollider(go, isTrigger: true, useCapsule: false);
             if (go.GetComponent<Boost>() == null) go.AddComponent<Boost>();
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Boost_Vihrea", new Color(0.25f, 0.85f, 0.35f));
-            s.AppendLine($"{name}: ({x:F1}, 0.05, {z:F0})");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0})");
         }
 
         // Sama kuin PlaceBoost, mutta X annetaan suoraan (kayttajan Unityssa testaama
         // sijainti) - ei lasketa road_x(z):sta. Ks. TrackDef.boostXZ-kommentti.
-        static void PlaceBoostXZ(string name, float x, float z, StringBuilder s)
+        static void PlaceBoostXZ(string name, float x, float z, StringBuilder s, Collider maastoCol)
         {
             var go = FindOrCreateModel(name, "Boost", PrimitiveType.Cube, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.TEHOSTEET), false);
-            go.transform.position = new Vector3(x, 0.05f, z);
+            float y = GroundY(x, z, maastoCol, 0.05f, 0.08f);
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.identity; // ks. PlaceBoost-kommentti (kyljellaan-bugi)
             go.transform.localScale = new Vector3(3f, 0.1f, 3f);
             EnsureCollider(go, isTrigger: true, useCapsule: false);
             if (go.GetComponent<Boost>() == null) go.AddComponent<Boost>();
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Boost_Vihrea", new Color(0.25f, 0.85f, 0.35f));
-            s.AppendLine($"{name}: ({x:F1}, 0.05, {z:F0}) [kiinnitetty]");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0}) [kiinnitetty]");
         }
 
         // Sama kuin PlaceCone, mutta X annetaan suoraan. Ks. TrackDef.conesXZ-kommentti.
-        static void PlaceConeXZ(string name, float x, float z, StringBuilder s)
+        static void PlaceConeXZ(string name, float x, float z, StringBuilder s, Collider maastoCol)
         {
             var go = FindOrCreateModel(name, "Kartio", PrimitiveType.Cylinder, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.ESTEET), false);
-            go.transform.position = new Vector3(x, 0.4f, z);
+            float y = GroundY(x, z, maastoCol, 0.4f, 0.4f);
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.identity; // ks. PlaceBoost-kommentti (kyljellaan-bugi)
             go.transform.localScale = new Vector3(0.6f, 0.4f, 0.6f);
             EnsureCollider(go, isTrigger: false, useCapsule: true);
             if (go.GetComponent<Cone>() == null) go.AddComponent<Cone>();
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Kartio_Oranssi", new Color(0.95f, 0.5f, 0.15f));
-            s.AppendLine($"{name}: ({x:F1}, 0.4, {z:F0}) [kiinnitetty]");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0}) [kiinnitetty]");
         }
 
         // LISATTY 14.8.2026 (kayttaja: "sailytetaan esteina kartiot, laatikot ja
         // latakot") - sama rakenne kuin PlaceCone/PlaceConeXZ, mutta ruskea laatikko +
         // Laatikko-komponentti Cone.n sijaan (oma esteluokka, ks. Laatikko.cs).
-        static void PlaceLaatikko(string name, float z, float offsetX, (float, float, float)[] bends, float baseX, StringBuilder s)
+        static void PlaceLaatikko(string name, float z, float offsetX, (float, float, float)[] bends, float baseX, StringBuilder s, Collider maastoCol)
         {
             var go = FindOrCreateModel(name, "Laatikko", PrimitiveType.Cube, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.ESTEET), false);
             float x = PakettiporinaTracks.RoadX(z, bends, baseX) + offsetX;
-            go.transform.position = new Vector3(x, 0.4f, z);
+            float y = GroundY(x, z, maastoCol, 0.4f, 0.4f);
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.identity; // ks. PlaceBoost-kommentti (kyljellaan-bugi)
             go.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
             EnsureCollider(go, isTrigger: false, useCapsule: false);
             if (go.GetComponent<Laatikko>() == null) go.AddComponent<Laatikko>();
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Laatikko_Ruskea", new Color(0.55f, 0.36f, 0.18f));
-            s.AppendLine($"{name}: ({x:F1}, 0.4, {z:F0})");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0})");
         }
 
-        static void PlaceLaatikkoXZ(string name, float x, float z, StringBuilder s)
+        static void PlaceLaatikkoXZ(string name, float x, float z, StringBuilder s, Collider maastoCol)
         {
             var go = FindOrCreateModel(name, "Laatikko", PrimitiveType.Cube, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.ESTEET), false);
-            go.transform.position = new Vector3(x, 0.4f, z);
+            float y = GroundY(x, z, maastoCol, 0.4f, 0.4f);
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.identity; // ks. PlaceBoost-kommentti (kyljellaan-bugi)
             go.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
             EnsureCollider(go, isTrigger: false, useCapsule: false);
             if (go.GetComponent<Laatikko>() == null) go.AddComponent<Laatikko>();
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Laatikko_Ruskea", new Color(0.55f, 0.36f, 0.18f));
-            s.AppendLine($"{name}: ({x:F1}, 0.4, {z:F0}) [kiinnitetty]");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0}) [kiinnitetty]");
         }
 
         // KORJATTU 16.8.2026 (kayttaja: "Latakon tulisi muistuttaa enemman latakkoa ja
@@ -277,7 +355,7 @@ namespace Pakettiporina.EditorTools
         // tarvita erillista "_Reuna"-apuobjektia. Per-latakko-vaihtelu (koko/kiertokulma)
         // pysyy silti deterministisena z-koordinaatista, sovelletaan FBX:n paalle scale/
         // rotation-arvoina jolloin jokainen latakko on silti hieman erilainen.
-        static void PlacePuddle(string name, float z, (float, float, float)[] bends, float baseX, StringBuilder s)
+        static void PlacePuddle(string name, float z, (float, float, float)[] bends, float baseX, StringBuilder s, Collider maastoCol)
         {
             float x = PakettiporinaTracks.RoadX(z, bends, baseX);
 
@@ -295,7 +373,11 @@ namespace Pakettiporina.EditorTools
 
             var go = FindOrCreateModel(name, "Latakko", PrimitiveType.Cylinder, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.ESTEET), false);
-            go.transform.position = new Vector3(x, 0.03f, z);
+            // KORJATTU 18.8.2026 (jatko 6): Y luetaan Maaston oikealta pinnalta + 0.08
+            // marginaali - todistettu Latakko_03:n olleen 0.05 yksikkoa maaston pinnan
+            // ALLA vanhalla kiintealla 0.03:lla, taysin nakymattomissa. Ks. GroundY().
+            float y = GroundY(x, z, maastoCol, 0.03f, 0.08f);
+            go.transform.position = new Vector3(x, y, z);
             go.transform.rotation = Quaternion.Euler(0f, rotY, 0f);
             // FBX-malli on jo litteä (paikallinen Y-korkeus ~0.01) - ei tarvitse enaa
             // pakottaa Y-skaalaa lahes nollaan kuten vanhalla Cylinder-primitiivilla.
@@ -306,7 +388,7 @@ namespace Pakettiporina.EditorTools
             if (rend != null && rend.sharedMaterial == null)
                 rend.sharedMaterial = WetMaterial("Latakko_Sininen", new Color(0.08f, 0.24f, 0.44f, 0.92f), 0.9f);
 
-            s.AppendLine($"{name}: ({x:F1}, 0.03, {z:F0}) [soikea {scaleX:F1}x{scaleZ:F1}, rot {rotY:F0} deg]");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0}) [soikea {scaleX:F1}x{scaleZ:F1}, rot {rotY:F0} deg]");
         }
 
         // Sama kuin FlatColor, mutta lisaa lapinakyvyyden (URP Transparent-tila) ja
@@ -327,19 +409,21 @@ namespace Pakettiporina.EditorTools
             return mat;
         }
 
-        static void PlaceCone(string name, float z, float offsetX, (float, float, float)[] bends, float baseX, StringBuilder s)
+        static void PlaceCone(string name, float z, float offsetX, (float, float, float)[] bends, float baseX, StringBuilder s, Collider maastoCol)
         {
             var go = FindOrCreateModel(name, "Kartio", PrimitiveType.Cylinder, out bool isFbx);
             go.transform.SetParent(PakettiporinaHierarchy.GetFolder(PakettiporinaHierarchy.ESTEET), false);
             float x = PakettiporinaTracks.RoadX(z, bends, baseX) + offsetX;
-            go.transform.position = new Vector3(x, 0.4f, z);
+            float y = GroundY(x, z, maastoCol, 0.4f, 0.4f);
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.identity; // ks. PlaceBoost-kommentti (kyljellaan-bugi)
             go.transform.localScale = new Vector3(0.6f, 0.4f, 0.6f);
             // Kartio on kiintea este (Is Trigger POIS) - auto tormaa siihen fyysisesti.
             EnsureCollider(go, isTrigger: false, useCapsule: true);
             if (go.GetComponent<Cone>() == null) go.AddComponent<Cone>();
             var rend = go.GetComponent<Renderer>();
             if (rend != null && rend.sharedMaterial == null) rend.sharedMaterial = FlatColor("Kartio_Oranssi", new Color(0.95f, 0.5f, 0.15f));
-            s.AppendLine($"{name}: ({x:F1}, 0.4, {z:F0})");
+            s.AppendLine($"{name}: ({x:F1}, {y:F2}, {z:F0})");
         }
     }
 }

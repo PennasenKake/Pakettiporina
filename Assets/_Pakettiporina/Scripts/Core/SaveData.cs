@@ -31,17 +31,19 @@ namespace Pakettiporina
         public int controlMode = 2;   // 0=Napit, 1=Kallistus, 2=Molemmat (ks. CarInput.ControlMode)
         public int carSpeedTier = 1;  // 0=Hidas, 1=Keski, 2=Nopea
 
-        // Asetukset (M5.15, 14.8.2026): "Yotila" - TOISTAISEKSI VAIN tallennettu mieltymys,
-        // ei viela oikeaa visuaalista tummaa teemaa (kayttajan pyynto: "pohja, mutta ei
-        // vieda viela loppuun asti"). Oletus false, jotta vanhat tallennukset eivat muuta
-        // mitaan. Kun teema toteutetaan oikeasti, tama arvo luetaan silloin.
+        // Asetukset (M5.15, 14.8.2026, toteutettu loppuun 20.8.2026): "Yotila" - tumma
+        // himmennyskalvo koko nakymalle, ks. DarkModeOverlay.cs. Oletus false, jotta
+        // vanhat tallennukset eivat muuta mitaan (peli kaynnistyy aina normaalina ellei
+        // kayttaja ole itse paalle asetuksista Yotilaa).
         public bool darkMode = false;
 
         // M5.17, 16.8.2026: pysyva lika-/kolhumittari (kayttaja: "kylla mielellaan jos
         // se on mahdollista" - sailyy sovelluksen uudelleenkaynnistyksen yli). Oletus 0,
         // joten vanhat tallennukset (ennen tata kenttaa) lataavat puhtaan/ehjan auton -
         // sama "ei muuta mitaan vanhoille tallennuksille" -periaate kuin muillakin
-        // kentilla tassa luokassa. Katot (15/6) ovat GameManager.DIRT_MAX/DENT_MAX:ssa.
+        // kentilla tassa luokassa. Katot ovat GameManager.DIRT_MAX/DENT_MAX:ssa (10/10,
+        // muutettu 20.8.2026 - olivat aiemmin 15/6; SaveManager.LoadDamage() klemmaa
+        // vanhatkin tallennukset automaattisesti uuteen kattoon, ei vaadi migraatiota).
         public int dirtMeter = 0;
         public int dentMeter = 0;
     }

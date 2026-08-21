@@ -70,7 +70,7 @@ namespace Pakettiporina
         {
             Time.timeScale = 1f;
             Debug.Log("[Pause] Paavalikkoon: " + mainMenuScene);
-            SceneManager.LoadScene(mainMenuScene);
+            SceneFader.LoadScene(mainMenuScene); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         // Valinnainen "Halliin"-nappi tauko-paneelissa (esim. Pesu-scenessa).
@@ -78,7 +78,7 @@ namespace Pakettiporina
         {
             Time.timeScale = 1f;
             Debug.Log("[Pause] Halliin: " + garageScene);
-            SceneManager.LoadScene(garageScene);
+            SceneFader.LoadScene(garageScene); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         void SetIcon(bool paused)

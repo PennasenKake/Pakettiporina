@@ -26,9 +26,8 @@ namespace Pakettiporina
         public Toggle sfxToggle;
         public Toggle vibrationToggle;
 
-        [Tooltip("M5.15, 14.8.2026: 'Yotila'-kytkin. TOISTAISEKSI VAIN tallentaa mieltymyksen " +
-            "(SaveManager.darkMode) - ei viela vaikuta mihinkaan visuaalisesti. Kayttajan pyynto: " +
-            "pohja nyt, oikea tumma teema myohemmassa erassa.")]
+        [Tooltip("M5.15, 14.8.2026: 'Yotila'-kytkin. Toteutettu loppuun 20.8.2026 - kytkin " +
+            "himmentaa koko nakymaa (myos 3D-pelimaailmaa) tummalla kalvolla, ks. DarkModeOverlay.cs.")]
         public Toggle darkModeToggle;
 
         [Header("Ohjaus (segmentoitu valitsin: Napit / Kallistus / Molemmat)")]
@@ -174,12 +173,16 @@ namespace Pakettiporina
             if (isOn) VibrationManager.Vibrate(); // heti tuntuva kuittaus etta paalla
         }
 
-        // M5.15, 14.8.2026: tallentaa VAIN mieltymyksen - ei viela mitaan visuaalista
-        // vaikutusta (ks. kommentti darkModeToggle-kentan yllä).
+        // M5.15, 14.8.2026: tallentaa mieltymyksen. M5.15-jatko, 20.8.2026 (kayttaja:
+        // "Yotila toggle ei tee mitaan, toteutetaan se loppuun"): ApplyToScene() kutsu
+        // lisatty niin etta tumma kalvo (DarkModeOverlay) paivittyy VALITTOMASTI kun
+        // kytkinta painetaan, ei vasta seuraavalla scenenvaihdolla - sama kaava kuin
+        // OnControlModeSelected/OnCarSpeedSelected.
         public void OnDarkModeToggled(bool isOn)
         {
             if (SaveManager.Instance == null) return;
             SaveManager.Instance.darkMode = isOn;
+            SaveManager.Instance.ApplyToScene();
         }
 
         // --- Ohjaus (0=Napit, 1=Kallistus, 2=Molemmat) ---

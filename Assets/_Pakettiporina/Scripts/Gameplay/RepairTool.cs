@@ -16,9 +16,17 @@ namespace Pakettiporina
     // napautus EI enaa kutistu-hajoa-palaa (Bubble-tyylinen "poksahdus"), vaan tyokalu
     // TEKEE VASARANISKU-LIIKKEEN (nopea kierto taakse ja isku eteen, ks. RepairSwingAnim)
     // ja himmenee hetkeksi jaahdytyksen ajaksi - visuaalisesti selvasti "korjaamista",
-    // ei "poksauttamista". Ikoni itse rakennetaan PakettiporinaWashSetup.cs:ssa
-    // karkeana vasaran siluettina (varsi+paa, ei oikeaa kuvitusta) - vaihda Unityssa
-    // oikeaan sprite-kuvitukseen jos/kun sellainen tehdaan.
+    // ei "poksauttamista".
+    //
+    // KORJATTU 18.8.2026 (kayttaja tarkensi: "saippuakuplia vastaavia kolhujen tilalle,
+    // kun niita kuvaa oranssi nelio"): edellinen vasara-siluetti (kaksi suorakulmiota,
+    // varsi+paa) EI KOSKAAN nakynyt pelaajalle, koska PakettiporinaWashSetup.cs:n
+    // luontikoodi ajettiin vain kun RepairArea puuttui scenesta kokonaan - kayttajan
+    // scenessa RepairArea oli jo olemassa (paljon vanhemmasta ajosta), joten ikonit
+    // jaivat aivan alkuperaiseen placeholderiin (varillinen nelio). Ikoni on nyt
+    // yhden Imagen "korjauskupla"-sprite (pakettiporina_korjauskupla_a/b.png,
+    // PakettiporinaWashSetup.cs) - sama pyorea kupla-tekniikka kuin saippuakuplilla,
+    // lampimalla kupari/oranssi varilla + ruuvinpaa-glyfilla erottumaan.
     //
     // Liita UI-objektiin, jossa on Image (Raycast Target paalla). RepairArean
     // (WashScreen.repairArea) alle, sama tapa kuin kuplat BubbleArean alla.
@@ -141,18 +149,17 @@ namespace Pakettiporina
             onCooldown = false;
         }
 
-        // HUOM: ohittaa taman GameObjectin OMAN Imagen ("img") - se on tarkoituksella
-        // aina lapinakyva (alpha 0, pelkka napautusalue) eika sita saa vahingossa
-        // paljastaa nakyvaksi valkoiseksi nelioksi himmennyksen jalkeen.
+        // KORJATTU 18.8.2026 (kayttaja: "kuplia vastaavia kolhujen tilalle" - RepairTool
+        // vaihdettu erillisesta Handle/Head-lapsirakenteesta yhteen nakyvaan kupla-
+        // spriteen PakettiporinaWashSetup.cs:ssa, sama periaate kuin Bubble.cs:lla).
+        // Nyt himmennetaan suoraan TATA GameObjectin omaa Imagea ("img") - ei enaa
+        // lapsikuvia dimmata, koska koko nakyva ikoni ON img.
         void SetAllAlpha(float a)
         {
-            foreach (var i in GetComponentsInChildren<Image>(true))
-            {
-                if (i == img) continue;
-                var c = i.color;
-                c.a = a;
-                i.color = c;
-            }
+            if (img == null) return;
+            var c = img.color;
+            c.a = a;
+            img.color = c;
         }
     }
 }

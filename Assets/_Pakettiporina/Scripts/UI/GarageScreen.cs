@@ -320,7 +320,7 @@ namespace Pakettiporina
                 scene = pkg.trackScene;
 
             Debug.Log("[Garage] Aja keikka -> " + scene);
-            SceneManager.LoadScene(scene);
+            SceneFader.LoadScene(scene); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         IEnumerator FlashLock(TMP_Text t)
@@ -335,7 +335,7 @@ namespace Pakettiporina
         public void OnMainMenuButton()
         {
             Debug.Log("[Garage] Paavalikkoon: " + mainMenuScene);
-            SceneManager.LoadScene(mainMenuScene);
+            SceneFader.LoadScene(mainMenuScene); // KORJATTU 20.8.2026: haivytetty scenevaihto
         }
 
         string CategoryName(PartCategory c)

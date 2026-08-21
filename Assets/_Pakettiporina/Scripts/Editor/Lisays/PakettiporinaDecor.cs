@@ -28,20 +28,10 @@ namespace Pakettiporina.EditorTools
     // kaarretta jatkuvasti tien VASEMMALLA puolella (negatiivinen x roadX(z):sta) -
     // siksi laituri/laiva/majakka/poijut ovat negatiivisella puolella ja nosturi/
     // varasto/kontit positiivisella (maapuoli, lastausalue).
-    // Merkkikomponentti jokaisessa AddDecor():n luomassa koristeessa. Talla loydetaan
-    // ja siivotaan KAIKKI vanhat koristeet (myos ne joiden nimi/sijainti on peraisin
-    // AIEMMASTA koodiversiosta eika enaa esiinny nykyisessa PRESETS-listassa) ennen
-    // uudelleensijoitusta - muuten esim. suihkulahteen/kukkapenkkien vanhat, jo
-    // korvatut kopiot jaisivat scenneen nakymattomina paallekkain uusien kanssa
-    // (SceneDump ei naytä niita koska se lukee vain nykyista PRESETS-listaa).
-    public class PakettiporinaDecorMarker : MonoBehaviour
-    {
-        // FBX-tiedoston nimi (ilman paatetta) josta tama koriste on luotu - talteen
-        // jotta "16 - Vie sijainnit koodiksi" -tyokalu voi tunnistaa oikean mallin
-        // vaikka instanceName poikkeaisi siita (esim. Puisto_Kukkapenkki_A).
-        public string modelName;
-    }
-
+    //
+    // SIIRRETTY 19.8.2026: PakettiporinaDecorMarker siirrettiin omaan tiedostoonsa
+    // (PakettiporinaDecorMarker.cs) - ks. sen kommentti selitykselle. ALA lisaa
+    // sita tanne takaisin.
     public static class PakettiporinaDecor
     {
         const string MODELS_DIR = "Assets/_Pakettiporina/Art/Models";

@@ -53,7 +53,31 @@ namespace Pakettiporina.EditorTools
         const string DENT_SPOTS = "DentSpots";
         const string DENTS_TEXT = "DentsText";
         const string REPAIR_EFFECT = "RepairEffect";
-        const string DENT_SPRITE_PATH = "Assets/_Pakettiporina/Art/UI/Dirt/pakettiporina_lika_b.png";
+        // KORJATTU 18.8.2026 (kayttaja: "wash scenen kuplat ok mutta kolhuja varten
+        // voisi olla oma"): DentSpots kaytti aiemmin SAMAA likatahra-spritea kuin
+        // DirtSpots (pakettiporina_lika_b.png), vain harmaaksi varitettyna - ei omaa
+        // kolhu-kuvitusta (dokumentoitu avoin puute M-LISTA.md:ssa). Uudet, oikeasti
+        // eri-nakoiset "kolhu"-spritet luotu samalla tekniikalla kuin lika_a/b (litteä
+        // epasaannollinen muoto, ei gradientteja, 240x240, lapinakyva tausta) mutta
+        // KYLMÄN harmaan/metallisen varipaletin (ei lampiman ruskean) + vaalean
+        // "kiiltoreunan" ja tumman "varjon" kera, jotta se lukee heti "metallikolhu"
+        // eika "mutatahra". Kaksi varianttia (a/b) vuorotellen samaan tapaan kuin
+        // lika_a/b/c-kierrossa DirtSpotsilla (visuaalinen vaihtelu).
+        static readonly string[] DENT_SPRITE_PATHS =
+        {
+            "Assets/_Pakettiporina/Art/UI/Dirt/pakettiporina_kolhu_a.png",
+            "Assets/_Pakettiporina/Art/UI/Dirt/pakettiporina_kolhu_b.png",
+        };
+
+        // LISATTY 18.8.2026 (kayttaja tarkensi "kuplia vastaavia kolhujen tilalle"):
+        // RepairTool-napautusikonit kayttavat nyt samaa pyorea-kupla-tekniikkaa kuin
+        // BubbleArean saippuakuplat (pakettiporina_kupla_a/b/c.png), mutta lampimalla
+        // kupari/oranssi paletilla + ruuvinpaa-glyfilla erottumaan.
+        static readonly string[] REPAIR_SPRITE_PATHS =
+        {
+            "Assets/_Pakettiporina/Art/UI/Bubbles/pakettiporina_korjauskupla_a.png",
+            "Assets/_Pakettiporina/Art/UI/Bubbles/pakettiporina_korjauskupla_b.png",
+        };
 
         // KORJATTU 16.8.2026 (kayttaja: "riittavan kauan pesua ja korjausta paasee tekemaan"):
         // scenesta loytyi VANHAN yhden-napin korjaussuunnitelman jaanteet (RepairPanel +
@@ -271,10 +295,18 @@ namespace Pakettiporina.EditorTools
             {
                 int dcount = wash.dirtSpotsParent.GetComponentsInChildren<Image>(true).Length;
                 s.AppendLine($"Likatahroja DirtSpotsin alla: {dcount}");
+                // LISATTY 20.8.2026: varoittaa jos maara ei tasmaa GameManager.DIRT_MAXiin -
+                // silloin mittari voi tayttya (esim. 10/10) vaikka autossa nakyisi eri maara
+                // tahroja, tai osa tahroista ei koskaan pysty likaantumaan.
+                if (dcount != GameManager.DIRT_MAX)
+                    Prob($"DirtSpotsin alla on {dcount} likatahraa, mutta GameManager.DIRT_MAX on {GameManager.DIRT_MAX} - " +
+                         "maarien pitaisi tasmata jotta jokainen tahra oikeasti voi likaantua/puhdistua.");
             }
             else if (wash.dirtSpots != null && wash.dirtSpots.Count > 0)
             {
                 s.AppendLine($"Likatahroja Dirt Spots -listassa: {wash.dirtSpots.Count}");
+                if (wash.dirtSpots.Count != GameManager.DIRT_MAX)
+                    Prob($"Dirt Spots -listassa on {wash.dirtSpots.Count} likatahraa, mutta GameManager.DIRT_MAX on {GameManager.DIRT_MAX}.");
             }
 
             // ---------- 5. Edistymisteksti ----------
@@ -362,13 +394,21 @@ namespace Pakettiporina.EditorTools
                             art.offsetMin = Vector2.zero; art.offsetMax = Vector2.zero;
 
                             // Muutama RepairTool-ikoni valmiiksi (samat liikeoletusarvot kuin
-                            // Bubble.cs:lla). MUUTETTU 16.8.2026 (kayttaja: "pelaajalle voisi
-                            // korjauksessa nakya jokin vasaran tai siihen liittyva tyokalu") -
-                            // pelkan varillisen nelion sijaan rakennetaan karkea VASARAN
-                            // SILUETTI kahdesta suorakulmiosta (varsi+paa) - ei oikeaa
-                            // sprite-kuvitusta (ei kuvituspipelinea 2D-ikoneille tassa
-                            // projektissa), mutta lukee heti "tyokalu" eika "pallo/nappula".
-                            // Vaihda Unityssa oikeaan sprite-kuvitukseen jos/kun sellainen tehdaan.
+                            // Bubble.cs:lla). KORJATTU 18.8.2026 (kayttaja tarkensi: "kun
+                            // saippuakuplia poksautellaan wash scenessa niin saippuakuplia
+                            // vastaavia kolhujen tilalle" - ts. haluttiin SAMA pyorea "kupla"-
+                            // tuntuma kuin saippuakuplilla, ei vasaran siluetti kahdesta
+                            // suorakulmiosta, joka nakyi kayttajalle vain "oranssina nelionä"
+                            // koska EDELLINEN vasara-yritys ei koskaan paivittynyt olemassa-
+                            // olevaan sceneen - ks. alempi paivitysaskel). Kaytetaan nyt oikeaa
+                            // "korjauskupla"-spriteä (pakettiporina_korjauskupla_a/b.png) - sama
+                            // pyorea kupla-rakenne/tekniikka kuin pakettiporina_kupla_a/b/c.png,
+                            // mutta lampimalla kupari/oranssi paletilla + pieni ruuvinpaa-glyfi
+                            // keskella, jotta erottuu selvasti saippuakuplasta silti ollen
+                            // "samaa perhetta".
+                            var repairSprites = new Sprite[REPAIR_SPRITE_PATHS.Length];
+                            for (int ri = 0; ri < REPAIR_SPRITE_PATHS.Length; ri++)
+                                repairSprites[ri] = AssetDatabase.LoadAssetAtPath<Sprite>(REPAIR_SPRITE_PATHS[ri]);
                             for (int i = 0; i < 5; i++)
                             {
                                 var toolGo = new GameObject($"RepairTool_{i + 1:00}", typeof(RectTransform));
@@ -376,39 +416,15 @@ namespace Pakettiporina.EditorTools
                                 var trt2 = (RectTransform)toolGo.transform;
                                 trt2.sizeDelta = new Vector2(140, 140);
 
-                                // Nakymaton koko-osan Image: itse napautusalue (RequireComponent
-                                // RepairTool.cs:ssa vaatii Imagen taalla) - alpha 0, mutta
-                                // raycastTarget toimii silti lapinakymattomasta huolimatta.
                                 var timg = toolGo.AddComponent<Image>();
-                                timg.color = new Color(1f, 1f, 1f, 0f);
+                                var chosenRepair = repairSprites[i % repairSprites.Length];
+                                if (chosenRepair != null) timg.sprite = chosenRepair;
+                                timg.color = Color.white;
                                 timg.raycastTarget = true;
                                 toolGo.AddComponent<RepairTool>();
-
-                                // Varsi: ohut, vino suorakulmio.
-                                var handle = new GameObject("Handle", typeof(RectTransform));
-                                handle.transform.SetParent(toolGo.transform, false);
-                                var handleRt = (RectTransform)handle.transform;
-                                handleRt.sizeDelta = new Vector2(16, 90);
-                                handleRt.anchoredPosition = new Vector2(0, -10);
-                                handleRt.localRotation = Quaternion.Euler(0, 0, -35);
-                                var handleImg = handle.AddComponent<Image>();
-                                handleImg.color = new Color(0.36f, 0.24f, 0.14f, 1f); // puuvarsi
-                                handleImg.raycastTarget = false;
-
-                                // Paa: leveampi suorakulmio varren ylapaassa, sama kierto.
-                                var head = new GameObject("Head", typeof(RectTransform));
-                                head.transform.SetParent(toolGo.transform, false);
-                                var headRt = (RectTransform)head.transform;
-                                headRt.sizeDelta = new Vector2(54, 26);
-                                headRt.anchoredPosition = new Vector2(26, 27);
-                                headRt.localRotation = Quaternion.Euler(0, 0, -35);
-                                var headImg = head.AddComponent<Image>();
-                                headImg.color = new Color(0.55f, 0.55f, 0.58f, 1f); // metallipaa
-                                headImg.raycastTarget = false;
                             }
-                            s.AppendLine("  -> RepairArea + 5 vasara-muotoista RepairTool-ikonia luotu " +
-                                         "(koko Canvasin kokoinen, sama periaate kuin BubbleArea) - " +
-                                         "placeholder-siluetti, vaihda Unityssa oikeaan sprite-kuvitukseen jos haluat.");
+                            s.AppendLine("  -> RepairArea + 5 korjauskupla-ikonia luotu " +
+                                         "(koko Canvasin kokoinen, sama periaate kuin BubbleArea).");
                         }
                         wash.repairArea = raGo.transform;
                         s.AppendLine("  -> kytketty (" + REPAIR_AREA + ")");
@@ -422,6 +438,22 @@ namespace Pakettiporina.EditorTools
                     else
                         s.AppendLine($"RepairTooleja RepairArean alla: {toolCount}");
 
+                    // KORJATTU 18.8.2026 (kayttaja: RepairTool-ikonit nakyivat pelissa
+                    // pelkkana "oranssina neliona"): TODELLINEN SYY loytyi - RepairArean
+                    // luontilohko ylla ajetaan VAIN kun wash.repairArea == null, eli jos
+                    // RepairArea oli jo olemassa scenessa (esim. edellisen Korjaus/03-ajon
+                    // jaljilta AJALTA ENNEN nykyista korjausta), sen RepairTool-lapsia EI
+                    // KOSKAAN paivitetty uuteen ulkoasuun - ne jaivat sellaisiksi kuin ne
+                    // olivat alunperin luotaessa (varilliseksi nelioksi, ennen 16.8. vasara-
+                    // yritysta tai jopa sen jalkeenkin, koska sekaan versio ei koskaan
+                    // paivittynyt taman saman rajoituksen takia). Sama bugiluokka kuin
+                    // DentSpotsilla alla - paivitetaan olemassaolevien RepairTool-ikonien
+                    // sprite/vari AINA (fix-tilassa) tassa, riippumatta luotiinko ne juuri.
+                    var repairSpritesRefresh = new Sprite[REPAIR_SPRITE_PATHS.Length];
+                    for (int ri = 0; ri < REPAIR_SPRITE_PATHS.Length; ri++)
+                        repairSpritesRefresh[ri] = AssetDatabase.LoadAssetAtPath<Sprite>(REPAIR_SPRITE_PATHS[ri]);
+                    bool anyToolStale = false;
+                    int rti = 0;
                     foreach (var rtComp in wash.repairArea.GetComponentsInChildren<RepairTool>(true))
                     {
                         var img = rtComp.GetComponent<Image>();
@@ -430,6 +462,37 @@ namespace Pakettiporina.EditorTools
                             Prob($"RepairTool '{rtComp.name}': Image Raycast Target on pois paalta (ei reagoi napautukseen).");
                             if (fix) { img.raycastTarget = true; s.AppendLine("  -> korjattu"); }
                         }
+
+                        var wantedRepair = repairSpritesRefresh[rti % repairSpritesRefresh.Length];
+                        rti++;
+                        // Poista vanhan vasara-version Handle/Head-lapset jos loytyy (eivat
+                        // kuulu enaa uuteen yhden-Imagen kupla-tyyliin).
+                        var oldHandle = rtComp.transform.Find("Handle");
+                        var oldHead = rtComp.transform.Find("Head");
+                        if (oldHandle != null || oldHead != null)
+                        {
+                            anyToolStale = true;
+                            if (fix)
+                            {
+                                if (oldHandle != null) Undo.DestroyObjectImmediate(oldHandle.gameObject);
+                                if (oldHead != null) Undo.DestroyObjectImmediate(oldHead.gameObject);
+                            }
+                        }
+                        if (img != null && wantedRepair != null && (img.sprite != wantedRepair || img.color.a < 0.99f || img.color == new Color(1f, 1f, 1f, 0f)))
+                        {
+                            anyToolStale = true;
+                            if (fix)
+                            {
+                                img.sprite = wantedRepair;
+                                img.color = Color.white;
+                                EditorUtility.SetDirty(img);
+                            }
+                        }
+                    }
+                    if (anyToolStale)
+                    {
+                        if (fix) s.AppendLine("  -> RepairTool-ikonit paivitetty uuteen korjauskupla-spriteen (ei enaa nakymatonta/oranssia placeholderia).");
+                        else Prob("RepairTool-ikonit kayttavat viela vanhaa placeholder-ulkoasua (ei omaa korjauskupla-spriteä).");
                     }
                 }
 
@@ -454,14 +517,23 @@ namespace Pakettiporina.EditorTools
                             dentGo = new GameObject(DENT_SPOTS, typeof(RectTransform));
                             Undo.RegisterCreatedObjectUndo(dentGo, "Luo DentSpots");
                             dentGo.transform.SetParent(canvasT, false);
-                            var dsSprite = AssetDatabase.LoadAssetAtPath<Sprite>(DENT_SPRITE_PATH);
+                            var dentSprites = new Sprite[DENT_SPRITE_PATHS.Length];
+                            for (int di = 0; di < DENT_SPRITE_PATHS.Length; di++)
+                                dentSprites[di] = AssetDatabase.LoadAssetAtPath<Sprite>(DENT_SPRITE_PATHS[di]);
 
                             // Klusteri auton alaosassa, erillaan DirtSpotsin klusterista
-                            // (joka on ylempana) - ei mene paallekkain, harmaa/metallinen
-                            // sävy erottaa kolhun likatahrasta vaikka sprite on sama placeholder.
+                            // (joka on ylempana) - ei mene paallekkain.
+                            // LAAJENNETTU 20.8.2026 (kayttaja: "lika ja kolhut olisivat 10 ja
+                            // 10, suhde tasoittaa"): DENT_MAX nousi 6:sta 10:een, joten tahan
+                            // luontitaulukkoon lisattiin 4 uutta pistetta (samat 4 lisattiin
+                            // myos suoraan Wash.unityyn, koska DentSpots oli jo olemassa
+                            // scenessa eika tama luontilohko siis ajanut uudelleen). Jos
+                            // DentSpots joskus puuttuu kokonaan ja tama luo sen tyhjasta,
+                            // tulos on nyt heti oikea 10 pistetta.
                             (float x, float y)[] spotPos = {
                                 (350f, 1250f), (700f, 1250f), (400f, 1170f),
                                 (650f, 1170f), (520f, 1290f), (520f, 1130f),
+                                (430f, 1210f), (615f, 1210f), (470f, 1290f), (575f, 1130f),
                             };
                             for (int i = 0; i < spotPos.Length; i++)
                             {
@@ -472,11 +544,17 @@ namespace Pakettiporina.EditorTools
                                 drt.sizeDelta = new Vector2(90, 90);
                                 drt.anchoredPosition = new Vector2(spotPos[i].x, -spotPos[i].y);
                                 var dImg = dGo.AddComponent<Image>();
-                                if (dsSprite != null) dImg.sprite = dsSprite;
-                                dImg.color = new Color(0.55f, 0.53f, 0.52f, 1f); // harmaa "kolhu", ei ruskea "lika"
+                                var chosen = dentSprites[i % dentSprites.Length];
+                                if (chosen != null) dImg.sprite = chosen;
+                                // KORJATTU 18.8.2026: uusi kolhu-sprite kantaa jo oman kylman
+                                // harmaa/metallisavynsa (kiiltoreuna+varjo), joten EI enaa
+                                // pakoteta harmaata varitystä paalle (se litisti aiemman
+                                // recolored-lika-placeholderin yhdeksi tasaiseksi sävyksi) -
+                                // valkoinen = spriten omat varit nakyvat sellaisenaan.
+                                dImg.color = Color.white;
                             }
-                            s.AppendLine($"  -> DentSpots + {spotPos.Length} kolhu-merkkia luotu (placeholder-grafiikka, " +
-                                         "vaihda Unityssa oikeaan kolhu-sprite jos/kun sellainen tehdaan).");
+                            s.AppendLine($"  -> DentSpots + {spotPos.Length} kolhu-merkkia luotu (oma kolhu-sprite, " +
+                                         "ei enaa uudelleenvaritettya likatahraa).");
                         }
                     }
                     if (dentGo != null)
@@ -487,8 +565,46 @@ namespace Pakettiporina.EditorTools
                 }
                 if (wash.dentSpotsParent != null)
                 {
-                    int dentCount = wash.dentSpotsParent.GetComponentsInChildren<Image>(true).Length;
-                    s.AppendLine($"Kolhu-merkkeja DentSpotsin alla: {dentCount}");
+                    var dentImgs = wash.dentSpotsParent.GetComponentsInChildren<Image>(true);
+                    s.AppendLine($"Kolhu-merkkeja DentSpotsin alla: {dentImgs.Length}");
+                    // LISATTY 20.8.2026: sama tasmaystarkistus kuin DirtSpotsille ylla.
+                    if (dentImgs.Length != GameManager.DENT_MAX)
+                        Prob($"DentSpotsin alla on {dentImgs.Length} kolhu-merkkia, mutta GameManager.DENT_MAX on {GameManager.DENT_MAX} - " +
+                             "maarien pitaisi tasmata.");
+
+                    // KORJATTU 18.8.2026 (kayttaja: "wash scenen kuplat ok mutta kolhuja
+                    // varten voisi olla oma"): jos DentSpots luotiin JO aiemmalla ajolla
+                    // (ennen tata paivitysta), sen lapset kayttavat viela VANHAA harmaaksi
+                    // varitettya likatahra-spritea - tama ei paivittynyt automaattisesti
+                    // koska yllaoleva luontilohko ajetaan vain kun dentSpotsParent on tyhja.
+                    // Paivitetaan olemassaolevien DentSpot-kuvien sprite/vari tassa AINA
+                    // (fix-tilassa), riippumatta siita luotiinko DentSpots juuri nyt vai onko
+                    // se ollut olemassa jo ennestaan - sama "paivita joka ajolla" -periaate
+                    // kuin lika-/kolhupalkkien tyylipaivityksessa (PakettiporinaSetup.cs).
+                    var dentSpritesRefresh = new Sprite[DENT_SPRITE_PATHS.Length];
+                    for (int di = 0; di < DENT_SPRITE_PATHS.Length; di++)
+                        dentSpritesRefresh[di] = AssetDatabase.LoadAssetAtPath<Sprite>(DENT_SPRITE_PATHS[di]);
+                    bool anyStale = false;
+                    for (int i = 0; i < dentImgs.Length; i++)
+                    {
+                        var img = dentImgs[i];
+                        var wanted = dentSpritesRefresh[i % dentSpritesRefresh.Length];
+                        if (wanted != null && img.sprite != wanted)
+                        {
+                            anyStale = true;
+                            if (fix)
+                            {
+                                img.sprite = wanted;
+                                img.color = Color.white;
+                                EditorUtility.SetDirty(img);
+                            }
+                        }
+                    }
+                    if (anyStale)
+                    {
+                        if (fix) s.AppendLine("  -> DentSpot-kuvat paivitetty uuteen omaan kolhu-spriteen (ei enaa likatahraa).");
+                        else { Prob("DentSpot-merkit kayttavat viela vanhaa (uudelleenvaritettya likatahra-) spritea."); }
+                    }
                 }
                 else if (wash.dentSpots != null && wash.dentSpots.Count > 0)
                 {

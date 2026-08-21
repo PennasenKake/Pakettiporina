@@ -20,6 +20,11 @@ namespace Pakettiporina.EditorTools
         // Uuden radan lisays: lisaa se sinne, ei tanne.
         const float GROUND_SCALE_X = PakettiporinaTracks.GROUND_SCALE_X;
 
+        // Lisatty 17.8.2026 lika-/kolhupalkkien tyylipaivitysta varten (ks. Run():n
+        // "10. Lika-/kolhumittarit" -osio).
+        const string ICON_DIR = "Assets/_Pakettiporina/Art/UI/Icons";
+        const string DIRT_ICON_DIR = "Assets/_Pakettiporina/Art/UI/Dirt";
+
         // Scenet joissa EI KOSKAAN ole rataa (halli, valikko, pesu) - tama tyokalu on
         // vain ajopeliscenej (Game/Puisto/Satama/Huvipuisto/Maatila...) varten. LISATTY
         // 12.8.2026: ennen tama tyokalu lankesi "kaytetaan Rata 1:n oletusmittoja"
@@ -51,9 +56,17 @@ namespace Pakettiporina.EditorTools
             if (dims == null)
             {
                 dims = PakettiporinaTracks.Find("Game");
-                log.AppendLine($"(Scenea '{sceneName}' ei tunnisteta - kaytetaan Rata 1:n oletusmittoja. " +
-                                "Lisaa se PakettiporinaTracks.cs:n ALL-tauluun jos tama on uusi rata, tai jos tama " +
-                                "EI OLE rata, lisaa nimi NonRaceScenes-listaan taman tiedoston alkuun.)");
+                // KORJATTU 20.8.2026: tama oli vain tavallinen log-rivi, helppo huomata
+                // vahingossa vain "kaikki kunnossa"-tulosteen seasta. Nyt Debug.LogWarning
+                // -tasoinen, jotta Unityn konsoli nostaa sen selvasti esiin (keltainen
+                // kolmio) eika kayttaja luule vahingossa etta VAARAN radan mitat jaivat
+                // hiljaa kayttoon.
+                string warn = $"Scenea '{sceneName}' ei tunnisteta - kaytetaan Rata 1:n (Game) oletusmittoja, " +
+                               "mikä on TODENNAKOISESTI VAARIN taman scenen radalle! " +
+                               "Lisaa se PakettiporinaTracks.cs:n ALL-tauluun jos tama on uusi rata, tai jos tama " +
+                               "EI OLE rata, lisaa nimi NonRaceScenes-listaan taman tiedoston alkuun.";
+                log.AppendLine("! " + warn);
+                Debug.LogWarning($"[PeliSceneSetup] {warn}");
             }
             float START_Z = dims.startZ, FINISH_Z = dims.finishZ;
             log.AppendLine(fix ? $"=== KORJAUS ({sceneName}) ===" : $"=== TARKISTUS ({sceneName}) ===");
@@ -566,9 +579,29 @@ namespace Pakettiporina.EditorTools
                     pauseTopCenterLocal = new Vector2(0f, 350f); // varafallback jos PauseButtonia/Canvasia ei loydy
                 }
 
-                const float barW = 180f, barH = 16f, gap = 6f, marginAbovePause = 14f;
+                // SUURENNETTU 18.8.2026 (kayttaja: "kasvata kolhut ja lika progress bar
+                // kokoa, niin että ne erottuvat paremmin niin että muutokset näkyvät") -
+                // 190x22 -> 260x34 (n. 1.4x), fonttikoko ja reunamarginaali skaalattu mukana.
+                // SUURENNETTU HIEMAN LISAA 20.8.2026 (kayttaja: "progress bar toimii nyt ok,
+                // tyyli parantaa ja kokoa kasvattaa hieman") - 260x34 -> 300x42 (n. 1.15x,
+                // maltillisempi hyppy kuin 18.8. koska palkit olivat jo kohtuu isot).
+                const float barW = 300f, barH = 42f, labelH = 22f, gap = 14f, marginAbovePause = 16f;
 
-                Transform MakeMeterBar(string bgName, Color fillColor, string label, int stackIndex)
+                // TYYLIPAIVITYS 17.8.2026 (kayttaja: "lika ja kolhut progress bar tyyliltaan
+                // paremmin"): aiempi versio oli litteä tumma laatikko + teksti KESKELLA
+                // taytteen PAALLA (vaikea lukea kun tayte peitti tekstin osittain). Uusi versio
+                // kayttaa samaa pyoristettya "pilleri"-spritea kuin Asetuspaneelin kortit/napit
+                // (pakettiporina_ui_rounded, ks. PakettiporinaSettingsSetup.cs) taustana, pientä
+                // ikonia palkin vasemmassa reunassa (likatahra / kestavyyskilpi) ja tarkkaa
+                // "Lika 3/15" -lukumaaraa palkin YLAPUOLELLA sen sijaan etta pelaajan pitaisi
+                // arvata maara pelkasta tayttoprosentista.
+                var roundedBarSprite = LoadSlicedPng($"{ICON_DIR}/pakettiporina_ui_rounded.png", barH * 0.5f);
+                var dirtIcon = LoadPng($"{DIRT_ICON_DIR}/pakettiporina_lika_a.png");
+                var dentIcon = LoadPng($"{ICON_DIR}/pakettiporina_ikoni_mittari_kestavyys.png");
+                if (roundedBarSprite == null)
+                    log.AppendLine("VAROITUS: pakettiporina_ui_rounded.png ei loytynyt - mittaripalkit jaavat ilman pyoristystä.");
+
+                (Transform, TMPro.TextMeshProUGUI) MakeMeterBar(string bgName, Color fillColor, Sprite badgeIcon, string labelPrefix, int stackIndex)
                 {
                     var bg = GameObject.Find(bgName);
                     bool justCreated = bg == null;
@@ -577,8 +610,7 @@ namespace Pakettiporina.EditorTools
                         bg = new GameObject(bgName, typeof(RectTransform));
                         Undo.RegisterCreatedObjectUndo(bg, "Luo " + bgName);
                         bg.transform.SetParent(hudCanvas.transform, false);
-                        var bgImg0 = bg.AddComponent<Image>();
-                        bgImg0.color = new Color(0f, 0f, 0f, 0.4f);
+                        bg.AddComponent<Image>();
                     }
 
                     // Sijainti/koko paivitetaan JOKA ajolla (myos jos objekti oli jo olemassa
@@ -587,12 +619,38 @@ namespace Pakettiporina.EditorTools
                     // ankkureita - ks. korjauskommentti ylla (pauseTopCenterLocal on jo
                     // muunnettu Canvasin paikalliseen tilaan GetWorldCorners+InverseTransformPoint
                     // -yhdistelmalla, joten se on aina oikein riippumatta UI-hierarkiasta).
+                    // rowH = koko rivin korkeus (teksti ylapuolella + itse palkki) - kaytetaan
+                    // pinoamisvaliin niin etta DentMeterBar ei mene DirtMeterBar-rivin tekstin paalle.
+                    float rowH = labelH + barH;
                     var bgRt = (RectTransform)bg.transform;
                     bgRt.anchorMin = new Vector2(0.5f, 0.5f); bgRt.anchorMax = new Vector2(0.5f, 0.5f);
                     bgRt.pivot = new Vector2(0.5f, 0f);
-                    float y = pauseTopCenterLocal.y + marginAbovePause + stackIndex * (barH + gap);
+                    float y = pauseTopCenterLocal.y + marginAbovePause + stackIndex * (rowH + gap);
                     bgRt.anchoredPosition = new Vector2(pauseTopCenterLocal.x, y);
                     bgRt.sizeDelta = new Vector2(barW, barH);
+
+                    var bgImg = bg.GetComponent<Image>();
+                    if (bgImg == null) bgImg = bg.AddComponent<Image>();
+                    bgImg.sprite = roundedBarSprite;
+                    bgImg.type = Image.Type.Sliced;
+                    // TYYLIPAIVITYS 20.8.2026 (kayttaja: "tyyli parantaa"): hieman tummempi/
+                    // peittavampi tausta (0.38 -> 0.5 alpha) niin etta palkki erottuu paremmin
+                    // radan taustasta, ja jokaiselle palkille oma sarin fillColor -varinen
+                    // reunaviiva (Outline) + pehmea pudotusvarjo (Shadow) syvyyden tunteeseen -
+                    // sama "kehystetty pilleri" -look kuin Asetuspaneelin korteissa, mutta
+                    // taman palkin OMALLA varilla (lika=ruskea, kolhu=harmaa) jotta kaksi
+                    // palkkia erottaa toisistaan jo pelkasta reunaviivan varista.
+                    bgImg.color = new Color(0f, 0f, 0f, 0.5f);
+                    var outline = bg.GetComponent<Outline>();
+                    if (outline == null) outline = bg.AddComponent<Outline>();
+                    outline.effectColor = new Color(fillColor.r, fillColor.g, fillColor.b, 0.9f);
+                    outline.effectDistance = new Vector2(1.5f, -1.5f);
+                    outline.useGraphicAlpha = false;
+                    var shadow = bg.GetComponent<Shadow>();
+                    if (shadow == null) shadow = bg.AddComponent<Shadow>();
+                    shadow.effectColor = new Color(0f, 0f, 0f, 0.55f);
+                    shadow.effectDistance = new Vector2(2f, -2f);
+                    shadow.useGraphicAlpha = false;
 
                     var fillName = bgName + "_Fill";
                     var fillGo = bg.transform.Find(fillName)?.gameObject;
@@ -601,57 +659,90 @@ namespace Pakettiporina.EditorTools
                         fillGo = new GameObject(fillName, typeof(RectTransform));
                         Undo.RegisterCreatedObjectUndo(fillGo, "Luo " + fillName);
                         fillGo.transform.SetParent(bg.transform, false);
-                        var fillImg = fillGo.AddComponent<Image>();
-                        fillImg.color = fillColor;
-                        fillImg.type = Image.Type.Filled;
-                        fillImg.fillMethod = Image.FillMethod.Horizontal;
-                        fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
-                        fillImg.fillAmount = 0f;
+                        var fillImg0 = fillGo.AddComponent<Image>();
+                        fillImg0.type = Image.Type.Filled;
+                        fillImg0.fillMethod = Image.FillMethod.Horizontal;
+                        fillImg0.fillOrigin = (int)Image.OriginHorizontal.Left;
+                        fillImg0.fillAmount = 0f;
                     }
+                    var fillImg = fillGo.GetComponent<Image>();
+                    // Tasainen vari (EI pyoristettya spritea) - Image Type=Filled ei tue
+                    // Sliced-spriteja siististi (tayte leikkautuisi rumasti kesken pyoristyksen).
+                    // Isompi 3px marginaali (oli 1.5) varmistaa etta taytteen SUORAKULMAISET
+                    // nurkat pysyvat aina pyoristetyn taustan kaaren SISALLA, eivat tyonny nakyviin.
+                    fillImg.sprite = null;
+                    fillImg.color = fillColor;
                     var fillRt = (RectTransform)fillGo.transform;
-                    // Pieni marginaali reunoista -> palkki nayttaa "kehyksen sisassa olevalta",
-                    // siistimman naköinen kuin taysin reunasta reunaan tayttyva laatikko.
                     fillRt.anchorMin = Vector2.zero; fillRt.anchorMax = Vector2.one;
-                    fillRt.offsetMin = new Vector2(1.5f, 1.5f); fillRt.offsetMax = new Vector2(-1.5f, -1.5f);
+                    fillRt.offsetMin = new Vector2(4f, 4f); fillRt.offsetMax = new Vector2(-4f, -4f);
 
-                    // Pieni label-teksti palkin sisassa (esim. "Lika") - auttaa erottamaan
-                    // kumpi palkki on kumpikin ilman erillista kuvaketta.
+                    // Pieni ikoni palkin vasemmassa reunassa (likatahra / kestavyyskilpi) -
+                    // aina paalimmaisena niin etta nakyy sekä taustan etta taytteen paalla.
+                    var iconGo = bg.transform.Find(bgName + "_Icon")?.gameObject;
+                    if (iconGo == null)
+                    {
+                        iconGo = new GameObject(bgName + "_Icon", typeof(RectTransform));
+                        Undo.RegisterCreatedObjectUndo(iconGo, "Luo ikoni");
+                        iconGo.transform.SetParent(bg.transform, false);
+                        iconGo.AddComponent<Image>();
+                    }
+                    var iconRt = (RectTransform)iconGo.transform;
+                    iconRt.anchorMin = iconRt.anchorMax = new Vector2(0f, 0.5f);
+                    iconRt.pivot = new Vector2(0f, 0.5f);
+                    iconRt.anchoredPosition = new Vector2(4f, 0f);
+                    iconRt.sizeDelta = new Vector2(barH - 6f, barH - 6f);
+                    var iconImg = iconGo.GetComponent<Image>();
+                    iconImg.sprite = badgeIcon;
+                    iconImg.color = Color.white;
+                    iconImg.preserveAspect = true;
+                    iconImg.raycastTarget = false;
+                    iconGo.transform.SetAsLastSibling();
+
+                    // "Lika 3/15" -teksti palkin YLAPUOLELLA (ei enaa taytteen PAALLA kuten
+                    // ennen 17.8.2026 - teksti saattoi hukkua tayttovariin). Arvo asetetaan
+                    // tassa vasta oletukseksi "0/0"; oikea lukema tulee RaceHUD.cs:sta heti
+                    // kun se kytkeytyy GameManageriin ajon alkaessa.
                     var labelGo = bg.transform.Find(bgName + "_Label")?.gameObject;
                     if (labelGo == null)
                     {
                         labelGo = new GameObject(bgName + "_Label", typeof(RectTransform));
                         Undo.RegisterCreatedObjectUndo(labelGo, "Luo label");
                         labelGo.transform.SetParent(bg.transform, false);
-                        var lrt = (RectTransform)labelGo.transform;
-                        lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-                        lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
-                        var tmp = labelGo.AddComponent<TMPro.TextMeshProUGUI>();
-                        tmp.text = label;
-                        tmp.fontSize = 11;
-                        tmp.alignment = TMPro.TextAlignmentOptions.Center;
-                        tmp.color = Color.white;
-                        tmp.raycastTarget = false;
+                        labelGo.AddComponent<TMPro.TextMeshProUGUI>();
                     }
+                    var lrt = (RectTransform)labelGo.transform;
+                    lrt.anchorMin = new Vector2(0f, 1f); lrt.anchorMax = new Vector2(1f, 1f);
+                    lrt.pivot = new Vector2(0.5f, 0f);
+                    lrt.anchoredPosition = new Vector2(0f, 2f);
+                    lrt.sizeDelta = new Vector2(0f, labelH);
+                    var tmp = labelGo.GetComponent<TMPro.TextMeshProUGUI>();
+                    if (string.IsNullOrEmpty(tmp.text)) tmp.text = $"{labelPrefix} 0/0";
+                    tmp.fontSize = 19; // SUURENNETTU 20.8.2026 (ks. barW/barH-kommentti ylla), oli 17 (alkup. 13)
+                    tmp.fontStyle = TMPro.FontStyles.Bold;
+                    tmp.alignment = TMPro.TextAlignmentOptions.Left;
+                    tmp.color = new Color(1f, 1f, 1f, 0.92f);
+                    tmp.raycastTarget = false;
 
                     if (justCreated)
-                        log.AppendLine($"{bgName}: luotu ({label}, siisti tayttyva palkki PauseButtonin ylapuolella).");
+                        log.AppendLine($"{bgName}: luotu (pyoristetty palkki + ikoni + '{labelPrefix} X/Y' -teksti ylapuolella).");
                     else
-                        log.AppendLine($"{bgName}: sijainti/koko paivitetty (PauseButtonin ylapuolelle).");
-                    return bg.transform.Find(fillName);
+                        log.AppendLine($"{bgName}: tyyli paivitetty (pyoristetty palkki, ikoni, teksti siirretty ylapuolelle).");
+                    return (fillGo.transform, tmp);
                 }
 
                 // HUOM: MakeMeterBar-kutsu ei ole enaa vain "jos hud.dirtMeterBar == null" -
-                // haarassa, koska silloin jo KYTKETYN palkin sijaintia ei olisi koskaan
-                // paivitetty PauseButtonin ylapuolelle vaikka tyokalua ajaisi uudelleen (taman
-                // korjauksen koko tarkoitus). KORJAA-tilassa sijainti paivitetaan AINA.
+                // haarassa, koska silloin jo KYTKETYN palkin sijaintia/tyylia ei olisi koskaan
+                // paivitetty vaikka tyokalua ajaisi uudelleen (taman korjauksen koko tarkoitus).
+                // KORJAA-tilassa sijainti/tyyli paivitetaan AINA.
                 if (hud.dirtMeterBar == null)
                 {
                     log.AppendLine("Dirt Meter Bar ei kytketty."); problems++;
                 }
                 if (fix)
                 {
-                    var t = MakeMeterBar("DirtMeterBar", new Color(0.55f, 0.4f, 0.2f, 1f), "Lika", 0);
-                    hud.dirtMeterBar = t.GetComponent<Image>();
+                    var (dirtFillT, dirtLabelTmp) = MakeMeterBar("DirtMeterBar", new Color(0.55f, 0.4f, 0.2f, 1f), dirtIcon, "Lika", 0);
+                    hud.dirtMeterBar = dirtFillT.GetComponent<Image>();
+                    hud.dirtMeterLabel = dirtLabelTmp;
                     EditorUtility.SetDirty(hud);
                 }
 
@@ -661,8 +752,15 @@ namespace Pakettiporina.EditorTools
                 }
                 if (fix)
                 {
-                    var t = MakeMeterBar("DentMeterBar", new Color(0.6f, 0.25f, 0.2f, 1f), "Kolhut", 1);
-                    hud.dentMeterBar = t.GetComponent<Image>();
+                    // VAIHDETTU 20.8.2026 (kayttaja: "tyyli parantaa"): aiempi lammin
+                    // punaruskea (0.6,0.25,0.2) ei enaa sopinut yhteen 18.8. paivitettyjen
+                    // DentSpot-kolhusprittien kylman harmaan/metallisen paletin kanssa (ks.
+                    // PakettiporinaWashSetup.cs, DENT_SPRITE_PATHS-kommentti). Uusi vari on
+                    // kylma sinertava teras-harmaa - tasmaa nyt "metallikolhu"-teemaan eika
+                    // nayta enaa vahingossa "verelta"/likaisen ruskealta kuten Lika-palkki.
+                    var (dentFillT, dentLabelTmp) = MakeMeterBar("DentMeterBar", new Color(0.5f, 0.55f, 0.6f, 1f), dentIcon, "Kolhut", 1);
+                    hud.dentMeterBar = dentFillT.GetComponent<Image>();
+                    hud.dentMeterLabel = dentLabelTmp;
                     EditorUtility.SetDirty(hud);
                 }
             }
@@ -671,9 +769,62 @@ namespace Pakettiporina.EditorTools
                 log.AppendLine("(RaceHUD-komponenttia ei loydy scenesta - lika-/kolhumittareita ei voitu tarkistaa.)");
             }
 
+            // ---------- 11. HUD-headerin sijainti (LISATTY 18.8.2026, kayttaja: "siirrä
+            // Canvasin headeria hieman alemmas") ---------- Header on ankkuroitu Canvasin
+            // keskelle (0.5,0.5) - kaikki sen lapset (PauseButton, tahti-/aikateksti ym.)
+            // seuraavat mukana kun Headeria itsea siirretaan, joten yksi Y-siirto riittaa
+            // koko ylapalkille. Absoluuttinen kohdearvo (ei suhteellinen vahennys) jotta
+            // tyokalun voi ajaa uudelleen turvallisesti ilman etta header karkaa yha
+            // alemmas joka ajolla.
+            var headerGo = GameObject.Find("Header");
+            var headerRt = headerGo != null ? headerGo.GetComponent<RectTransform>() : null;
+            if (headerRt != null)
+            {
+                const float headerTargetY = -30f;
+                if (!Mathf.Approximately(headerRt.anchoredPosition.y, headerTargetY))
+                {
+                    if (fix)
+                    {
+                        var oldY = headerRt.anchoredPosition.y;
+                        headerRt.anchoredPosition = new Vector2(headerRt.anchoredPosition.x, headerTargetY);
+                        EditorUtility.SetDirty(headerRt);
+                        log.AppendLine($"Header: siirretty alemmas (Y {oldY:F0} -> {headerTargetY:F0}).");
+                    }
+                    else
+                    {
+                        log.AppendLine("Header ei ole viela siirretty alemmas."); problems++;
+                    }
+                }
+            }
+            else
+            {
+                log.AppendLine("(Header-GameObjectia ei loytynyt - HUD-otsikon sijaintia ei voitu tarkistaa.)");
+            }
+
             log.AppendLine(problems == 0 ? "\nKaikki kunnossa!" : $"\nLoytyi {problems} huomiota." + (fix ? " Korjaukset tehty." : " Aja 'Pakettiporina/Korjaus/01 - KORJAA peliscene'."));
             if (fix) EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Debug.Log(log.ToString());
+        }
+
+        // ---------- Sprite-apufunktiot (lisatty 17.8.2026 lika-/kolhupalkkien tyylipaivitysta
+        // varten) - sama periaate kuin PakettiporinaSettingsSetup.cs:n LoadSprite/LoadSlicedSprite,
+        // mutta ottavat suoraan koko polun (tama tiedosto lataa kuvia kahdesta eri kansiosta:
+        // Icons/ ja Dirt/), joten olemassa olevaa versiota ei voinut kayttaa sellaisenaan.
+        static Sprite LoadPng(string fullPath)
+        {
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(fullPath);
+            if (tex == null) return null;
+            return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        // 9-slice-reunalla ladattu sprite - pyoristetyt kulmat pysyvat terävinä vaikka
+        // spritea venytetaan (esim. mittaripalkin tausta).
+        static Sprite LoadSlicedPng(string fullPath, float border)
+        {
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(fullPath);
+            if (tex == null) return null;
+            return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f,
+                1, SpriteMeshType.FullRect, new Vector4(border, border, border, border));
         }
     }
 }

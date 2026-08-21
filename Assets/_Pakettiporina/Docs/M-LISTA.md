@@ -343,6 +343,536 @@ vaativat vielä Unity/Blender-uudelleenajon (ks. "Suositeltu seuraava askel"):
 - **EI VIELA UNITY-TESTATTU** - aja `Lisays/02` jokaisessa 5 ratascenessa JA
   `Korjaus/01` jokaisessa 5 ratascenessa.
 
+## 17.8.2026 — Latakko näkymätön radalla, bugi löytyi ja korjattu
+
+Käyttäjä testasi Unityssä: Latakko-objektit olivat oikeassa kohdassa Hierarkiassa
+mutta eivät näkyneet radalla lainkaan. Blender-tarkastus (kaikki 4 este-FBX:ää
+Kartio/Laatikko/Latakko/Boost tuotu ja mitattu) paljasti juurisyyn: **kaikki 32
+Latakko.fbx:n pintaa osoittivat alaspäin (normal (0,-1,0))** — pelkkä normaalibugi,
+ei sijainti- tai rotaatio-ongelma. Backface culling piilotti sen siis jokaisesta
+kamerakulmasta vaikka geometria oli aivan oikeassa paikassa. Kartio/Laatikko/Boost
+ovat kaksipuoleisia (yhtä paljon ylös- ja alaspäin osoittavia pintoja per kohde),
+Latakolta puuttui kokonaan ylöspäin osoittava puolisko. Korjattu duplikoimalla
+Latakon pinnat ja kääntämällä kopion normaalit (64 pintaa, 32+32, sama periaate
+kuin sisarmalleilla) ja viety `Latakko.fbx` uudelleen. `useFileScale: 0` tarkistettu
+kaikilta neljältä (kunnossa, ei siis se tunnettu bugi tällä kertaa).
+
+**Rotaatiot muuten tarkistettu ja kunnossa**: Kartio on täydellisen
+pyörähdyssymmetrinen kartio pystyssä paikallista Y-akselia pitkin (kärki suoraan
+kannan keskipisteen yläpuolella), Laatikko on tavallinen laatikko oikein päin,
+Boost on litteä nuolipatja — kaikki toimivat identity-rotaatiolla juuri niin kuin
+koodikommentti (`PakettiporinaElements.cs`) väittää. Ei siis tarvetta lisätä
+rotaatiokorjausta millekään näistä neljästä.
+
+**EI VIELÄ UNITY-TESTATTU** — Unity lukee `Latakko.fbx`:n uudelleen kun scene
+avataan/tallennetaan (tai pakota `Assets → Reimport`), minkä jälkeen lätäköiden
+pitäisi näkyä radalla.
+
+## 17.8.2026 (jatko) — Lika-/kolhupalkkien tyylipäivitys
+
+Käyttäjä: "lika ja kolhut progress bar tyyliltään paremmin". Aiempi versio oli
+litteä tumma laatikko + teksti keskellä TAYTTEEN PÄÄLLÄ (vaikea lukea). Uusi
+versio (`PakettiporinaSetup.cs`, `Korjaus/01`) käyttää samaa pyöristettyä
+"pilleri"-spritea kuin Asetuspaneelin kortit/napit (`pakettiporina_ui_rounded`),
+pientä ikonia palkin vasemmassa reunassa (likatahra-kuva Lika-palkissa,
+kestävyyskilpi-ikoni Kolhut-palkissa) ja tarkkaa "Lika 3/15" -lukumäärää
+palkin YLÄPUOLELLA tekstinä sen sijaan että pelaaja arvaisi määrän pelkästä
+täyttöprosentista. `RaceHUD.cs` sai kaksi uutta kenttää (`dirtMeterLabel`/
+`dentMeterLabel`) joita `HandleDirtMeterChanged`/`HandleDentMeterChanged`
+päivittävät livenä. **EI VIELÄ UNITY-TESTATTU** — aja `Korjaus/01` jokaisessa
+ratascenessä.
+
+## 18.8.2026 — Game-radan tehosteet/esteet väärällä puolella tietä (bends-etumerkki)
+
+Käyttäjä: "Game scenessä tehosteet ja esteet vielä asettelut ja rotaatiot pielessä".
+Game.unity:ssä ei ollut yhtään Boost_/Kartio_/Laatikko_/Latakko_-objektia tallennettuna
+(käyttäjä oli testannut ajamalla `Lisäys/02` omassa avoimessa Unity-istunnossaan).
+Todistettiin juurisyy suoraan `Maasto.fbx`:stä Blenderissä: mesh tuotiin, sen
+`Maasto_Paletti`-tekstuurin väristä (harmaa = tie, vihreä = nurmi) tunnistettiin
+oikeat tie-pinnat UV:n kautta, ja niiden todellinen X-keskikohta laskettiin jokaisella
+Z:lla. Tulos verrattuna `PakettiporinaTracks.cs`:n `RoadX`-kaavaan: esim. z=-50:ssä tie
+on OIKEASTI X=-20, mutta kaava (bends-amplitudi +20 tällä välillä) antoi X=+20 - TASAN
+vastakkaismerkkinen JOKAISESSA näytepisteessä (magnitudit täsmäsivät täydellisesti,
+pelkkä etumerkkivirhe). Sama bugiluokka kuin Huvipuistolla aiemmin löydetty ja korjattu
+(ks. sen TrackDef-kommentti) - Game-radan bends ei ollut koskaan käsin Unity-testattu
+tähän mennessä. **Korjattu**: `bends = new[] { (-100f, 0f, 20f), (0f, 100f, -20f) }`
+→ `{ (-100f, 0f, -20f), (0f, 100f, 20f) }`. Vahvistettu visuaalisesti Blenderissä
+(keltaiset merkkipallot osuvat nyt tarkasti tien päälle koko radan matkalta).
+**EI VIELÄ UNITY-TESTATTU** — aja `Lisäys/02` uudelleen Game-scenessä.
+
+## 18.8.2026 (jatko) — "TEE KAIKKIEN SCENEJEN TARKISTUS" -kokoaudit
+
+Käyty läpi ASETTELUT/ROTAATIOT/VÄRIT/MEKANIIKAT/EFEKTIT/TOIMINNOT kaikissa 5
+ratascenessä + Wash/Kyla.
+
+**TÄRKEÄ LÖYDÖS — Blender-tekstuurivärimenetelmän luotettavuus etumerkin suhteen:**
+sama menetelmä jolla Game-radan bug (yllä) todistettiin ajettiin myös Puisto/Satama/
+Huvipuisto/Maatila-radoille. KAIKKI NELJÄ näyttivät saman "täydellinen magnitudi,
+väärä etumerkki" -kuvion. Ennen korjausten tekemistä verrattiin tulosta Huvipuiston
+OMAAN 8.8.2026-historiaan (ks. sen TrackDef-kommentti) — ja siitä löytyi ristiriita:
+silloin sama Blender-menetelmä NÄYTTI täsmäävän alkuperäisiin arvoihin, mutta
+käyttäjän oikeasti Unityssä käsin testaama korjaus vaati PÄINVASTAISEN etumerkin.
+Eli tämä diagnostiikkamenetelmä on jo kertaalleen TODISTETUSTI antanut väärän
+vastauksen — sille ei voi luottaa sokeasti ilman Unity-vahvistusta. Tämän takia:
+- **Puisto ja Satama**: Blender epäili etumerkkiongelmaa, mutta KOSKA näistä ei ole
+  tullut yhtään oikeaa käyttäjän Unity-havaintoa (esteet/tehosteet väärällä
+  puolella), muutosta EI tehty koodiin - vain kommentti lisätty TrackDefiin joka
+  kertoo tarkalleen mitä kääntää (ja miten) jos Unity-testi joskus vahvistaa bugin.
+- **Game**: korjaus (18.8, ks. yllä) jätetty voimaan koska sillä ON aito käyttäjän
+  Unity-havainto taustalla, mutta lisätty varoituskommentti - jos tehosteet
+  näyttävät YHÄ väärin (tai nyt vastakkaisella puolella kuin ennen), etumerkki
+  pitää ehkä kääntää takaisin.
+- **Maatila**: sama epäily, ei käyttäjähavaintoa, ei muutosta - kommentoitu.
+- **Satama**: löytyi MYÖS erillinen, varma bugi diagnostiikkakoodissani itsessään
+  matkalla (Satama.fbx:llä on FBX-tuonnin 0.01-skaala, jota ensimmäinen ajo ei
+  huomioinut → järjettömiä lukuja n. 100x liian isoina) - korjattu diagnostiikassa,
+  mutta koska lopputulos (etumerkki) osuu samaan epävarmaan kategoriaan yllä, ei
+  viety koodiin.
+- **JOHTOPÄÄTÖS/SUOSITUS**: ainoa luotettava tapa vahvistaa Puisto/Satama/Maatilan
+  radat lopullisesti on ajaa peliä Unityssä ja katsoa osuvatko esteet/tehosteet/
+  tähdet oikeasti näkyvälle tielle (sama testi joka ratkaisi Huvipuiston 8.8.).
+
+**Koristeiden värit/materiaalit (VÄRIT)**: käyty läpi kaikki 40 Puisto/Huvipuisto/
+Satama-koristemallia Blenderissä (venemallit + Majakka/Nosturi/Varasto jo tarkistettu
+aiemmassa istunnossa). Kaikki käyttävät oikeaa yhden-materiaalin+tekstuurin
+("palettiatlas") -käytäntöä kuten pitääkin - EI samaa "litteä harmaa, ei tekstuuria"
+-bugia joka löytyi ja korjattiin Maatilan koristeista aiemmin. Ei toimenpiteitä.
+
+**Koristeiden asettelu/rotaatio (ASETTELUT/ROTAATIOT)**: `PakettiporinaDecor.cs`:n
+140 DecorItem-sijaintia (Maatila 58, Puisto 30, Satama 25, Huvipuisto 27) käyty läpi
+ohjelmallisesti: parittainen etäisyystarkistus + rotX-yhtenäisyystarkistus. Ei
+todellisia päällekkäisyyksiä (kaikki <2,5 yksikön parit ovat tarkoituksellisia -
+esim. suihkulähde+4 kukkapenkkiä samalla pivotilla eri rotY:llä, aitaus+eläin
+tarhan sisällä). Kaikki 140 kohdetta käyttävät johdonmukaisesti rotX=-90 kuten
+Blender-bmesh-pipelinen konventio vaatii - ei poikkeamia. Tämä koodipuoli on siis jo
+erittäin huolellisesti käsin auditoitu (ks. kommentit tiedostossa) - ei uusia
+korjauksia tarvittu.
+
+**Mekaniikat/toiminnot (MEKANIIKAT/TOIMINNOT) - scenekohtainen synkronointitilanne**
+tarkistettu suoraan tallennettujen .unity-tiedostojen YAML:sta (ei vain koodista):
+- `Game.unity`: GameManager ✅, uudet tyylitellyt DirtMeterBar/DentMeterBar +
+  dirtMeterLabel/dentMeterLabel ✅ (17.8. tyylipäivitys NÄKYY jo pelissä täällä).
+- `Puisto.unity` / `Satama.unity` / `Huvipuisto.unity` / `Maatila.unity`:
+  GameManager ✅, Laatikko-esteet ✅, MUTTA dirtMeterLabel/dentMeterLabel PUUTTUU
+  kaikista neljästä - 17.8. HUD-tyylipäivitys ei ole vielä näissä. **Aja `Korjaus/01`
+  uudelleen näissä neljässä scenessä** jotta uudet lika-/kolhupalkit näkyvät siellä.
+- `Wash.unity`: DentSpots ✅, RepairArea ✅, DentsText ✅, EI enää RepairPanel/
+  RepairButton-jäännöstä - 16.8. `Korjaus/03`-korjaus ON ajettu, korjausvaihe siis
+  toimii Pesussa.
+- `Kyla.unity`: sama tyhjä runko kuin 14.8./16.8. - `GroundCollinder`-kirjoitusvirhe
+  YHÄ paikallaan, ei autoa/maastoa/ääniä. Vanhin ratkaisematon avoin kysymys, ei
+  käsitelty tässä auditissa (vaatii oman erillisen "viedäänkö loppuun vai
+  hylätäänkö" -päätöksen käyttäjältä, ks. Avoimet kysymykset -osio).
+
+**Efektit (EFEKTIT)**: Latakko/Boost/Kartio/Laatikko-mallien rotaatiot ja
+näkyvyys tarkistettu jo 17.8. istunnossa (ks. yllä) - ei uutta tässä auditissa.
+Visuaalinen "mehukkuus" (partikkelit/squash-stretch, M6.4) on edelleen tekemättä,
+ei osa tätä auditia (ks. Suositeltu seuraava askel -kohta 6).
+
+## 18.8.2026 (jatko 2) — Kartio/Boost/Laatikko kyljellään + Game-lätäköt väärin + HUD-koko
+
+Käyttäjä testasi yllä olevan auditin jälkeen Unityssa ja raportoi kolme asiaa:
+
+- **"Lätäköt aseteltu väärin Game scenessä"**: tarkistettiin suoraan Game.unity:n
+  tallennettu Latakko_02-sijainti (X=-20, Z=-50) - täsmäsi TÄSMÄLLEEN tämän session
+  aiemman Game-bends-korjauksen tuottamaan arvoon. Tämä on siis SUORA todiste
+  Unitysta että kyseinen korjaus oli väärä suunta - sama epäluotettavuus jonka
+  Huvipuiston 8.8. historia jo osoitti (ks. yllä). **Game-radan bends PERUTTU
+  takaisin alkuperäiseen etumerkkiin** (`(-100,0,20),(0,100,-20)`),
+  `PakettiporinaTracks.cs`. Alkuperäinen "asettelut ja rotaatiot pielessä"
+  -valitus selittyy todennäköisemmin alla olevalla kyljellään-bugilla, ei
+  bends-etumerkillä.
+- **"Kartiot ja boostit näyttävät olevan kyljellään"**: LÖYTYI JA KORJATTU, todellinen
+  bugi. Game.unity:n tallennettu Kartio_01/Boost_01/Laatikko_01-data paljasti että
+  jokaisella on `m_LocalRotation` vastaten -90° X-kiertoa - tämä tulee Kartio.fbx/
+  Boost.fbx/Laatikko.fbx-prefabien OMASTA tuontitransformista (Unityn FBX-tuonti),
+  ei mistään koodista. `PakettiporinaElements.cs`:n `PlaceCone`/`PlaceConeXZ`/
+  `PlaceBoost`/`PlaceBoostXZ`/`PlaceLaatikko`/`PlaceLaatikkoXZ` eivät KOSKAAN
+  asettaneet `transform.rotation`:ia - joten jokainen luotu objekti peri prefabin
+  kyljelleen kaatuneen oletuskierron. Latakko oli aina kunnossa koska
+  `PlacePuddle` asettaa oman rotaationsa eksplisiittisesti. **Korjattu**: kaikki 6
+  funktiota pakottavat nyt `transform.rotation = Quaternion.identity` joka ajolla.
+  **EI VIELÄ UNITY-TESTATTU** - aja `Lisäys/02` uudelleen jokaisessa ratascenessä.
+- **HUD-koko**: Canvasin "Header" siirretty hieman alemmas (uusi `Korjaus/01`-
+  askel, kohdearvo Y=-30, absoluuttinen jotta uudelleenajo on turvallinen).
+  Lika-/kolhupalkit suurennettu ~1,4x (190x22 -> 260x34), fontti 13 -> 17.
+  `PakettiporinaSetup.cs`. **EI VIELÄ UNITY-TESTATTU** - aja `Korjaus/01`
+  jokaisessa ratascenessä.
+
+## 18.8.2026 (jatko 3) — Lika-/kolhumittarin toimintaketju varmistettu + oma kolhu-sprite
+
+Käyttäjä pyysi varmistamaan että lika-/kolhumittari toimii (esteosumat vaikuttavat
+siihen, mittari toimii kertoimena pesun/korjauksen kestolle) ja antamaan kolhuille
+oman kuvituksen (bubbles/pesu OK, kolhut käyttivät vielä uudelleenväritettyä
+likatahra-spriteä).
+
+- **Mittariketju tarkistettu koodista päästä päähän, EI bugeja löytynyt**:
+  `Puddle.cs`/`Cone.cs`/`Laatikko.cs` kutsuvat oikein `GameManager.AddDirtHit()`/
+  `AddDent()` osumasta, mittari kasvaa `HIT_MULTIPLIER=2`:lla (katto DIRT_MAX=15/
+  DENT_MAX=6), `WashScreen.Start()` lukee mittarin suoraan ja asettaa sen mukaan
+  kuinka monta likatahraa/kolhua pitää napauttaa pois - eli enemmän osumia = enemmän
+  napautettavaa = pesu/korjaus kestää oikeasti pidempään. Ketju on siis jo täysin
+  toimiva koodissa.
+- **Kolhuille oma sprite**: luotu kaksi uutta ikonia (`pakettiporina_kolhu_a/b.png`,
+  `Art/UI/Dirt/`) samalla tekniikalla kuin lika-blobit mutta kylmällä harmaa-
+  sinisellä värillä + vaalealla kiiltoreunalla ja tummalla varjolla (metallikolhun
+  näköinen, ei enää ruskea mutatahra). `PakettiporinaWashSetup.cs`: DentSpot-merkit
+  käyttävät nyt näitä (vuorotellen) väripäällystyksen sijaan; lisätty myös
+  päivitysaskel joka vaihtaa spriten JO OLEMASSA OLEVIIN DentSpot-objekteihin (ei
+  vain uusiin) kun `Korjaus/03` ajetaan uudelleen. RepairTool (korjaustyökalu-ikonit)
+  oli tässä vaiheessa vielä 16.8. vasara-siluetti koodissa - **katso alla oleva
+  18.8. (jatko 4) -korjaus, jossa selvisi ettei tämäkään koskaan päivittynyt
+  käyttäjän oikeaan sceneen.**
+  **EI VIELÄ UNITY-TESTATTU** - aja `Korjaus/03` Pesu-scenessä.
+
+## 18.8.2026 (jatko 4) — RepairTool "oranssi neliö" -bugi, oikea syy ja korjaus
+
+Käyttäjä tarkensi edellistä pyyntöä: "kun saippuakuplia poksautellaan wash
+scenessä niin saippuakuplia vastaavia kolhujen tilalle kun niitä kuvaa oranssi
+neliö" - eli RepairTool-napautusikonit (korjausvaiheen "kuplat") näkyivät
+pelaajalle pelkkänä oranssina neliönä, ei vasarana (16.8. yritys) eikä mitään
+muutakaan järkevää.
+
+**Juurisyy löytyi**: `PakettiporinaWashSetup.cs`:n RepairArea+RepairTool-luonti
+ajetaan VAIN kun `wash.repairArea == null` - eli JOS RepairArea oli jo olemassa
+scenessä (käyttäjän scenessä oli, paljon vanhemmasta ajosta ajalta ennen 16.8.
+vasara-yritystä), koko luontikoodi (myös 16.8. vasarapäivitys) ohitettiin
+kokonaan eikä KOSKAAN päivittänyt olemassa olevia RepairTool-ikoneja - ne jäivät
+aivan alkuperäiseen, kaikkein ensimmäiseen placeholder-ulkoasuun (värillinen
+neliö). Sama bugiluokka kuin DentSpotsilla yllä, mutta tässä paljasti ettei edes
+16.8. korjaus ollut koskaan oikeasti näkynyt pelaajalle.
+
+**Korjattu kunnolla nyt**: käyttäjän tarkennuksen mukaisesti RepairTool käyttää
+nyt PYÖREÄÄ "korjauskupla"-spriteä (`pakettiporina_korjauskupla_a/b.png`,
+`Art/UI/Bubbles/`) - SAMA tekniikka/rakenne kuin oikeat saippuakuplat
+(`pakettiporina_kupla_a/b/c.png`, sama SVG-pohjainen radiaaligradientti +
+sateenkaarireunaviiva + kiiltopiste), mutta lämpimällä kupari/oranssi paletilla
+ja pienellä ruuvinpää-glyfillä keskellä erottumaan selvästi saippuakuplasta.
+`PakettiporinaWashSetup.cs`: RepairTool rakennetaan nyt yhdellä Imagella (ei enää
+erillisillä Handle/Head-lapsilla), ja lisätty päivitysaskel joka korvaa JO
+OLEMASSA OLEVIEN RepairTool-ikonien spriten/värin (ja poistaa vanhat Handle/Head-
+jäänteet jos löytyy) aina kun `Korjaus/03` ajetaan - ei enää "vain jos puuttuu
+kokonaan" -rajoitusta. `RepairTool.cs`: himmennyslogiikka (`SetAllAlpha`)
+päivitetty kohdistumaan suoraan omaan Imageen entisten lapsikuvien sijaan.
+**EI VIELÄ UNITY-TESTATTU** - aja `Korjaus/03` Pesu-scenessä.
+
+## 18.8.2026 (jatko 5) — Boost/Latakko-sijainti todistettu oikeaksi, näkyvyys silti rikki
+
+Käyttäjä ajoi `Lisäys/02` Puistossa (Puisto-bendsien etumerkkikorjauksen
+jälkeen) ja liitti täyden `PakettiporinaSceneDump`-taulukon: kaikilla
+Boost/Latakko-objekteilla `EtaisyysKeskilinjasta` = **0,00** — eli X/Z-sijainti
+on nyt todistetusti täsmälleen tien keskilinjalla, ei enää 27 yksikköä
+väärässä paikassa kuten edellisessä dumpissa (joka osoittautui vanhaksi,
+ennen `Lisäys/02`:n uudelleenajoa otetuksi). Sijoittelubugi on siis oikeasti
+korjattu Puistossa.
+
+**Silti käyttäjä raportoi: "EI AUTTANUT... BOOSTIT JA LÄTÄKÖT EI NÄY RADALLA
+KUN PELAA"** — eli jäljellä on ERILLINEN näkyvyysbugi, ei sijaintibugi.
+Käytiin läpi kaikki koodissa mahdolliset syyt: `PakettiporinaElements.cs`:n
+Place-funktiot eivät koskaan aseta `gameObject.layer`:ia eivätkä poista/
+disabloi Riendereriä; `Gameplay/`-skripteissä ei ole yhtään `SetActive`/
+`enabled=false`-kutsua joka koskisi Boost/Latakko/Kartio/Laatikko-objekteja
+(tarkistettu `WashScreen.cs`, `Pickup.cs`, `TrackBubble.cs` - kaikki koskevat
+vain Pesu-scenen omia olioita). Ei siis löytynyt koodibugia joka piilottaisi
+ne suoraan.
+
+**Ongelma: vanha `PakettiporinaSceneDump` ei voinut koskaan paljastaa
+näkyvyysbugia**, koska `FindObjectsOfType<Transform>(true)` listaa myös
+pois päältä kytketyt objektit IDENTTISILLÄ luvuilla kuin päällä olevat -
+sijainti näyttää "oikealta" konsolissa vaikka objekti olisi täysin
+näkymätön pelissä (esim. `GameObject.activeSelf=false`, `Renderer.enabled=
+false`, tyhjä `sharedMaterial`, tai objektin `Layer` puuttuu Kameran
+`Culling Mask`ista - näistä mikään ei näy vanhassa taulukossa).
+
+**Korjattu `PakettiporinaSceneDump.cs`:ään 4 uutta saraketta** jokaiselle
+riville: `Aktiivinen` (`activeInHierarchy`, huomioi myös vanhempien
+pois-päältä-kytkennän), `RendererPaalla` (`Renderer.enabled`), `Layer`
+(GameObjectin kerrosnimi - voi olla FBX-prefabiin leivottu ilman että
+mikään koodi on sitä koskaan asettanut), `Materiaali` (sharedMaterialin
+nimi, tai "PUUTTUU" jos tyhjä = näkymätön/pinkki objekti). Lisäksi taulukon
+alkuun rivi joka näyttää Main Cameran `Culling Mask`in sisällön - jos
+Boost/Latakko-objektin Layer ei ole tässä listassa, se ei koskaan piirry
+ruudulle vaikka kaikki muu (sijainti, aktiivisuus, Renderer, materiaali)
+olisi täysin kunnossa.
+
+**EI VIELÄ UNITY-TESTATTU** - odottaa käyttäjän uutta `Tyokalut/03 - Vie
+scenen elementit`-ajoa Puistossa, jotta nähdään mikä näistä neljästä
+(Aktiivinen/RendererPaalla/Layer/Materiaali/CullingMask) on todellinen
+juurisyy.
+
+## 18.8.2026 (jatko 6) — Kaikki muu poissuljettu paitsi maaston pintakorkeus
+
+Käyttäjä ajoi päivitetyn `Tyokalut/03`-dumpin kaikissa neljässä scenessä
+(Puisto, Maatila, Huvipuisto, Game). Tulos: **kaikki uudet sarakkeet olivat
+kunnossa joka ikisellä Boost/Latakko/Kartio/Laatikko-objektilla** —
+Aktiivinen=True, RendererPäällä=True, Layer=Default (kameran CullingMaskissa),
+materiaali asetettu (ei "PUUTTUU"). Laskin myös kaikki X-sijainnit käsin
+uudelleen jokaiselle objektille jokaisessa scenessä — kaikki täsmäsivät
+`RoadX(z)`-kaavaan (Maatila ja Game olivat jo alunperin oikein, Huvipuiston
+boostXZ-kiinnitykset toimivat kuten pitää).
+
+Kysyin käyttäjältä tarkalleen mitä "ei näy" tarkoittaa: vastaus oli
+**"PELISSÄ TAI RADALLA EI NÄY BOOSTIA TAI LÄTÄKKÖÄ MUTTA PELI REAGOI JOS
+SELLAISEEN OSUU ÄÄNELLÄ JA MUULLA ASIAAN KUULUVALLA TAVALLA"** — eli
+törmäys/ääni/pelilogiikka toimivat täysin normaalisti, vain visuaalinen
+piirto puuttuu kokonaan. Tämä sulkee pois kaiken sijainti-, aktiivisuus-,
+Layer- ja materiaalisyyn.
+
+**Huomattu tärkeä yksityiskohta**: käyttäjä on KOKO tämän keskustelun ajan
+valittanut VAIN Boost/Lätäkkö-objekteista — ei kertaakaan Kartiosta tai
+Laatikosta. Boost istutetaan Y=0.05:een ja Lätäkkö Y=0.03:een (litteä
+pintapäällyste-tyylinen taso), kun taas Kartio/Laatikko ovat Y=0.4:ssä
+(paljon korkeampia, seisovia esteitä). Tämä sopii täydellisesti yhteen
+teorian kanssa että **Maaston VISUAALINEN pinta ei olekaan tasan Y=0
+kohdassa jossa Boost/Lätäkkö luullaan istutettavan** — GroundCollider
+(fysiikka, auton ajopinta) on ERI, yksinkertainen tasainen laatikko joka ei
+välttämättä vastaa Maaston oman meshin todellista pintakorkeutta (esim. jos
+tiessä on pieni reunakoroke/kupu Blenderin puolesta) - jos Maaston pinta on
+todellisuudessa esim. 0.1-0.3 yksikköä Y=0:n yläpuolella, ohuet Boost/
+Lätäkkö-tasot HAUTAUTUISIVAT näkymättömiin maaston pinnan SISÄLLE samalla
+kun GroundCollider (fysiikka) pysyisi silti toimivana täysin erillisenä
+laatikkona - selittäisi TÄSMÄLLEEN havaitun oireen (näkymätön mutta
+törmäys/ääni toimii).
+
+**Lisätty `PakettiporinaSceneDump.cs`:ään suora testi tälle**: työkalu
+etsii nyt scenen Maasto-objektin presetin `maastoName`:n perusteella,
+lisää siihen väliaikaisen `MeshCollider`in (jos sillä ei jo ole Collideria;
+poistetaan lopuksi ettei jää pysyvästi), ja rykäisee pystysuoraan alaspäin
+jokaisen Boost_/Latakko_/Kartio_/Laatikko_-objektin kohdalta - uudet
+sarakkeet `MaastonPintaTassa(Y)` ja `PystyEroMaastoon` (objektin oma Y
+miinus maaston oikea pintakorkeus siinä kohtaa) kertovat suoraan onko
+objekti maan alla, maan päällä oikein, vai kellumassa liian korkealla.
+
+**EI VIELÄ UNITY-TESTATTU** - odottaa käyttäjän uutta `Tyokalut/03`-ajoa.
+Jos `PystyEroMaastoon` on selvästi negatiivinen (esim. -0.1 tai pienempi)
+Boost/Latakko-riveillä, teoria on vahvistettu ja korjaus on nostaa niiden
+Y-sijaintia `PakettiporinaElements.cs`:ssä sen verran että ne selvästi
+clearaavat maaston oikean pinnan (ei enää kiinteä 0.05/0.03, vaan maaston
+pinta + pieni marginaali).
+
+## 18.8.2026 (jatko 7) — Juurisyy VAHVISTETTU: maaston pintakorkeus vaihtelee, korjattu
+
+Käyttäjä ajoi korjatun korkeustestin Puistossa (ensimmäinen yritys epäonnistui
+koska `maastoGo`-haku käytti `GetRootGameObjects()`:ia eikä Maasto ollutkaan
+scenen ylimmällä tasolla - korjattu hakemaan kaikista objekteista kuten
+päädumppikin tekee). Tulos vahvisti teorian täsmälleen:
+
+- `PystyEroMaastoon` vaihteli -0.05:sta +0.05:een Boost/Latakko-riveillä -
+  osa (esim. `Boost_01/03/05`: -0.01, `Latakko_03`: -0.05) oli suoraan
+  maaston pinnan ALLA, loput vain 1-5 senttiä sen yläpuolella.
+- Boost/Latakko-mesh on itsessään vain ~0.03 yksikköä paksu - näin pieni
+  marginaali (tai negatiivinen) riittää hautaamaan koko objektin näkymättömiin
+  maaston pinnan sisään minkä tahansa pienen paikallisen korkeusvaihtelun takia.
+- Kartio/Laatikko (Y=0.4) saivat aina 0.34-0.40 marginaalin - siksi niistä ei
+  koskaan tullut valitusta koko keskustelun aikana.
+
+**Juurisyy vahvistettu**: `PakettiporinaElements.cs` istutti Boost/Latakko-
+objektit kiinteälle Y=0.05/0.03-tasolle olettaen Maaston pinnan olevan tasan
+Y=0 kaikkialla - todellisuudessa Maaston mesh-pinta vaihtelee muutaman sentin
+verran radan matkalla (peräisin Blender-generaattorista/mesh-tarkkuudesta).
+`GroundCollider` (auton ajofysiikka) on kokonaan erillinen, aina tasainen
+laatikko - se ei koskaan ollut sidoksissa Maaston oikeaan pintaan, minkä
+vuoksi törmäys/ääni toimivat normaalisti riippumatta siitä oliko Boost/
+Latakko haudattuna näkymättömiin vai ei.
+
+**Korjattu `PakettiporinaElements.cs`**: `AddElements()` etsii nyt scenen
+Maasto-objektin, lisää siihen väliaikaisen `MeshCollider`in (poistetaan
+lopuksi), ja jokainen `PlaceBoost/PlaceBoostXZ/PlacePuddle/PlaceCone/
+PlaceConeXZ/PlaceLaatikko/PlaceLaatikkoXZ` käyttää uutta `GroundY()`-apuria
+joka rykäisee oikean maaston pintakorkeuden kyseisessä XZ-kohdassa ja lisää
+siihen marginaalin (Boost/Latakko +0.08, Kartio/Laatikko +0.4 kuten ennenkin
+mutta nyt oikean pinnan päälle) - ei enää kiinteää, olettamukseen perustuvaa
+Y-arvoa. Jos Maastoa ei löydy, käytetään vanhaa kiinteää arvoa fallbackina
+(ei riko mitään jos jokin scene poikkeaa nimikäytännöstä).
+
+**EI VIELÄ UNITY-TESTATTU** - odottaa käyttäjän `Lisäys/02`-ajoa jokaisessa
+radassa (Puisto, Maatila, Huvipuisto, Game - Satama on jo entuudestaan
+toiminut, ei kiireellinen mutta kannattaa ajaa senkin varmuuden vuoksi) ja
+pelitestausta että Boost/Lätäkkö nyt näkyvät.
+
+## 19.8.2026 (jatko 8) — Terrain-korkeuskorjaus VAHVISTETTU 3/4 radalla, Puisto oma juurisyy + linear velocity -varoitusspam korjattu
+
+Käyttäjä ajoi `Lisäys/02`:n ja pelitesti kaikki 4 aiemmin rikkinäistä rataa.
+**Maatila, Huvipuisto ja Game: VAHVISTETTU KORJATUKSI** - Boost/Lätäkkö näkyvät
+nyt normaalisti (jatko 7:n terrain-korkeuskorjaus toimi täsmälleen suunnitellusti).
+
+**Puisto oli AINOA joka jäi yhä rikki**, vaikka sama korjaus ajettiin sielläkin
+ja tuotti järkeviä, maaston-suhteellisia Y-arvoja (esim. Boost_01 Y=0.14, sama
+luokkaa kuin muissakin radoissa). Koska korkeusmekanismi siis toimi Puistossakin,
+syy ei voinut enää olla korkeus - jäljelle jäi vain yksi Puistolle UNIIKKI muutos:
+18.8. samana päivänä tehty **bends-amplitudin etumerkin kääntö** (ks. jatko-osiot
+ja `PakettiporinaTracks.cs`), joka tehtiin SAMAAN "ei näy" -valitukseen vedoten
+mutta PELKÄLLÄ generaattori-Huvipuisto-analogialla - ei koskaan käsin
+Unity-vahvistettu Puistossa itsessään (toisin kuin Huvipuiston 8.8. flippi tai
+Gamen 18.8. peruutus, jotka molemmat perustuivat suoraan käyttäjän Unity-
+havaintoon). Koska Maatila/Huvipuisto/Game (ei bends-flippiä) korjaantuivat
+suoraan korkeuskorjauksella mutta Puisto (ainoa jolle myös bends käännettiin)
+ei, päätelmä: **bends-flippi oli virheellinen** - se työnsi Boost/Latakko-
+objektit tien väärälle puolelle (nyt näkyvinä muttei ajettavalla tiellä), mikä
+näyttäisi edelleen "ei näy/erotu" -oireelta pelissä.
+
+**Korjattu**: `PakettiporinaTracks.cs`, Puisto-TrackDef - `bends` palautettu
+takaisin alkuperäiseen, generaattoria vastaavaan arvoon:
+`{ (-120f,-30f,18f), (30f,120f,-18f) }` (oli `{ (-120f,-30f,-18f), (30f,120f,18f) }`).
+**EI VIELÄ UNITY-TESTATTU** - vaatii `Lisäys/02`:n uudelleenajon Puistossa ja
+pelitestin.
+
+**Linear velocity -varoitusspam korjattu**: konsoli täyttyi kymmenillä
+"Setting linear velocity of a kinematic body is not supported" -varoituksilla
+jokaisen lähdön odotusajan (countdown) aikana. Syy: `RaceManager.FreezeCar(true)`
+asettaa `car.isKinematic = true` odotusajaksi, mutta `ArcadeCarController.
+FixedUpdate()` yritti silti kirjoittaa `rb.velocity`:a joka fysiikkaruudulla
+(rivit 103 ja 125) - Unity ei salli tätä kinemaattiselle Rigidbodylle ja
+kirjoittaa siitä varoituksen konsoliin joka kerta. **Korjattu**: `FixedUpdate()`
+palaa heti alussa jos `rb.isKinematic`, ja `Bump()` samoin - autoa ei tarvitse
+simuloida lainkaan kesken jäädytyksen. EI VIELÄ UNITY-TESTATTU.
+
+**19.8.2026, jatko:** käyttäjä vahvisti Puiston lätäköt korjatuiksi. Uusi
+valitus: "The referenced script (Unknown) on this Behaviour is missing!"
+jokaiselle objektille pelin käynnistyessä - Unity ei koskaan kerro TÄSSÄ
+varoituksessa mikä objekti on kyseessä. Lisätty uusi diagnostiikkatyökalu
+`PakettiporinaMissingScripts.cs` (Pakettiporina/Tyokalut/05) joka käy koko
+avoimen scenen läpi (myös inaktiiviset objektit) ja tulostaa jokaisen
+GameObjectin tarkan hierarkiapolun jolla on puuttuva scripti-komponentti.
+Odottaa käyttäjän ajoa jokaisessa scenessä jossa varoitus esiintyy, jotta
+nähdään TARKALLEEN mitkä objektit (todennäköisesti vanhat/orvot jäänteet
+aiemmista työkaluajoista, esim. Lisäys/10:n puhdistamat Kupla-objektit tai
+vastaavat) ja voidaan joko poistaa ne tai korjata viittaus.
+
+**19.8.2026, jatko 2 — juurisyy ja korjaus:** työkalu 06 (koko projektin
+skannaus) löysi 56 rikkinäistä scripti-komponenttia, kaikki `Map/Objektit/`
+-koristeissa Huvipuisto/Maatila/Satama-sceneissä (esim. Huvipuisto_
+Maailmanpyora, Maatila_Navetta, Satama_Majakka - Puisto ja Game eivät kärsi).
+Jäljitetty: `PakettiporinaDecor.cs`:n `AddDecor()` lisää jokaiseen koristeeseen
+`PakettiporinaDecorMarker`-merkkikomponentin (kirjanpitoa Lisäys/03:n siivous-
+passille ja "16 - Vie sijainnit koodiksi" -työkalulle) - luokka on YHÄ olemassa
+koodissa, mutta scenen tallennettu viittaus osoittaa GUID:iin joka ei enää
+täsmää mihinkään scriptiin (todennäköisesti PakettiporinaDecor.cs:n .meta
+vaihtui suoran tiedostomuokkauksen seurauksena jossain kohtaa tätä sessiota,
+ei Unity Editorin kautta tehty). Marker on puhdasta editor-kirjanpitoa - ei
+vaikuta renderöintiin/törmäykseen/pelilogiikkaan - joten turvallisin korjaus
+on poistaa pelkkä rikkinäinen komponentti koskematta itse koristeeseen.
+
+Lisätty työkalu 07 (`Pakettiporina/Tyokalut/07 - Poista puuttuvat scriptit
+KAIKISTA sceneista (KORJAA)`) joka käy kaikki scenet läpi (samalla turvallisella
+additiivi-avaa/sulje-periaatteella kuin 06), poistaa rikkinäiset komponentit
+`GameObjectUtility.RemoveMonoBehavioursWithMissingScript`illa ja TALLENTAA
+muuttuneet scenet. HUOM: tämän jälkeen Lisäys/03:n vanhojen koristeiden
+siivouspassi ei enää tunnista näitä objekteja markerin kautta, jos Lisäys/03
+ajetaan joskus uudelleen näillä 3 scenellä - ei ongelma juuri nyt. EI VIELÄ
+UNITY-TESTATTU - odottaa käyttäjän ajoa.
+
+**19.8.2026, jatko 3 — työkalu 07 EI TOIMINUT, todellinen juurisyy löytyi ja
+korjattu suoraan scene-tiedostoista:** kolme peräkkäistä Editor-API-yritystä
+(GameObjectUtility, SerializedObject m_Component-manipulaatio, Prefab-
+instanssin purku + GameObjectUtility) epäonnistuivat kaikki - joko palauttivat
+0 tai raportoivat väärin onnistuneensa ilman että scene-tiedosto oikeasti
+muuttui (todistettu: 06 löysi täsmälleen samat luvut uudestaan pelitestien
+jälkeen, myös Puisto - jossa koristeet oli ilmeisesti lisätty vasta äskettäin,
+26/9/2026 selvisi Puiston 23:n olevan sama Lisäys/03-koristeongelma).
+
+**Oikea juurisyy löytyi suoraan .unity-tiedostojen YAML:sta**: jokaisen
+rikkinäisen `PakettiporinaDecorMarker`-komponentin `m_Script`-kenttä osoitti
+paljaaseen paikalliseen fileID:hen ilman guid:ia (esim.
+`m_Script: {fileID: 1464767556}`) - EI ulkoiseen script-assettiin `guid:`illa
+kuten pitäisi (`{fileID: 11500000, guid: <32-merkkinen-hex>, type: 3}`).
+Jokaisessa sceneessä tämä paljas fileID osoitti YHTEEN tyhjään/paikalliseen
+`MonoScript`-tynkäobjektiin (`!u!115`) SAMASSA tiedostossa - Unityn sisäinen
+"tuntematon skripti" -sijaisobjekti, joka syntyy kun alkuperäinen guid-
+viittaus lakkaa resolvoitumasta. Kaikki muut samalla tavalla (`AddComponent`
+Prefab-instanssin jälkeen) lisätyt komponentit (esim. Star-tähden pickup/
+pyöritys-skriptit) tarkistettiin ja niiden `m_Script`-guid:t olivat kunnossa -
+ongelma rajoittuu yksinomaan `PakettiporinaDecorMarker`-instansseihin.
+
+**Korjattu suoraan tiedostoista** (ei Unity Editorin kautta - `sed`
+tekstikorvaus jokaiselle scenelle sen omalla paikallisella tynkä-fileID:llä):
+`m_Script: {fileID: <scenen oma tynkä-ID>}` -> `m_Script: {fileID: 11500000,
+guid: e7dde9f8ce0769e46a90e134128a9489, type: 3}` (PakettiporinaDecorMarkerin
+oikea guid, `PakettiporinaDecor.cs.meta`:sta). Korjattujen määrä RIVEITTÄIN
+(enemmän kuin 06:n runtime-skannaus näytti, koska osa oli menettänyt myös
+`modelName`-kenttänsä eikä sen vuoksi näkynyt kaikissa ajonaikaisissa
+tarkistuksissa yhtä johdonmukaisesti - kaikki oli silti aidosti liitettynä
+oikeisiin GameObjekteihin, ei orpoa/käyttämätöntä dataa):
+- Puisto.unity: 30 korjattu
+- Huvipuisto.unity: 27 korjattu
+- Maatila.unity: 57 korjattu
+- Satama.unity: 25 korjattu
+- Yhteensä 139 riviä korjattu neljässä tiedostossa.
+
+Rivimäärät (`wc -l`) pysyivät identtisinä ennen/jälkeen - puhdas
+yhden-rivin-korvaus, ei rakenteellista riskiä. EI VIELÄ UNITY-TESTATTU
+(vaatii Unityn avaamisen/scenejen uudelleenlatauksen, koska tiedostot
+muutettiin Unityn ulkopuolelta) - kerro jos varoitus vieläkin tulee.
+
+**19.8.2026, jatko 4 — edellinen korjaus käytti VÄÄRÄÄ guidia, korjattu
+uudelleen:** käyttäjä testasi Maatilassa ja sai TÄYSIN UUDEN, pahemman
+virheryppään: `'Pakettiporina.EditorTools.PakettiporinaDecor' is missing the
+class attribute 'ExtensionOfNativeClass'!` + `The class ... is abstract` +
+Unity yritti jatkuvasti "Fixata" viittausta joka objektille toistuvasti.
+
+**Syy**: `PakettiporinaDecor.cs`-tiedostossa oli KAKSI luokkaa -
+`PakettiporinaDecorMarker` (MonoBehaviour) JA staattinen `PakettiporinaDecor`-
+apuluokka (radan koristeiden lisäystyökalu). Kun tiedostossa on useampi
+luokka, Unityn script-fileID 11500000 (oletus "pääluokka"-fileID) osoittaa
+AINA siihen luokkaan jonka nimi täsmää TIEDOSTON nimeen - eli
+`PakettiporinaDecor.cs`:ssä fileID 11500000 osoitti staattiseen
+`PakettiporinaDecor`-luokkaan, EI `PakettiporinaDecorMarker`-komponenttiin.
+Edellisen korjauksen `sed`-komento käytti `PakettiporinaDecor.cs.meta`:n
+guidia (`e7dde9f8...`) olettaen sen osoittavan markeriin - väärin.
+
+**Korjattu lopullisesti**: `PakettiporinaDecorMarker` siirretty omaan
+tiedostoonsa `PakettiporinaDecorMarker.cs` (samassa Lisays-kansiossa, sama
+namespace) - AINOA luokka tiedostossa, joten fileID 11500000 osoittaa nyt
+oikein siihen. Uusi tiedosto + oma `.meta` uudella guidilla
+(`da759860cf6242dfbbe5adb876e48395`, generoitu `uuid4`:lla). Kaikki neljä
+scenetiedostoa (Puisto/Huvipuisto/Maatila/Satama) päivitetty uudelleen `sed`-
+korvauksella osoittamaan tähän UUTEEN, oikeaan guidiin (fileID pysyy 11500000,
+type 3). Vahvistettu ettei vanhaa guidia jää mihinkään näistä eikä muihin
+sceneihin (Game/Garage/MainMenu/Wash/Kyla - ei koskaan viitanneet siihen).
+`PakettiporinaDecor.cs`:stä poistettu luokka, jätetty kommentti ohjaamaan
+uuteen tiedostoon.
+
+EI VIELÄ UNITY-TESTATTU - odottaa käyttäjän scenejen uudelleenlatausta
+(Unity täytyy tuoda uusi .cs-tiedosto ensin, tapahtuu automaattisesti kun
+Editor saa fokuksen) ja pelitestiä jokaisessa neljässä scenessä.
+
+## 19.8.2026, jatko 5 — progress-palkkien animointi, nopeustasojen ero levennetty, maskotti, Kylän perusta
+
+**Progress-palkit liikkuvat nyt näkyvästi**: `RaceHUD.cs`:n `dirtMeterBar`/`dentMeterBar`
+hyppäsivät aiemmin suoraan uuteen `fillAmount`-arvoon (kayttaja: "palkkien tulisi
+liikkua mika näyttää muutoksen osumista"). Lisätty `Update()`-pohjainen
+`Mathf.MoveTowards`-animointi (`meterAnimSpeed`, oletus 1.5 täyttöosaa/s) - ensimmäinen
+scenen alun synkronointi hypätään suoraan (ei animoi tyhjästä), vain oikeat osumat
+ajon aikana animoituvat.
+
+**Nopeustasojen ero levennetty uudelleen**: `ArcadeCarController.SpeedTierMultiplier`
+oli jo kerran levennetty 16.8. (0.72-1.32 -> 0.55-1.7), mutta käyttäjä ei YHÄ
+huomannut eroa. Levennetty reilusti lisää: `{0.4f, 1f, 2.4f}` (~6x kerroinväli,
+Keski pysyy 1.0:ssa).
+
+**Maskotti**: ei ollut yhtään 3D-hahmoa/animaatiota/riggausta projektissa - vain
+litteä 2D-avatar (`pakettiporina_vilkku_hahmo.png`, jo poseerattu käsi ylhäällä).
+Käyttäjä valitsi kevyen version. Uusi `MascotAnimator.cs` (Scripts/UI/) animoi
+tätä kuvaa koodilla (pomppu + heiluntakallistus + säännöllinen isompi "heilautus"-
+pulssi) ja näyttää puhekupla-TEKSTIÄ (ei ääntä - äänen nauhoitus/generointi ei ole
+mahdollista tässä työkalussa) tilanteeseen sopivilla riveillä. Uusi Editor-työkalu
+`PakettiporinaMascot.cs` (Lisays/11) lisää/päivittää maskotin MainMenun pääruudulle
+JA olemassa olevaan Asetukset-paneelin maskottiin, sekä Gareseen - EI VIELÄ
+UNITY-TESTATTU, sijainti/koko saattaa vaatia hienosäätöä Inspectorista per scene
+(MainMenu/Settings 800x600-referenssi, Garage 1080x1920).
+
+**Kylän perusta rakennettu**: Kyla.unity oli tyhjä runko (ks. aiemmat M-LISTA-
+merkinnät - "GroundCollinder"-kirjoitusvirhe, ei autoa, ei maastomallia, ei ääniä).
+Lisätty `PakettiporinaTracks.cs`:ään "Kyla"-TrackDef (kuusi bend-segmenttiä,
+amplitudi jopa 22 - eniten suunnanvaihtoja/jyrkin kaarto kaikista radoista, kuten
+käyttäjä pyysi "selkeästi vaikeampi kuin muut"). Uusi Editor-työkalu
+`PakettiporinaKylaSetup.cs` (Korjaus/09) korjaa kirjoitusvirheen, lisää näkyvän
+(vihreän) MeshRendererin pohjalle, luo StartPointin, instantioi `Car.prefab`in ja
+kytkee RaceManager.car/.startPoint + CameraFollow.target. EI VIELÄ: taloja, pihoja,
+pihoissa autoja, puita, postilaatikoita tms. koristeita - käyttäjä valitsi
+tietoisesti "aloita perustasta", koristeet/rakennukset ovat oma myöhempi vaihe
+(samaan tapaan kuin Lisays/03 muille radoille). EI VIELÄ UNITY-TESTATTU.
+
 ## Suositeltu seuraava askel
 
 **Päivitetty 16.8.2026.** Isoimmasta vaikutuksesta pienimpään:

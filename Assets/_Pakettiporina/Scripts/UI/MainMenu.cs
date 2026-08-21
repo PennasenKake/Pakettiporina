@@ -19,7 +19,7 @@ namespace Pakettiporina
         public void PlayGame()
         {
             Debug.Log("[MainMenu] Ladataan peli: " + gameSceneName);
-            SceneManager.LoadScene(gameSceneName);
+            SceneFader.LoadScene(gameSceneName); // KORJATTU 20.8.2026: haivytetty scenevaihto (ks. SceneFader.cs)
         }
 
         // Kytke tama halutessasi "Lopeta"-napin OnClickiin.

@@ -80,11 +80,18 @@ namespace Pakettiporina
                 heavy = Mathf.Clamp01(Mathf.InverseLerp(massLight, massHeavy, pkg.mass));
             float loadFactor = 1f - heavy * massPenalty;   // esim. 1.0 ... 0.75
 
-            // Saada arvot turvalliselle valille
-            car.acceleration = Mathf.Lerp(accelMin, accelMax, fVoima) * loadFactor;
-            car.grip = Mathf.Lerp(gripMin, gripMax, fPito);
-            car.maxSpeed = Mathf.Lerp(speedMin, speedMax, fKeveys) * loadFactor;
-            car.turnSpeed = Mathf.Lerp(turnMin, turnMax, fKeveys);
+            // Saada arvot turvalliselle valille.
+            // KORJATTU 19.8.2026 (koko pelin tarkistuksessa loydetty bugi): asetettiin
+            // aiemmin suoraan car.acceleration/car.maxSpeed, mika ylikirjoitti Asetusten
+            // Nopeustaso (Hidas/Keski/Nopea) -kertoimen kokonaan aina kun tama Start()
+            // ajettiin ArcadeCarController.Awake():n JALKEEN (aina normaalissa pelissa).
+            // SetBaseStats asettaa nyt PERUSARVOT ja soveltaa Nopeustaso-kertoimen
+            // PERAAN, jotta molemmat vaikuttavat yhdessa (ks. ArcadeCarController.cs).
+            float accel = Mathf.Lerp(accelMin, accelMax, fVoima) * loadFactor;
+            float maxSp = Mathf.Lerp(speedMin, speedMax, fKeveys) * loadFactor;
+            float turn = Mathf.Lerp(turnMin, turnMax, fKeveys);
+            float gr = Mathf.Lerp(gripMin, gripMax, fPito);
+            car.SetBaseStats(accel, maxSp, turn, gr);
 
             string pn = pkg != null ? pkg.displayName : "ei pakettia";
             Debug.Log($"[Setup] Auto saadetty ({s}) | paketti={pn} massa-vaimennus={loadFactor:F2}");
