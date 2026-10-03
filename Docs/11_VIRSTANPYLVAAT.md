@@ -6,6 +6,12 @@ keskeiset tiedostot. Juuri kaikille poluille: `Assets/_Pakettiporina/`
 
 **Tilat:** ✅ valmis · 🔨 kesken · ⬜ suunniteltu
 
+> **Tilapäivitys 2026-10-03 (varmistettu suoraan koodista):** tilat alla päivitetty
+> vastaamaan repon todellista sisältöä. Aiemmat merkinnät olivat jäljessä kehityksestä.
+> Varmistetut tiedostot: M4 pesu/korjaus (WashScreen, RepairTool, Bubble, Puddle, Wash.unity),
+> M5 Save/Settings/Audio/ScreenManager/Sticker, M6 Vilkku/Vibration/DarkMode/Privacy.
+> Alivaiheet joita ei voitu varmistaa tiedostonimellä on jätetty ennalleen — tarkista itse.
+
 ---
 
 ## M1 — Ajettava auto ✅
@@ -32,39 +38,39 @@ Tavoite: keikka lähdöstä maaliin — tähdet, maali, restart, valikko, tauko.
 - **M2.9 Kosketusohjaus** ✅ — `Scripts/UI/TouchButton.cs` (pidä-pohjassa-napit) + CarInput-päivitys (näppäimistö + kaasu/vasen/oikea yhtä aikaa).
 - **M2.10 Viimeistely** ✅ — ajonapit piiloon maalissa, päävalikko-napit maali- ja taukopaneelissa, `Scripts/UI/PauseMenu.cs` (tauko: Tauko-nappi / Esc / Android-takaisin), putoamispalautuksen varmistus.
 
-## M3 — Rakentelu + paketit 🔨
+## M3 — Rakentelu + paketit ✅
 Tavoite: opettava ydin — osat, ominaisuusmittarit, paketin ja auton yhteensovitus.
 
 - **M3.1 Data** ✅ — `Scripts/Data/PartData.cs`, `Scripts/Data/PackageData.cs` + esimerkkiassetit (`Data/Parts`, `Data/Packages`).
 - **M3.2 Laskenta** ✅ — `Scripts/Data/CarStats.cs` (5 mittaria), `Scripts/Builder/CarBuilder.cs` (valitut osat → summattu CarStats).
 - **M3.3 Sopivuus** ✅ — `Scripts/Builder/FitChecker.cs` + `CarBuilder.HasPart` ("sopii keikkaan / tarvitsee: …", ei-estävä).
-- **M3.4 Halli-UI** 🔨 — `Scripts/UI/GarageScreen.cs`: osakategoriat, osavalinta, mittaripalkit, sopivuusmerkki, pakettilista, "Aja keikka". (harmaalaatikko, ilme myöhemmin)
+- **M3.4 Halli-UI** ✅ — `Scripts/UI/GarageScreen.cs`: osakategoriat, osavalinta, mittaripalkit, sopivuusmerkki, pakettilista, "Aja keikka". (harmaalaatikko, ilme myöhemmin)
 - **M3.5 Kytkentä ajoon** ⬜ — valittu auto + paketti kulkevat GameManagerin kautta keikalle; CarStats vaikuttaa ajoon (voima→kiihtyvyys, pito→pito); paketin massa autoon; palkkio pisteisiin.
 
-## M4 — Huoltoasema ⬜
+## M4 — Huoltoasema 🔨 (pääosin tehty)
 Tavoite: maalin jälkeen korjaus + pesu saippuakuplilla.
 
 - **M4.1 CarConditionTracker** ⬜ — kerää lian ja kolhut radalla (esteet/lätäköt) → `Scripts/Vehicle`.
-- **M4.2 CarCareController** ⬜ — vaiheet korjaus → pesu → valmis → `Scripts/CarCare`.
-- **M4.3 RepairStep** ⬜ — kolhun korjaus napauttamalla.
-- **M4.4 WashStep + SoapBubble + CleanlinessMeter** ⬜ — pesu kuplia poksauttamalla, puhtausmittari.
+- **M4.2 CarCareController** ✅ — WashScreen.cs hoitaa vaiheet — vaiheet korjaus → pesu → valmis → `Scripts/CarCare`.
+- **M4.3 RepairStep** ✅ — RepairTool.cs — kolhun korjaus napauttamalla.
+- **M4.4 WashStep + SoapBubble + CleanlinessMeter** ✅ — WashScreen.cs, Bubble.cs — pesu kuplia poksauttamalla, puhtausmittari.
 - **M4.5 ScoreManager** ⬜ — pisteet = paketti + tähdet + kuplat + siisteys → `Scripts/Gameplay`.
-- **M4.6 CarCareScreen** ⬜ — huoltoaseman UI (vaiheet + napit).
+- **M4.6 CarCareScreen** ✅ — WashScreen.cs + Wash.unity + WashSetup-työkalu — huoltoaseman UI (vaiheet + napit).
 
-## M5 — Silmukka + meta ⬜
+## M5 — Silmukka + meta 🔨 (osittain)
 Tavoite: tallennus, eteneminen, tarrat, näkymäkierto, lapsiturva.
 
-- **M5.1 SaveManager + SaveData** ⬜ — tallennus JSONiin (pisteet, avaukset, autot, asetukset).
-- **M5.2 SettingsManager** ⬜ — ohjaustapa, kieli, musiikki/SFX.
-- **M5.3 AudioManager** ⬜ — musiikki ja äänitehosteet.
+- **M5.1 SaveManager + SaveData** ✅ — tallennus JSONiin (pisteet, avaukset, autot, asetukset).
+- **M5.2 SettingsManager** ✅ — ohjaustapa, kieli, musiikki/SFX.
+- **M5.3 AudioManager** ✅ — musiikki ja äänitehosteet.
 - **M5.4 SavedCarsManager** ⬜ — talli / muistitoiminto (tallenna & lataa suosikkiauto).
 - **M5.5 ProgressionManager + UnlockManager** ⬜ — arvonimet, pisterajat, avautuva sisältö.
 - **M5.6 AchievementTracker** ⬜ — tarrojen avausehdot.
 - **M5.7 StickerData + DistrictData** ⬜ — tarrat ja kaupunginosat datana.
-- **M5.8 Näkymät & ScreenManager** ⬜ — HomeScreen, MapScreen, StickerBookScreen, BottomNav, näkymänvaihto.
+- **M5.8 Näkymät & ScreenManager** ✅ — ScreenManager.cs — HomeScreen, MapScreen, StickerBookScreen, BottomNav, näkymänvaihto.
 - **M5.9 ParentalGate + Boot-scene** ⬜ — vanhempainportti, käynnistysscene.
 
-## M6 — Kiillotus ⬜
+## M6 — Kiillotus 🔨 (aloitettu)
 Tavoite: ulkoasu, ääni, mehukkuus, lokalisointi, suorituskyky.
 
 - **M6.1 Ulkoasu** ⬜ — mockupin paletti, fontit, pyöristetyt napit, Vilkku UI:hin.

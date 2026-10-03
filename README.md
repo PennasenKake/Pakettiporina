@@ -93,9 +93,21 @@ Assets/_Pakettiporina/
 
 ## 🚧 Kehityksen tila
 
-Peli on aktiivisessa kehityksessä. Ydinpelisilmukka (rakenna → aja → palkkio → halli)
-on toteutettu ja pelattava. Työn alla: autonpesu-välivaihe, tallennusjärjestelmä,
-äänet ja lisää ratoja.
+Peli on pelattava ja sisällöltään laaja. Toteutettu ydinsilmukka sekä sen päälle
+huoltoasema, tallennus, asetukset, äänet ja meta-näkymät.
+
+**Valmista:**
+- Rakenna → aja → maali → palkkio → halli -silmukka (M1–M3)
+- Huoltoasema: pesu (kuplat) ja korjaus omalla näkymällä ja scenellä (M4)
+- Tallennus (JSON), asetukset, äänet, näkymänhallinta, tarrat (M5 osittain)
+- Vilkku-maskotti, haptiikka, tumma tila, yksityisyysnäkymä (M6 aloitettu)
+- **5 pelattavaa karttaa:** Kylä, Satama, Puisto, Maatila, Huvipuisto
+- Laaja oma editorityökalusto (scenen tarkistus/korjaus, datan generointi ja tasapainotus)
+
+**Jäljellä:**
+- Meta-progressio: pisteet/palkkiot kootusti, avaukset, arvonimet, tarrojen ehdot
+- Vanhempainportti (lapsiturvan viimeinen pala)
+- Kiillotus: lokalisointi fi/en, suorituskykyoptimointi, laitetestaus
 
 ---
 
