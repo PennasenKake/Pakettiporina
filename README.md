@@ -113,8 +113,10 @@ huoltoasema, tallennus, asetukset, äänet ja meta-näkymät.
 
 ## 📸 Kuvia
 
-*(Lisää tähän kuvakaappauksia tai GIF pelistä – ks. ohje alla.)*
-
+## 📸 Kuvia
+| Aloitus | Halli | Ajo | Huoltoasema |
+|---|---|---|---|
+| ![](docs/menu.png) | ![](docs/halli.png) | ![](docs/ajo.png) | ![](docs/pesu.png) |
 <!--
 ![Halli](docs/kuvat/halli.png)
 ![Ajo](docs/kuvat/ajo.png)
