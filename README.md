@@ -11,7 +11,7 @@ näkyvä ja tuntuva vaikutus ajokokemukseen.
 
 ---
 
-[![Lataa APK](https://img.shields.io/badge/📲_Lataa_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/PennasenKake/Pakettiporina/releases/latest/download/Pakettiporina.apk)
+[![Lataa APK](https://img.shields.io/badge/📲_Lataa_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)]([https://github.com/PennasenKake/Pakettiporina/releases/latest/download/Pakettiporina.apk](https://github.com/PennasenKake/Pakettiporina/releases/download/v0.10.0/Pakettiporina.apk))
 
 *Pelattava demo (v0.10). Asennusohjeet [julkaisusivulla](https://github.com/PennasenKake/Pakettiporina/releases/latest).*
 
