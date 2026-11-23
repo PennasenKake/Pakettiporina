@@ -44,3 +44,9 @@ sysinfo.txt
 crashlytics-build.properties
 
 # HUOM: Unityn .meta-tiedostot KUULUVAT versionhallintaan — älä jätä niitä pois.
+
+# Siivottu roska
+UpgradeLog*.htm
+*_BurstDebugInformation_DoNotShip/
+create_pakettiporina_structure.ps1
+.preview_*.png

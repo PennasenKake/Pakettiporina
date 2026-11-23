@@ -91,16 +91,15 @@ pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 
 ## 🧰 Editorityökalut (oma tuotanto)
 
-Projektissa on yli 30 omaa Unity-editorityökalua, jotka automatisoivat scenejen
-rakentamisen ja pitävät ne virheettöminä. Ne löytyvät valikosta **Pakettiporina**, jossa
-on neljä ryhmää:
+Projektissa on 30 omaa Unity-editorityökalua, jotka automatisoivat scenejen rakentamisen
+ja pitävät ne virheettöminä. Ne löytyvät valikosta **Pakettiporina** neljässä ryhmässä:
 
-- **Tarkistus** – raportoivat scenen, hallin, pesun, päävalikon, datan ja äänten puutteet
-- **Korjaus** – korjaavat ja kytkevät scenet (peliscene, halli, pesu, päävalikko, äänet)
-- **Lisäys** – lisäävät sisältöä: tähdet, esteet ja tehosteet, teemakoristeet, tarrat,
-  salaiset osat, asetuspaneeli ja maskotti
-- **Työkalut** – apuvälineet vianetsintään (tien profiili, scenen vienti, puuttuvien
-  scriptien haku)
+| Ryhmä | Työkalut |
+|-------|----------|
+| **Tarkistus** (6) | Peliscene, halli, pesu ja päävalikko; datan analyysi; äänten tarkistus kaikista sceneistä |
+| **Korjaus** (9) | Peliscenen, hallin, pesun ja päävalikon korjaus ja kytkentä; kategoriat ja kosmetiikka; osien arvojen tasapainotus; "korjaa kaikki" (data); äänten kytkentä; Kylä-radan perusta |
+| **Lisäys** (11) | Tähdet radalle; pelielementit (boost, lätäkkö, kartio, laatikko); teemakoristeet; teemapuiston kartta; lisäosat; uudet paketit; avattavat tarrat; salaiset osat; asetuspaneeli; esteet ja tehosteet uuteen rataan; animoitu maskotti |
+| **Työkalut** (7) | Tien profiili (konsoli ja Scene-näkymä); scenen elementtien ja sijaintien vienti; puuttuvien scriptien haku ja poisto |
 
 Työkalut ovat idempotentteja eli ne voi ajaa turvallisesti uudelleen.
 
@@ -145,6 +144,13 @@ tallennus, asetukset, äänet ja yötila ovat valmiina.
 - Vanhempainportti ja Google Play -julkaisun vaatimukset (tietosuojaseloste,
   ikäluokitus, allekirjoitus)
 - Laitetestaus ja suorituskyky; mahdollinen lokalisointi
+
+---
+
+## 📚 Esittely ja materiaalit
+
+Kaikki esittelymateriaali on kansiossa [`Docs/Esittely`](Docs/Esittely):
+[pitch-esitys](Docs/Esittely/Pakettiporina_pitch.pptx), [artikkelisarjan runko](Docs/Esittely/Artikkelisarja_Runko_10osaa_2026-08-24.md) (10-osainen "How to build your own game with Unity, Blender and Claude") ja [tutorial-idea](Docs/Esittely/Idea_TutorialArtikkelit_2026-08-20.md).
 
 ---
 
