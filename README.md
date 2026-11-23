@@ -1,19 +1,16 @@
-﻿# Pakettiporina
-# Pakettipörinä 🚗📦
+﻿# Pakettipörinä 🚗📦
+
+*Kaupungin hupsuin lähetti*
 
 **Pakettipörinä** on iloinen, lapsiystävällinen 3D-mobiilipeli (Android) 6–10-vuotiaille.
-Pelaaja rakentaa itselleen auton osista, valitsee toimitettavan paketin ja ajaa sen radan
-läpi maaliin. Peli yhdistää **rakentelun** ja **ajamisen** niin, että lapsen valinnoilla on
-näkyvä ja tuntuva vaikutus ajokokemukseen.
+Pelaaja rakentaa auton osista, valitsee toimitettavan paketin, ajaa sen radan läpi maaliin
+ja pesee ja korjaa auton ajon jälkeen. Peli yhdistää **rakentelun**, **ajamisen** ja
+**huoltamisen** niin, että lapsen valinnoilla on näkyvä vaikutus ajokokemukseen.
 
 > Portfolioprojekti. Rakennettu Unitylla (URP), tavoitteena lapsiturvallinen, mainokseton
 > ja offline-toimiva peli.
 
 ---
-
-[![Lataa APK](https://img.shields.io/badge/📲_Lataa_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/PennasenKake/Pakettiporina/releases/download/v0.10.0/Pakettiporina.apk)
-
-*Pelattava demo (v0.10). Asennusohjeet [julkaisusivulla](https://github.com/PennasenKake/Pakettiporina/releases/latest).*
 
 ## 🎮 Pelin idea
 
@@ -21,28 +18,61 @@ Pelisilmukka:
 
 1. **Halli** – valitse paketti ja rakenna auto kuudesta osakategoriasta (kori, renkaat,
    moottori, jouset, lisät, maali).
-2. **Ajo** – auto ajaa automaattisesti; lapsi ohjaa kallistamalla puhelinta tai napeilla,
-   ja jarruttaa/peruuttaa yhdellä napilla. Matkalla kerätään tähtiä.
+2. **Ajo** – auto ajaa; lapsi ohjaa kallistamalla puhelinta tai napeilla ja jarruttaa
+   yhdellä napilla. Matkalla kerätään tähtiä, hyödynnetään tehosteita (boost) ja väistellään
+   esteitä (lätäkkö, kartio, laatikko).
 3. **Maali** – palkkio pisteinä; oikea auto oikealle paketille tuo täyden palkkion.
-4. **Takaisin halliin** – auto säilyy, pisteet kasvavat, ja lapsi voi virittää autoa lisää.
+4. **Pesu ja korjaus** – ajossa kertynyt lika poistetaan poksauttamalla saippuakuplia ja
+   kolhut korjataan napauttamalla korjauskuplia. Lika- ja kolhumittari säilyy ajojen välillä.
+5. **Takaisin halliin** – auto säilyy, pisteet kasvavat, ja pisteillä avautuu uusia osia,
+   paketteja ja tarroja.
 
 Auton **ominaisuudet vaikuttavat ajoon**: voima → kiihtyvyys, keveys → huippunopeus,
-pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa. Näin "rakenna sopiva auto"
-on aito, palkitseva valinta.
+pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 
 ---
 
 ## ✨ Ominaisuudet
 
-- **Auton rakentaminen** osista, joilla on selkeät vahvuudet ja heikkoudet
+**Pelattavuus**
+- **Auton rakentaminen:** 32 osaa, 10 pakettia ja salaiset kultaiset osat
 - **Fysiikkapohjainen arcade-ajo** (Rigidbody, ForceMode.Acceleration)
-- **Kallistusohjaus** kalibroinnilla + vaihtoehtoiset kosketusnapit
-- **Lähtölaskenta** (3-2-1-AJA!) ja selkeä palkkiosilmukka
-- **Palettitekstuuri-työnkulku** low-poly-malleille (yksi materiaali + pieni PNG → värit
-  toimivat luotettavasti Unityssä ja mobiili pysyy kevyenä)
-- **Proseduraalinen ratageneraattori** (Blender): sama työkalu tuottaa uusia ratoja
-  vaihtamalla mutkat, pituuden ja teeman
-- **Lapsiturva**: offline, ei mainoksia, ei datankeruuta, vanhempainportti (suunnitteilla)
+- **Ohjaus:** kallistus (kalibroinnilla), kosketusnapit tai molemmat; kolme nopeustasoa
+- **Lähtölaskenta** (3-2-1-AJA!) ja tähtipohjainen palkkiosilmukka
+- **Pesu ja korjaus** omana minipelinään, pysyvä lika-/kolhumittari
+- **36 avattavaa tarraa**
+
+**Rakenne ja viimeistely**
+- **Tallennus** (JSON, laitteella): pisteet, valinnat, asetukset ja mittarit
+- **Asetukset:** musiikki, äänet, värähtely, ohjaustapa, ajonopeus ja **yötila**
+- **Äänet:** musiikki valikolle, hallille, radalle ja pesulle sekä 12 tehostetta
+- **Scenevaihdon häivytys** (fade) kaikissa näkymissä
+- **Androidin takaisin-nappi:** sulkee paneelit ja palaa edelliseen näkymään
+- **Vilkku-maskotti** puhekuplineen päävalikossa ja hallissa
+- **Lapsiturva:** offline, ei mainoksia, ei datankeruuta, ei ostoja eikä chattia;
+  aikuisille oma osio (tietoja pelistä, tietosuoja, edistymisen nollaus)
+
+**Tekniikka**
+- **Palettitekstuuri-työnkulku** low-poly-malleille (yksi materiaali + pieni PNG)
+- **Proseduraalinen ratageneraattori** (Blender, Python): uusia ratoja vaihtamalla
+  mutkat, pituuden ja teeman
+- 73 omaa FBX-mallia
+
+---
+
+## 🗺️ Scenet ja radat
+
+| Scene | Sisältö |
+|-------|---------|
+| `MainMenu` | Päävalikko, asetukset, tarrat, tietoja ja tietosuoja |
+| `Garage` | Halli: auton rakennus ja paketin valinta |
+| `Game` | Perusrata |
+| `Puisto` | Puisto: lampi, kaarisilta, keinut |
+| `Satama` | Satama: laiva, nosturi, kontit |
+| `Huvipuisto` | Huvipuisto: maailmanpyörä, karuselli, teltta |
+| `Maatila` | Maatila: navetta, eläimet, tuulimylly |
+| `Wash` | Pesu ja korjaus |
+| `Kyla` | Kylä-rata (vaikein) – **työn alla**, vasta perusrunko |
 
 ---
 
@@ -54,21 +84,25 @@ on aito, palkitseva valinta.
 | Kieli | C# |
 | 3D-mallit | Blender (Python-skriptit, palettitekstuuritekniikka) |
 | Alusta | Android (IL2CPP, ARM64) |
-| Versionhallinta | Git |
+| Versionhallinta | Git (isot binääritiedostot Git LFS:llä) |
+| Kehitystyö | Claude tekoälyavusteisena pariohjelmointikumppanina |
 
 ---
 
 ## 🧰 Editorityökalut (oma tuotanto)
 
-Projektiin on rakennettu joukko Unity-editorityökaluja, jotka nopeuttavat kehitystä ja
-pitävät scenet virheettöminä. Ne löytyvät valikosta **Pakettiporina**:
+Projektissa on yli 30 omaa Unity-editorityökalua, jotka automatisoivat scenejen
+rakentamisen ja pitävät ne virheettöminä. Ne löytyvät valikosta **Pakettiporina**, jossa
+on neljä ryhmää:
 
-- **Scenen tarkistus & korjaus** – tarkistaa ja korjaa peliscenen kytkennät (auto, kamera,
-  maasto, collider, maali) yhdellä klikkauksella
-- **Hallin korjaus** – lataa osat ja paketit automaattisesti ja kytkee UI:n tapahtumat
-- **Data-analyysi & tasapainotus** – tarkistaa osien ja pakettien tasapainon, korjaa
-  kategoriat ja generoi uutta sisältöä
-- **Mittatyökalu** – tulostaa objektien todelliset mitat vianetsintää varten
+- **Tarkistus** – raportoivat scenen, hallin, pesun, päävalikon, datan ja äänten puutteet
+- **Korjaus** – korjaavat ja kytkevät scenet (peliscene, halli, pesu, päävalikko, äänet)
+- **Lisäys** – lisäävät sisältöä: tähdet, esteet ja tehosteet, teemakoristeet, tarrat,
+  salaiset osat, asetuspaneeli ja maskotti
+- **Työkalut** – apuvälineet vianetsintään (tien profiili, scenen vienti, puuttuvien
+  scriptien haku)
+
+Työkalut ovat idempotentteja eli ne voi ajaa turvallisesti uudelleen.
 
 > Nämä työkalut ovat tietoinen valinta: ne osoittavat pyrkimystä toistettavaan,
 > ylläpidettävään työnkulkuun, ei vain toimivaan lopputulokseen.
@@ -80,50 +114,44 @@ pitävät scenet virheettöminä. Ne löytyvät valikosta **Pakettiporina**:
 ```
 Assets/_Pakettiporina/
 ├─ Art/         (mallit, tekstuurit, UI, ikonit)
-├─ Data/        (osat ja paketit ScriptableObjecteina)
+├─ Audio/       (musiikki ja tehosteet)
+├─ Data/        (osat, paketit, tarrat ScriptableObjecteina)
+├─ Docs/        (kehityslokit, ratojen speksit, ideat)
 ├─ Prefabs/     (auto, kerättävät, esteet)
-├─ Scenes/      (MainMenu, Garage, Game)
 └─ Scripts/
-   ├─ Core/     (GameManager, GameEvents)
+   ├─ Core/     (GameManager, SaveManager, AudioManager, SettingsManager,
+   │             SceneFader, BackButtonHandler, DarkModeOverlay)
    ├─ Vehicle/  (ohjaus ja ajofysiikka)
-   ├─ Gameplay/ (keikan hallinta, maali, palkkio)
-   ├─ Builder/  (auton kokoaminen osista)
-   ├─ UI/       (halli, HUD, valikot)
-   ├─ Data/     (PartData, PackageData, CarStats)
-   └─ Editor/   (kehitystyökalut)
+   ├─ Gameplay/ (keikka, maali, esteet, tehosteet, pesu ja korjaus)
+   ├─ Builder/  (auton kokoaminen osista, sopivuus)
+   ├─ UI/       (halli, HUD, valikot, tarrat, maskotti)
+   ├─ Data/     (PartData, PackageData, CarStats, StickerData)
+   └─ Editor/   (Tarkistus, Korjaus, Lisays, Tyokalut)
+Scenes/         (MainMenu, Garage, Wash, Game, Puisto, Satama, Huvipuisto,
+                 Maatila, Kyla)
+Docs/           (projektidokumentaatio)
 ```
 
 ---
 
 ## 🚧 Kehityksen tila
 
-Peli on pelattava ja sisällöltään laaja. Toteutettu ydinsilmukka sekä sen päälle
-huoltoasema, tallennus, asetukset, äänet ja meta-näkymät.
-
-**Valmista:**
-- Rakenna → aja → maali → palkkio → halli -silmukka (M1–M3)
-- Huoltoasema: pesu (kuplat) ja korjaus omalla näkymällä ja scenellä (M4)
-- Tallennus (JSON), asetukset, äänet, näkymänhallinta, tarrat (M5 osittain)
-- Vilkku-maskotti, haptiikka, tumma tila, yksityisyysnäkymä (M6 aloitettu)
-- **5 pelattavaa karttaa:** Kylä, Satama, Puisto, Maatila, Huvipuisto
-- Laaja oma editorityökalusto (scenen tarkistus/korjaus, datan generointi ja tasapainotus)
+Peli on pelattava ja sisällöltään laaja: rakentelu, viisi rataa, pesu ja korjaus,
+tallennus, asetukset, äänet ja yötila ovat valmiina.
 
 **Jäljellä:**
-- Meta-progressio: pisteet/palkkiot kootusti, avaukset, arvonimet, tarrojen ehdot
-- Vanhempainportti (lapsiturvan viimeinen pala)
-- Kiillotus: lokalisointi fi/en, suorituskykyoptimointi, laitetestaus
+- Kylä-rata (maasto, koristeet, äänet)
+- Visuaalinen kiillotus (partikkelit, animaatiot) ja lisää mallit ja äänet
+- Vanhempainportti ja Google Play -julkaisun vaatimukset (tietosuojaseloste,
+  ikäluokitus, allekirjoitus)
+- Laitetestaus ja suorituskyky; mahdollinen lokalisointi
 
 ---
 
 ## 📸 Kuvia
-| Aloitus | Halli | Ajo | Huoltoasema |
-|---|---|---|---|
-| ![](docs/menu.png) | ![](docs/halli.png) | ![](docs/ajo.png) | ![](docs/pesu.png) |
-<!--
-![Halli](docs/kuvat/halli.png)
-![Ajo](docs/kuvat/ajo.png)
--->
-(TULOSSA)
+
+*(Kuvakaappaukset ja GIF lisätään pian.)*
+
 ---
 
 ## 👤 Tekijä
