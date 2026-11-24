@@ -18,6 +18,9 @@ Päivitetty 24.11.2026.
 | Esittely → Maalin efektit (testi) | laukaisee maalin (konfetti, välähdys, ääni) ajamatta maaliin |
 | Tarkistus → 07 Hallin kolmivaihe | kuvat, pakettien ikonit ja radat, Build Settings, osakategoriat |
 | Tarkistus → 08 Edistys | Progress.cs:n nimet, vaadittavat osat auki, oletusauto, radat Build Settingsissa (suunnitellut radat = info), ratalistojen yhteneväisyys (Progress ↔ RaceScenes ↔ PakettiporinaTracks.ALL), Hallin wizard-kuvat, salaiset osat taulukossa. Ajetaan myös Tarkistus/02:n perään |
+| Tarkistus → 09 Rata | kaiteet, maaliportin koko, isot koristeet (avoin ratascene; raportti `Docs/Rata_turva_<scene>.md`) |
+| Tarkistus → 10 Testit | ajaa EditMode-testit |
+| Korjaus → 11 Ratakaiteet | luo kaiteet ja rajoittaa maaliportin koon avoimeen rataan (idempotentti; tallenna scene) |
 | Korjaus → 10 Synkkaa Hallin kuvat | päivittää `Resources/WizardUI` lähdekuvista |
 
 Huomioita: F-näppäimet (F12, F7) eivät välity Simulator-ikkunaan, joten käytä Esittely-valikkoa (Kuvakaappaus). Kuvat 24.11.2026 on otettu näin ja nimetty `Docs/Esittely/{paavalikko,halli_1_paketti,halli_2_rata,halli_3_auto,ajo,maali,wash}.png`. Skriptimuutosten jälkeen Ctrl+R kääntää; odota käännös ennen Playta.
@@ -65,5 +68,8 @@ Laitetesti (puhelin, 10 min ajoa, akku-% ja lämpö) on vielä tekemättä.
 ## Tähtiporrastus ja radan valinta (23.11.2026)
 Testattu Unityssa: Halli vaihe 2 selaa 5 rataa, lukittu rata näyttää "Vielä N tähteä" ja Lukittu-napin; Satama-ajo + maali (Esittely → Maalin efekti) näytti 2 tähteä, vihjeen ja +70 palkkion. Testaamatta: 3 tähteä, "Uusi väri" -ilmoitus, tallennuksen lataus uudelleenkäynnistyksessä, Wash-korjausvaiheen asettelu (kolhuteksti siirretty y=-420, ei kolhuja testissä). Kylä on suunniteltu myöhemmäksi radaksi (ei testattava nyt).
 
-## Automaattiset testit
-Ei vielä. Ehdotus: Unity Test Framework (EditMode) `Progress.RateRun`, `Progress.NewlyUnlocked`, SaveData-lataus (myös rikkinäinen tiedosto → `.rikki.bak`).
+## Automaattiset testit (24.11.2026)
+`Assets/_Pakettiporina/Tests/EditMode` (asmdef `Pakettiporina.Tests.EditMode`, Unity Test Framework 1.1.33): `ProgressTests` (RateRun, ratojen avaus, NewlyUnlocked, taulukoiden terveys, RaceScenes) ja `SaveAndRunStarsTests` (SaveData JSON-kierto, vanha tallennus ilman uusia kenttiä, rikkinäinen JSON, AwardRun, ApplyLoadedProgress). **29 testiä, kaikki läpi.** Ajo: valikko Pakettiporina → Tarkistus/10 (raportti `Docs/Testit_viimeisin.md`) tai Window → General → Test Runner → EditMode. Puuttuu: PlayMode-testit (RaceManager, halli), ajofysiikka, UI.
+
+## Asetukset (24.11.2026)
+Käsin Simulatorissa läpi: kaikki kytkimet ja valinnat, Tietoja, Tietosuoja, Nollaa (Peruuta), Yötila. Ks. TODO osio 14. Automaattinen testi alipaneelien avaukselle puuttuu (vaatisi PlayMode-testin MainMenu-scenellä).

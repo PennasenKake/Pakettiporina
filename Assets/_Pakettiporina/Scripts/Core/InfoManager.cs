@@ -13,19 +13,26 @@ namespace Pakettiporina
                  "VAIHDA TAMA OMAAN OSOITTEESEESI Inspectorissa tai alla olevaan oletusarvoon.")]
         public string feedbackEmail = "palaute@pakettiporina.fi";
 
+        bool openRequested;
+
         void Start()
         {
-            if (panelRoot != null) panelRoot.SetActive(false);
+            // KORJATTU 24.11.2026: sama Start-bugi kuin ResetConfirmManagerissa (komponentti paneelin paalla -> Start
+            // ajetaan vasta ensimmaisella aktivoinnilla ja piilotti paneelin heti ensimmaisella avauksella).
+            if (panelRoot != null && !openRequested) panelRoot.SetActive(false);
         }
 
         public void Open()
         {
+            openRequested = true;
             if (panelRoot != null) panelRoot.SetActive(true);
         }
 
         public void Close()
         {
+            bool wasOpen = panelRoot != null && panelRoot.activeSelf;
             if (panelRoot != null) panelRoot.SetActive(false);
+            if (wasOpen) SettingsManager.ReopenAfterSubpanel();   // takaisin Asetuksiin
         }
 
         public void Toggle()

@@ -72,8 +72,8 @@ Toteutus: `Scripts/Core/Juice.cs`. Partikkelit ja materiaali luodaan ajonaikaise
 - [x] Tähti- ja kello-ikonit pisteille ja ajalle (`Juice.StarIcon/ClockIcon`, laatan sisällä). Nähty Simulatorissa.
 - [x] Ohjausnapit "hävisivät" (käyttäjän raportti 23.11.): varotoimi tehty (Juice ei kosketa TouchButton-nappeja). Ohjausnapit (vasen, jarru, oikea) näkyvät Huvipuistossa 23.11. Jos ongelma toistuu laitteella, kerro mitä näkyy.
 - [~] README: päävalikko, halli (vanha), ajo ja GIF (Satama) lisätty (Docs/Esittely); README-teksti päivitetty 23.11. (kolmivaiheinen halli, mehukkuus, 38 työkalua). Puuttuu maali-paneeli (käytä Esittely -> Maalin efektit (testi)), pesu ja uusi halli. Kaappaus: Unity-valikko Pakettiporina/Esittely.
-- [ ] BUGI: auto voi ajaa mereen (veden päällä ei putoamissuojaa) ja Recovery palauttaa loputtomasti samaan kohtaan; maaliin pääsy vaikeaa. Lisää ratakaiteet/seinät tai tarkistuspiste.
-- [ ] Pause-napin korkeus vähintään 48 dp.
+- [x] BUGI: auto voi ajaa mereen / Recovery palautti samaan kohtaan (24.11.): kaiteet kaikille 5 radalle (Korjaus/11, tallennettu sceneihin) + CarRecovery käyttää historiaa (väh. 1,5 s taaksepäin, toistossa yhä vanhempaan, maa-tarkistus, suoja-aika). Maaliin pääsy testattu Game-radalla näppäimillä. Testaamatta: ajo kaiteeseen Satamassa käsin; laitetesti.
+- [x] Pause-napin kosketusalue vähintään 48 dp (`PauseMenu.EnsureMinTouchSize`, 24.11.; laitteella tarkistettava)
 - [~] Pesun UI-hiukkaset: kuplan poksahdus (`Bubble.TryPop`) ja kolhun korjaus (`WashScreen.RepairNextDent`).
 - [ ] Laitetesti suorituskyvylle (Huvipuisto, Maatila). Tarkista erityisesti: nappien automaattiskannaus (0,6 s välein) ja partikkelien määrä.
 - [~] Lika-/kolhumittarit: sanaselitteet "Lika"/"Kolhut" pysyvästi, palkin väri muuttuu vakavuuden mukaan (keltainen -> punainen, lika vaalea -> tumma ruskea). Ei vielä testattu uudella värityksellä.
@@ -109,7 +109,7 @@ Toteutus: `Scripts/Core/Juice.cs`. Partikkelit ja materiaali luodaan ajonaikaise
 ## Suositeltu järjestys (päivitetty 23.11.2026)
 
 1. **Laitetesti oikealla puhelimella** (uusi halli, HUD, suorituskyky, kosketusalueet): löytää eniten ongelmia nopeimmin.
-2. Bugi: auto ajaa mereen / ei pääse maaliin (kaiteet tai tarkistuspiste); maali-portti ja koristeiden koot; Pause-nappi ≥ 48 dp.
+2. ~~Bugi: auto ajaa mereen; maali-portti ja koristeiden koot; Pause-nappi ≥ 48 dp~~ (korjattu 24.11., ks. osio 13).
 3. Maali-paneelin ja Pesun tarkistus ja README-kuvat (myös uusi halli).
 4. Onboarding-vihje ja lähtölaskenta.
 5. Kolhu- ja korjauskuvat; pesun auton koko.
@@ -151,12 +151,35 @@ Valmiina 23.11.: väribugi, HUD-mittarit ja ikonit, Nollaa/Koti-vahvistukset, pe
 - [x] Rikkinäinen tallennus kopioidaan `.rikki.bak`-tiedostoksi
 - [x] Kuvakaappaukset (päävalikko, halli x3, ajo, maali, pesu) ja README päivitetty
 - [ ] **Laitetesti oikealla puhelimella** (suurin tuntematon)
-- [ ] Automaattiset testit (RateRun, NewlyUnlocked, SaveData)
+- [x] Automaattiset testit (RateRun, NewlyUnlocked, SaveData): 29 EditMode-testiä läpi (24.11.). Jatko: PlayMode-testit, RaceManager-integraatio
 - [ ] Tallennuksen versiosiirtymä (`saveVersion`) ennen ensimmäistä julkaisua
 - [ ] Lokalisointi: ~300 kovakoodattua suomenkielistä tekstiä
 - [ ] Lisenssi-/lähdeinventaario (Docs/05) – este FBX-/työkalumyynnille
 - [ ] HDR pois URP-Balancedista (tai todeta laitteella ok)
-- [ ] Pilko suuret UI-tiedostot (Juice 730, GarageWizard/RaceHUD/WashScreen 600+ riviä)
+- [x] Suuret UI-tiedostot pilkottu partial-luokiksi (24.11.): Juice 341 + 3 osaa, GarageWizard 317 + 2, RaceHUD 384 + 1, WashScreen 375 + 1
 - [ ] Wash-korjausvaiheen asettelu silmämääräisesti (kolhuteksti y=-420)
 - [ ] Tarrojen hinnan viereen kolikko-ikoni; pesun tauko-napin sijainti yhtenäiseksi
 - [ ] Vanhempainportti ja Google Play -vaatimukset
+
+## 13. Bugikorjaukset (24.11.2026)
+- [x] Ratakaiteet (Tarkistus/09, Korjaus/11) lisätty Game, Satama, Puisto, Huvipuisto ja Maatila -sceneihin ('Ratakaiteet'-juuri, näkymättömät BoxColliderit, kitkaton materiaali `Data/Kaide_ei_kitkaa`)
+- [x] CarRecovery: historia, toistosuoja, maa-tarkistus
+- [x] Maaliportti: koko 6,8 x 5,6 x 0,9 kaikilla radoilla (alle rajojen 18 x 9) -> ei enää "valtava"; ei muutettu
+- [x] Koristeet: vain Huvipuisto_Maailmanpyora on iso (29 m, tarkoituksella); muut alle rajojen
+- [x] Pause-nappi >= 48 dp
+- [ ] Tarkista Simulatorissa/laitteella: kaiteen kohdalla ajo ei tökkää (kitkaton), Satamassa kaide ei peitä näkymää mereen
+- [ ] Kyläradalle (myöhemmin) sama Korjaus/11 kun rata on valmis
+
+## 14. Asetukset-tarkistus päävalikosta (24.11.2026, Simulator)
+Käyty läpi: Musiikki, Äänet, Värähtely (kytkimet), Ohjaus (Napit/Kallistus/Molemmat), Ajonopeus (Hidas/Keski/Nopea), Tietoja pelistä, Tietosuoja, Nollaa edistyminen (vain Peruuta), Yötila. Valinnat pysyvät paneelin uudelleenavauksessa, yötila himmentää näkymän.
+- [x] BUGI korjattu: Tietoja- ja Tietosuoja-paneeli piilottui heti ensimmäisellä avauksella (`Start()` komponentissa joka on paneelin päällä; sama kuin Nollaa-dialogissa 23.11.). Nyt `openRequested`-lippu (InfoManager, PrivacyManager); testattu: avautuu ensimmäisellä painalluksella.
+- [x] Alipaneelien (Tietoja, Tietosuoja, Nollaa) sulkeminen palaa nyt Asetuksiin (`SettingsManager.ReopenAfterSubpanel`), ei päävalikkoon. Androidin takaisin-nappi toimii samoin.
+- [ ] Sulje-/takaisin-nappi käyttää "ovi ulos" -ikonia (sama kuin Lopeta päävalikossa) ja osuu otsikon pillin päälle; vaihda nuoli-/rasti-ikoniin. Kameran reikä (S10e) peittää nappia hetken ennen CutoutAvoiderin siirtoa.
+- [ ] "Aikuiselle"-otsikon lukkoikoni on pieni; tekstit (Napit/Kallistus/Molemmat) pieniä ja tummaa tekstiä vihreällä valinnalla: kontrasti heikko.
+- [ ] Palautesähköposti on oletuksena `palaute@pakettiporina.fi` (InfoManager): vaihda oikeaan osoitteeseen ennen julkaisua. "Lähetä palautetta" -nappia ei painettu testissä (avaa sähköpostiohjelman).
+- [ ] Nollaa-vahvistuksen varsinaista nollausta ei testattu (tuhoaisi editorin tallennuksen).
+- [ ] Testaa laitteella: asetusten säilyminen sovelluksen uudelleenkäynnistyksessä (tallennus tehdään paneelia suljettaessa; jos sovellus tapetaan paneeli auki, muutokset voivat jäädä tallentamatta).
+
+## 15. Pilvet ja kiinteät objektit (24.11.2026)
+- [x] Päävalikon pilvet (`MainMenuLife`, 5 kpl) ja ajonäkymän pilvet (`SkyClouds`, 4 kpl) löytyvät ja liikkuvat; varmistettu Playssa. Ajonäkymässä taivas on vain ylin ~19 %, joten pilvet nostettu näkyvämmiksi (alpha 0,75–0,95, kaista 10–17 %).
+- [ ] Päätös kiinteistä objekteista: koristeet (`PakettiporinaDecor`) ovat tarkoituksella ilman colliderta; ks. 07_DEVLOG 24.11. Ehdotus: lisää collider vain isoille koristeille lähellä tietä (työkalu), kaiteet pitävät auton radalla.

@@ -34,3 +34,5 @@ Peli sai 3-vaiheisen Hallin, suorituskykytestit ja -työkalut, vapaan radan vali
 - Uudet kuvat `Docs/Esittely` (paavalikko, halli_1_paketti, halli_2_rata, halli_3_auto, ajo, maali, wash) – käyttökelpoisia artikkelien kuvituksena.
 - Tunnetut heikkoudet ja avoimet: README.md (kohta "Tunnetut heikkoudet") ja TODO_Kiillotus_ja_UX.md osio 12. Sarjan estäjät ennallaan: lisenssi-inventaario, repon jako (myytävä vs. avoin), testit, sanasto.
 - Dokumentit 01–09 on täytetty ja päivitetty; vertailu on nyt `12_ARTIKKELISARJA_vertailu.md`.
+
+- 24.11.2026 myöhemmin: lisätty 29 EditMode-testiä (`Tests/EditMode`, Tarkistus/10), UI-tiedostot pilkottu partial-luokiksi, ratakaiteet + CarRecovery-parannus, Pause 48 dp. Testit ja partial-jako ovat hyvää opetussarja-materiaalia (osa: testaus ja koodin rakenne).

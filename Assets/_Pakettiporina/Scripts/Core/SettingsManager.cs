@@ -88,6 +88,17 @@ namespace Pakettiporina
         // sijaan etta pudotaan hiljaa pois - ilman tata "Tietoja pelistä" nappi vain sulkee
         // Asetukset (Close() toimii) eika avaa mitaan, mika nayttaa kayttajalle silta etta
         // nappi "hyppaa paavalikkoon" vaikka oikeasti kyse on tyhjasta viittauksesta.
+        // 24.11.2026 (Asetusten tarkistus): Tietoja/Tietosuoja/Nollaa-alipaneelit sulkevat Asetukset avautuessaan,
+        // joten niiden sulkeminen vei aiemmin suoraan paavalikkoon. Nyt alipaneelin Close() palauttaa Asetukset
+        // (sama kayttaytyminen kuin BackButtonHandlerin kommentti kuvaa: "palataan Asetuksiin").
+        public static void ReopenAfterSubpanel()
+        {
+            var s = FindObjectOfType<SettingsManager>(true);
+            if (s == null || s.panelRoot == null) return;
+            s.Refresh();
+            s.panelRoot.SetActive(true);
+        }
+
         public void OpenInfo()
         {
             Close();

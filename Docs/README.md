@@ -21,7 +21,7 @@ Pakettipörinä on lapsiystävällinen 3D-mobiilipeli (Android, Unity 2022.3 URP
 | [TODO_Kiillotus_ja_UX](TODO_Kiillotus_ja_UX.md) | avoimet asiat (ainoa totuus) |
 | [Opetussarja/](Opetussarja) | materiaalit opetussarjan jatkokeskusteluun (00–08) |
 | [Esittely/](Esittely) | kuvakaappaukset, GIF, pitch |
-| Raportit | `Edistys_tarkistus_viimeisin.md`, `Suorituskyky_*.md`, `Pelitestaus_23-11-2026.md`, `Saavutettavuus_23-11-2026.md` |
+| Raportit | `Testit_viimeisin.md`, `Rata_turva_*.md`, `Edistys_tarkistus_viimeisin.md`, `Suorituskyky_*.md`, `Pelitestaus_23-11-2026.md`, `Saavutettavuus_23-11-2026.md` |
 | [Arkisto_Assetsista/](Arkisto_Assetsista) | vanhat ratojen speksit, koodikatselmus, tiivistelmät (siirretty pois Assetsista 24.11.2026) |
 
 ## Tila (24.11.2026)

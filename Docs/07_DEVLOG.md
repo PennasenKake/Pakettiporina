@@ -84,3 +84,13 @@ _(Lyhyt loki: ongelma → ratkaisu.)_
 - Uudet kuvakaappaukset `Docs/Esittely` (päävalikko, halli 3 vaihetta, ajo, maali, pesu); README:n kuvataulukko päivitetty.
 - Dokumentaatio päivitetty: 01, 02, 03, 04, 05, 08, 09, 11_VIRSTANPYLVAAT, Docs/README, TODO osio 12; vertailu uudelleennumeroitu 12_.
 - Unity sulkeutui kahdesti istunnon aikana; avattu uudelleen Hubista.
+
+## 24.11.2026 (yö 2): testit, pilkonta, bugit
+- Lisätty EditMode-testit (29 kpl, läpi) ja Tarkistus/10 testien ajoon.
+- Pilkottu Juice, GarageWizard, RaceHUD ja WashScreen partial-luokiksi (sisältö muuttumaton, käännös ja testit läpi).
+- CarRecovery uusittu (historia, toistosuoja, maa-tarkistus); ratakaiteet kaikille 5 radalle (Tarkistus/09, Korjaus/11); Pause-nappi >= 48 dp. Maaliportti ja koristeet mitattu: eivät olleet liian isoja nyt.
+- Commit `feat: tahtiporrastus...` tehty paikallisesti; push meni GitHub Desktopissa käyntiin kirjautumisen jälkeen.
+
+## 24.11.2026 (yö 3): Asetukset-tarkistus
+- Tarkistettu Asetukset päävalikosta Simulatorissa. Korjattu: Tietoja/Tietosuoja avautuivat vasta toisella painalluksella (Start-bugi); alipaneelien sulkeminen palaa Asetuksiin. Avoimet: sulje-ikoni, kontrasti, palautesähköposti (TODO osio 14).
+- Asetukset palautettu oletuksiin testin jälkeen (musiikki, äänet, värähtely päällä; Molemmat; Keski; yötila pois).

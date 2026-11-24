@@ -28,6 +28,33 @@ namespace Pakettiporina
         {
             if (pausePanel != null) pausePanel.SetActive(false);
             SetIcon(false);
+            EnsureMinTouchSize();
+        }
+
+        // 24.11.2026 (TODO: "Pause-napin korkeus vahintaan 48 dp"): tauko-napin kosketusalue
+        // pakotetaan vahintaan 48 x 48 dp:hen laitteen tiheyden mukaan (Canvasin skaalaus huomioiden).
+        // Kuva voi pysya pienempana: lisataan vain alue, ei muuteta ulkonakoa jos nappi on jo riittava.
+        public const float MinTouchDp = 48f;
+
+        void EnsureMinTouchSize()
+        {
+            var go = GameObject.Find("PauseButton");
+            if (go == null) return;
+            var rt = go.GetComponent<RectTransform>();
+            var canvas = go.GetComponentInParent<Canvas>();
+            if (rt == null || canvas == null) return;
+            float scale = Mathf.Max(0.01f, canvas.rootCanvas.scaleFactor);
+            float density = Screen.dpi > 0f ? Screen.dpi / 160f : 2.75f;
+            float minUnits = MinTouchDp * density / scale;
+            // Vain pistemaiset ankkurit (ei venyva); venyva nappi hoitaa itse kokonsa.
+            if (rt.anchorMin != rt.anchorMax) return;
+            var size = rt.sizeDelta;
+            var newSize = new Vector2(Mathf.Max(size.x, minUnits), Mathf.Max(size.y, minUnits));
+            if (newSize != size)
+            {
+                rt.sizeDelta = newSize;
+                Debug.Log($"[Pause] Tauko-nappi kasvatettu {size} -> {newSize} (48 dp).");
+            }
         }
 
         void Update()

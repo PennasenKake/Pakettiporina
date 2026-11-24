@@ -57,12 +57,13 @@ namespace Pakettiporina
                 rt.SetParent(root, false);
                 var img = g.GetComponent<Image>();
                 img.sprite = sprite; img.raycastTarget = false;
-                img.color = new Color(1f, 1f, 1f, Random.Range(0.5f, 0.8f));
+                img.color = new Color(1f, 1f, 1f, Random.Range(0.75f, 0.95f));   // 24.11.2026: nakyvammat (ajonakymassa taivas on vain ylin ~19 %)
                 float w = root.rect.width * Random.Range(0.18f, 0.3f);
                 rt.sizeDelta = new Vector2(w, w * 0.5f);
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
                 // vain ylin kaistale (taivas): 6-16 % ruudun ylareunasta
-                float y = top - root.rect.height * Random.Range(0.07f, 0.16f);
+                // 24.11.2026: kaistaa laskettu 10-17 %:iin, jotta pilvet eivat jaa kokonaan HUD-mittarien taakse
+                float y = top - root.rect.height * Random.Range(0.10f, 0.17f);
                 float x = Random.Range(-halfW, halfW);
                 rt.anchoredPosition = new Vector2(x, y);
                 clouds.Add(new C { rt = rt, speed = Random.Range(10f, 28f), x = x });

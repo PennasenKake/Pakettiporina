@@ -46,6 +46,7 @@ pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 - **36 avattavaa tarraa**
 
 **Rakenne ja viimeistely**
+- **Putoamissuoja ja kaiteet:** näkymättömät kitkattomat kaiteet radan sivuilla (Satamassa lähellä tietä, muilla radoilla maailman reunalla) ja `CarRecovery` palauttaa auton vanhempaan turvalliseen paikkaan toistuvan putoamisen jälkeen
 - **Tallennus** (JSON, laitteella): kolikot, ajotähdet, radoittaiset parhaat tähdet, valinnat, asetukset ja mittarit; rikkinäinen tiedosto tallennetaan `.rikki.bak`-kopioksi
 - **Asetukset:** musiikki, äänet, värähtely, ohjaustapa, ajonopeus ja **yötila**
 - **Äänet:** musiikki valikolle, hallille, radalle ja pesulle sekä 12 tehostetta
@@ -98,13 +99,13 @@ pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 
 ## 🧰 Editorityökalut (oma tuotanto)
 
-Projektissa on 43 omaa Unity-editorityökalua, jotka automatisoivat scenejen rakentamisen
+Projektissa on 46 omaa Unity-editorityökalua, jotka automatisoivat scenejen rakentamisen
 ja pitävät ne virheettöminä. Ne löytyvät valikosta **Pakettiporina** viidessä ryhmässä:
 
 | Ryhmä | Työkalut |
 |-------|----------|
-| **Tarkistus** (8) | Peliscene, halli, pesu ja päävalikko; datan analyysi; äänten tarkistus kaikista sceneistä; **Hallin kolmivaiheen tarkistus** (kuvat, pakettien ikonit ja radat, Build Settings); **Edistyksen tarkistus** (`Progress.cs`-taulukot, ratalistat, wizard-kuvat; ajetaan myös hallin tarkistuksen perään) |
-| **Korjaus** (10) | Peliscenen, hallin, pesun ja päävalikon korjaus ja kytkentä; kategoriat ja kosmetiikka; osien arvojen tasapainotus; "korjaa kaikki" (data); äänten kytkentä; Kylä-radan perusta; **Hallin kuvien synkkaus** (`Resources/WizardUI`) |
+| **Tarkistus** (10) | Peliscene, halli, pesu ja päävalikko; datan analyysi; äänten tarkistus kaikista sceneistä; **Hallin kolmivaiheen tarkistus** (kuvat, pakettien ikonit ja radat, Build Settings); **Edistyksen tarkistus** (`Progress.cs`-taulukot, ratalistat, wizard-kuvat; ajetaan myös hallin tarkistuksen perään); **Radan turvatarkistus** (kaiteet, maaliportin koko, isot koristeet); **automaattisten testien ajo** |
+| **Korjaus** (11) | Peliscenen, hallin, pesun ja päävalikon korjaus ja kytkentä; kategoriat ja kosmetiikka; osien arvojen tasapainotus; "korjaa kaikki" (data); äänten kytkentä; Kylä-radan perusta; **Hallin kuvien synkkaus** (`Resources/WizardUI`); **ratakaiteet ja maaliportin rajoitus** |
 | **Esittely** (3) | Kuvakaappaus, GIF-tallennus ja maalin efektien testi (kuvat `Docs/Esittely`) |
 | **Lisäys** (11) | Tähdet radalle; pelielementit (boost, lätäkkö, kartio, laatikko); teemakoristeet; teemapuiston kartta; lisäosat; uudet paketit; avattavat tarrat; salaiset osat; asetuspaneeli; esteet ja tehosteet uuteen rataan; animoitu maskotti |
 | **Suorituskyky** (4) | Automaattimittaus (FPS, muisti, vuodot), staattinen tarkistus (asetukset, HDR, tekstuurit, äänet, Build Settings), ARM64- ja kokosuositukset, tehosteäänten esilataus |
@@ -122,6 +123,7 @@ Työkalut ovat idempotentteja eli ne voi ajaa turvallisesti uudelleen.
 ```
 Assets/_Pakettiporina/
 ├─ Art/         (mallit, tekstuurit, UI, ikonit, ratakuvat Art/UI/Rata)
+├─ Tests/       (EditMode-testit: Progress, tallennus, ajotähdet)
 ├─ Resources/   (WizardUI: Hallin kolmivaiheen kuvat, kopioita Art/UI-kuvista)
 ├─ Audio/       (musiikki ja tehosteet)
 ├─ Data/        (osat, paketit, tarrat ScriptableObjecteina)
@@ -157,9 +159,9 @@ tallennus, asetukset, äänet ja yötila ovat valmiina.
 - Lokalisointi: tekstit ovat koodissa suomeksi (noin 300 merkkijonoa, `Localization`-kansio tyhjä)
 
 **Tunnetut heikkoudet (24.11.2026):**
-- Ei automaattisia testejä (esim. `Progress.RateRun`, tallennuksen luku) – kaikki tarkistus on editorityökaluja ja käsin pelaamista
+- Automaattisia testejä on vasta alku: 29 EditMode-testiä (`Tests/EditMode`: tähtiarvosana, avaukset, ratalistat, tallennusdata); PlayMode-testit, UI ja ajofysiikka testaamatta
 - Käyttöliittymä rakennetaan koodissa (Juice, GarageWizard, RaceHUD, WashScreen) – nopea muokata, mutta ulkoasua ei voi säätää editorissa
-- Suuret tiedostot: `Juice.cs` (~730 riviä), `GarageWizard.cs`, `RaceHUD.cs`, `WashScreen.cs` (600+ riviä)
+- Suuret UI-tiedostot on pilkottu `partial`-luokiksi (`Juice.*.cs`, `GarageWizard.*.cs`, `RaceHUD.Meters.cs`, `WashScreen.Repair.cs`); pisin tiedosto on nyt alle 400 riviä, mutta luokat ovat edelleen laajoja
 - Tallennuksessa `saveVersion` on mutta siirtymälogiikkaa ei ole; vanhat tallennukset aloittavat 0 ajotähdellä
 - Uuden radan lisäys vaatii muutoksia usealle listalle (Progress, `PakettiporinaTracks`, Decor, Obstacles)
 - HDR päällä URP-Balanced-profiilissa (Androidin oletus) – kallis mobiilissa

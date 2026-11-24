@@ -17,6 +17,7 @@ UI (halli, HUD, valikot) → pelilogiikka (keikka, maali, pesu) → auto ja fysi
 | `Scripts/UI` | **GarageScreen** (halli-logiikka) ja **GarageWizard** (kolmivaiheinen halli), RaceHUD, PauseMenu, MainMenu, StickerPanel, VilkkuController, MascotAnimator |
 | `Scripts/Data` | PartData, PackageData, StickerData, TrackData, CarStats |
 | `Scripts/Editor` | Tarkistus, Korjaus, Lisays, Tyokalut, Common (jaetut apurit), EsittelyKaappaus |
+| `Tests/EditMode` | EditMode-testit (Progress, tallennus, ajotähdet) |
 | `Resources/WizardUI` | Hallin kolmivaiheen kuvat (kopioita `Art/UI`-kuvista; synkkaa Korjaus/10) |
 
 ## Keskeiset järjestelmät
@@ -40,6 +41,12 @@ UI (halli, HUD, valikot) → pelilogiikka (keikka, maali, pesu) → auto ja fysi
 Lisää itsensä Garage-sceneen (`GarageScreen.useWizard`, oletuksena päällä). Rakentaa täyden ruudun juuren Canvasin päälle, siirtää auton esikatselukuvan (`GarageScreen.carPreview`) uuteen kehykseen ja piilottaa vanhan käyttöliittymän CanvasGroupilla (alpha 0, ei kosketuksia; olio pysyy aktiivisena, jotta GarageScreen toimii). Kaikki logiikka kulkee GarageScreenin julkisen API:n kautta (`PartsIn`, `SelectPartIndex`, `NextPackage`, `CurrentFit`, `OnDrive` jne.). **Rata ei ole erillinen valinta**: se tulee paketin `trackScene`-kentästä, ja vaihe 2 on esikatselu (kuva `Resources/WizardUI/rata_<scene>.png`, oletus `rata_perus`).
 
 Sudenkuoppia: ensimmäisen aktivoinnin `Start`; `??` ei toimi Unity-olioille (käytä `== null`); älä piilota CanvasGroupilla ennen kuin siirrettävät lapset on siirretty pois; `Time.timeScale = 0`:ssa käytä `unscaledDeltaTime`.
+
+### Tiedostojako (partial-luokat, 24.11.2026)
+Suuret UI-luokat on jaettu `partial`-tiedostoihin sisältöä muuttamatta: `Juice.cs` + `Juice.UIEffects.cs`, `Juice.HudSprites.cs`, `Juice.Feedback.cs`; `GarageWizard.cs` + `.Helpers.cs`, `.Build.cs`; `RaceHUD.cs` + `RaceHUD.Meters.cs`; `WashScreen.cs` + `WashScreen.Repair.cs`. Uusi koodi lisätään sopivaan osaan; älä tee uutta yli 500 rivin tiedostoa.
+
+### Putoamissuoja
+`CarRecovery` (auton komponentti) tallentaa turvallisia paikkoja 0,5 s välein (6 s historia, maa-tarkistus raycastilla) ja palauttaa putoamisen jälkeen vähintään 1,5 s taaksepäin; toistuva putoaminen siirtää yhä vanhempaan paikkaan. Radan sivuilla on näkymättömät kaiteet (`Ratakaiteet`, Korjaus/11).
 
 ## Tapahtumat (GameEvents)
 

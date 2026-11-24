@@ -22,3 +22,7 @@ _(Pelin sisältö datana, ei koodiin kovakoodattuna. CreateAssetMenu-attribuutit
 
 ## Versionhallinta
 _(Commit-viestit selkeästi, esim. "M2: maali + tähdet". .meta-tiedostot mukaan, Library/ pois.)_
+
+## Tiedostokoko ja testit (24.11.2026)
+- Pidä tiedostot alle ~500 rivin; jaa suuri luokka `partial`-tiedostoihin (`Luokka.Osa.cs`) ja kirjaa jako Docs/02:een.
+- Puhdas logiikka (säännöt, taulukot, laskenta) kirjoitetaan niin, että sen voi testata EditModessa ilman scenea (esim. `Progress.RateRun`); lisää testi `Tests/EditMode`-kansioon ja aja Tarkistus/10 ennen committia.

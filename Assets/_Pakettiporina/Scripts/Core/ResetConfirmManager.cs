@@ -59,7 +59,9 @@ namespace Pakettiporina
         public void Close()
         {
             Disarm();
+            bool wasOpen = panelRoot != null && panelRoot.activeSelf;
             if (panelRoot != null) panelRoot.SetActive(false);
+            if (wasOpen) SettingsManager.ReopenAfterSubpanel();   // takaisin Asetuksiin
         }
 
         void Update()

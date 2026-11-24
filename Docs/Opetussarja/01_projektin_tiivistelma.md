@@ -17,7 +17,7 @@ Halli (3 vaihetta: Paketti -> Rata -> Auto+väri) -> Ajo (kallistus tai napit, t
 - UI rakennetaan ajonaikaisesti koodilla (GarageWizard, RunStarsView), Juice-kirjasto (konfetti, pulssi, äänet).
 - Edistys: Progress.cs (ajotähdet avaavat värejä, osia, paketteja, ratoja; taulukko koodissa).
 - Suorituskyky: PerfProbe, PerfBenchmark, PerformanceManager (30/60 fps, akkusäästö, sleepTimeout). Raportit Docs/Suorituskyky_*.
-- 43 editorityökalua valikossa Pakettiporina (tarkistus, korjaus, lisäys, suorituskyky, esittely). Ne ovat projektikohtaisia.
+- 46 editorityökalua valikossa Pakettiporina (tarkistus, korjaus, lisäys, suorituskyky, esittely). Ne ovat projektikohtaisia.
 
 ## Koko
 17 651 riviä C# (Editor mukana). Isoimmat: Juice 710, GarageWizard 646, RaceHUD 623, WashScreen 600, GarageScreen 574. Ks. 04_koodikartta.md.
