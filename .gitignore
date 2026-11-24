@@ -50,3 +50,13 @@ UpgradeLog*.htm
 *_BurstDebugInformation_DoNotShip/
 create_pakettiporina_structure.ps1
 .preview_*.png
+
+# --- Suunnitelmat ja sisäiset dokumentit eivät kuulu julkiseen repoon (24.11.2026) ---
+# Docs/ pidetään vain paikallisesti; README:n kuvat (Docs/Esittely/*.png, *.gif) on poikkeus.
+/Docs/*
+!/Docs/Esittely/
+/Docs/Esittely/*
+!/Docs/Esittely/*.png
+!/Docs/Esittely/*.gif
+# Tuotesuunnitelma, GDD ja ideakuvat
+/Idea/
