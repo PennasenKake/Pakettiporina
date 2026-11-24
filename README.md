@@ -16,16 +16,18 @@ ja pesee ja korjaa auton ajon jälkeen. Peli yhdistää **rakentelun**, **ajamis
 
 Pelisilmukka:
 
-1. **Halli** – valitse paketti ja rakenna auto kuudesta osakategoriasta (kori, renkaat,
-   moottori, jouset, lisät, maali).
+1. **Halli** – kolme vaihetta, yksi asia kerrallaan: **Paketti** (mitä viedään), **Rata**
+   (kuva ja nimi radasta, jolla ajetaan) ja **Auto** (rakenna autosi kuudesta osakategoriasta:
+   kori, renkaat, moottori, jouset, lisät ja väri). Vilkku-maskotti opastaa.
 2. **Ajo** – auto ajaa; lapsi ohjaa kallistamalla puhelinta tai napeilla ja jarruttaa
    yhdellä napilla. Matkalla kerätään tähtiä, hyödynnetään tehosteita (boost) ja väistellään
    esteitä (lätäkkö, kartio, laatikko).
-3. **Maali** – palkkio pisteinä; oikea auto oikealle paketille tuo täyden palkkion.
+3. **Maali** – ajosta saa 1–3 tähteä (perillä / paketti ehjänä / kaikki bonustähdet kerätty tai nopea aika) ja kolikkopalkkion; oikea auto oikealle paketille tuo täyden palkkion.
 4. **Pesu ja korjaus** – ajossa kertynyt lika poistetaan poksauttamalla saippuakuplia ja
    kolhut korjataan napauttamalla korjauskuplia. Lika- ja kolhumittari säilyy ajojen välillä.
-5. **Takaisin halliin** – auto säilyy, pisteet kasvavat, ja pisteillä avautuu uusia osia,
-   paketteja ja tarroja.
+5. **Takaisin halliin** – auto säilyy. **Tähdet** avaavat uusia värejä, osia, paketteja ja ratoja
+   kolmessa tahdissa (nopea: värit ja pienet osat, keskipitkä: osat ja paketit, pitkä: uudet radat).
+   **Kolikoilla** ostetaan tarroja.
 
 Auton **ominaisuudet vaikuttavat ajoon**: voima → kiihtyvyys, keveys → huippunopeus,
 pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
@@ -38,17 +40,22 @@ pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 - **Auton rakentaminen:** 32 osaa, 10 pakettia ja salaiset kultaiset osat
 - **Fysiikkapohjainen arcade-ajo** (Rigidbody, ForceMode.Acceleration)
 - **Ohjaus:** kallistus (kalibroinnilla), kosketusnapit tai molemmat; kolme nopeustasoa
-- **Lähtölaskenta** (3-2-1-AJA!) ja tähtipohjainen palkkiosilmukka
+- **Lähtölaskenta** (3-2-1-AJA!), **1–3 tähden arvosana** joka ajosta ja kaksi valuuttaa: tähdet (avaavat sisältöä, `Progress.cs`) ja kolikot (tarrat)
+- **Radan valinta selaamalla** hallissa; lukitut radat näyttävät tarvittavat tähdet
 - **Pesu ja korjaus** omana minipelinään, pysyvä lika-/kolhumittari
 - **36 avattavaa tarraa**
 
 **Rakenne ja viimeistely**
-- **Tallennus** (JSON, laitteella): pisteet, valinnat, asetukset ja mittarit
+- **Tallennus** (JSON, laitteella): kolikot, ajotähdet, radoittaiset parhaat tähdet, valinnat, asetukset ja mittarit; rikkinäinen tiedosto tallennetaan `.rikki.bak`-kopioksi
 - **Asetukset:** musiikki, äänet, värähtely, ohjaustapa, ajonopeus ja **yötila**
 - **Äänet:** musiikki valikolle, hallille, radalle ja pesulle sekä 12 tehostetta
 - **Scenevaihdon häivytys** (fade) kaikissa näkymissä
 - **Androidin takaisin-nappi:** sulkee paneelit ja palaa edelliseen näkymään
 - **Vilkku-maskotti** puhekuplineen päävalikossa ja hallissa
+- **Mehukkuus:** pomppivat napit, konfetti maalissa, kipinät ja pärskeet, välähdykset sekä
+  koodilla syntetisoidut äänet (`Juice`, `SoundSynth`; ei erillisiä äänitiedostoja)
+- **Kolmivaiheinen halli** (`GarageWizard`): isot napit, ikonit ja kuvat, auton värinvalinta
+  mukana; HUD:ssa Lika- ja Kolhut-mittarit ikoneilla
 - **Lapsiturva:** offline, ei mainoksia, ei datankeruuta, ei ostoja eikä chattia;
   aikuisille oma osio (tietoja pelistä, tietosuoja, edistymisen nollaus)
 
@@ -72,7 +79,7 @@ pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 | `Huvipuisto` | Huvipuisto: maailmanpyörä, karuselli, teltta |
 | `Maatila` | Maatila: navetta, eläimet, tuulimylly |
 | `Wash` | Pesu ja korjaus |
-| `Kyla` | Kylä-rata (vaikein) – **työn alla**, vasta perusrunko |
+| `Kyla` | Kylä-rata (vaikein) – **tehdään myöhemmin**: vaatii paljon FBX-elementtejä ja oman ratamallin; scene on tarkoituksella pois Build Settingsista (`Progress.PlannedTracks`) |
 
 ---
 
@@ -91,14 +98,16 @@ pito → pitävyys, ja paketin massa hidastaa raskasta kuormaa.
 
 ## 🧰 Editorityökalut (oma tuotanto)
 
-Projektissa on 30 omaa Unity-editorityökalua, jotka automatisoivat scenejen rakentamisen
-ja pitävät ne virheettöminä. Ne löytyvät valikosta **Pakettiporina** neljässä ryhmässä:
+Projektissa on 43 omaa Unity-editorityökalua, jotka automatisoivat scenejen rakentamisen
+ja pitävät ne virheettöminä. Ne löytyvät valikosta **Pakettiporina** viidessä ryhmässä:
 
 | Ryhmä | Työkalut |
 |-------|----------|
-| **Tarkistus** (6) | Peliscene, halli, pesu ja päävalikko; datan analyysi; äänten tarkistus kaikista sceneistä |
-| **Korjaus** (9) | Peliscenen, hallin, pesun ja päävalikon korjaus ja kytkentä; kategoriat ja kosmetiikka; osien arvojen tasapainotus; "korjaa kaikki" (data); äänten kytkentä; Kylä-radan perusta |
+| **Tarkistus** (8) | Peliscene, halli, pesu ja päävalikko; datan analyysi; äänten tarkistus kaikista sceneistä; **Hallin kolmivaiheen tarkistus** (kuvat, pakettien ikonit ja radat, Build Settings); **Edistyksen tarkistus** (`Progress.cs`-taulukot, ratalistat, wizard-kuvat; ajetaan myös hallin tarkistuksen perään) |
+| **Korjaus** (10) | Peliscenen, hallin, pesun ja päävalikon korjaus ja kytkentä; kategoriat ja kosmetiikka; osien arvojen tasapainotus; "korjaa kaikki" (data); äänten kytkentä; Kylä-radan perusta; **Hallin kuvien synkkaus** (`Resources/WizardUI`) |
+| **Esittely** (3) | Kuvakaappaus, GIF-tallennus ja maalin efektien testi (kuvat `Docs/Esittely`) |
 | **Lisäys** (11) | Tähdet radalle; pelielementit (boost, lätäkkö, kartio, laatikko); teemakoristeet; teemapuiston kartta; lisäosat; uudet paketit; avattavat tarrat; salaiset osat; asetuspaneeli; esteet ja tehosteet uuteen rataan; animoitu maskotti |
+| **Suorituskyky** (4) | Automaattimittaus (FPS, muisti, vuodot), staattinen tarkistus (asetukset, HDR, tekstuurit, äänet, Build Settings), ARM64- ja kokosuositukset, tehosteäänten esilataus |
 | **Työkalut** (7) | Tien profiili (konsoli ja Scene-näkymä); scenen elementtien ja sijaintien vienti; puuttuvien scriptien haku ja poisto |
 
 Työkalut ovat idempotentteja eli ne voi ajaa turvallisesti uudelleen.
@@ -112,23 +121,25 @@ Työkalut ovat idempotentteja eli ne voi ajaa turvallisesti uudelleen.
 
 ```
 Assets/_Pakettiporina/
-├─ Art/         (mallit, tekstuurit, UI, ikonit)
+├─ Art/         (mallit, tekstuurit, UI, ikonit, ratakuvat Art/UI/Rata)
+├─ Resources/   (WizardUI: Hallin kolmivaiheen kuvat, kopioita Art/UI-kuvista)
 ├─ Audio/       (musiikki ja tehosteet)
 ├─ Data/        (osat, paketit, tarrat ScriptableObjecteina)
-├─ Docs/        (kehityslokit, ratojen speksit, ideat)
 ├─ Prefabs/     (auto, kerättävät, esteet)
 └─ Scripts/
-   ├─ Core/     (GameManager, SaveManager, AudioManager, SettingsManager,
-   │             SceneFader, BackButtonHandler, DarkModeOverlay)
+   ├─ Core/     (GameManager, Progress (tähti-/lukitustaulukot ja ratalista), SaveManager,
+   │             AudioManager, PerformanceManager, SettingsManager,
+   │             SceneFader, BackButtonHandler, DarkModeOverlay, Juice, SoundSynth,
+   │             CutoutAvoider, ResetConfirmManager)
    ├─ Vehicle/  (ohjaus ja ajofysiikka)
    ├─ Gameplay/ (keikka, maali, esteet, tehosteet, pesu ja korjaus)
    ├─ Builder/  (auton kokoaminen osista, sopivuus)
-   ├─ UI/       (halli, HUD, valikot, tarrat, maskotti)
+   ├─ UI/       (halli ja GarageWizard, HUD, valikot, tarrat, maskotti)
    ├─ Data/     (PartData, PackageData, CarStats, StickerData)
    └─ Editor/   (Tarkistus, Korjaus, Lisays, Tyokalut)
 Scenes/         (MainMenu, Garage, Wash, Game, Puisto, Satama, Huvipuisto,
                  Maatila, Kyla)
-Docs/           (projektidokumentaatio)
+Docs/           (projektidokumentaatio, Docs/Esittely kuvat, Docs/Opetussarja materiaalit)
 ```
 
 ---
@@ -139,11 +150,20 @@ Peli on pelattava ja sisällöltään laaja: rakentelu, viisi rataa, pesu ja kor
 tallennus, asetukset, äänet ja yötila ovat valmiina.
 
 **Jäljellä:**
-- Kylä-rata (maasto, koristeet, äänet)
-- Visuaalinen kiillotus (partikkelit, animaatiot) ja lisää mallit ja äänet
-- Vanhempainportti ja Google Play -julkaisun vaatimukset (tietosuojaseloste,
-  ikäluokitus, allekirjoitus)
-- Laitetestaus ja suorituskyky; mahdollinen lokalisointi
+- Kylä-rata (oma ratamalli, FBX-elementit, maasto, äänet) – myöhemmin
+- Laitetestaus oikealla Android-laitteella (suorituskyky, akku, kosketus) – vielä tekemättä
+- Pitkän aikavälin motivaation testaus lapsilla (tähti- ja lukitusrytmi on mitoitettu, ei vielä pelitestattu)
+- Vanhempainportti ja Google Play -julkaisun vaatimukset (tietosuojaseloste, ikäluokitus, allekirjoitus)
+- Lokalisointi: tekstit ovat koodissa suomeksi (noin 300 merkkijonoa, `Localization`-kansio tyhjä)
+
+**Tunnetut heikkoudet (24.11.2026):**
+- Ei automaattisia testejä (esim. `Progress.RateRun`, tallennuksen luku) – kaikki tarkistus on editorityökaluja ja käsin pelaamista
+- Käyttöliittymä rakennetaan koodissa (Juice, GarageWizard, RaceHUD, WashScreen) – nopea muokata, mutta ulkoasua ei voi säätää editorissa
+- Suuret tiedostot: `Juice.cs` (~730 riviä), `GarageWizard.cs`, `RaceHUD.cs`, `WashScreen.cs` (600+ riviä)
+- Tallennuksessa `saveVersion` on mutta siirtymälogiikkaa ei ole; vanhat tallennukset aloittavat 0 ajotähdellä
+- Uuden radan lisäys vaatii muutoksia usealle listalle (Progress, `PakettiporinaTracks`, Decor, Obstacles)
+- HDR päällä URP-Balanced-profiilissa (Androidin oletus) – kallis mobiilissa
+- Lisenssi-/lähdetiedot kolmannen osapuolen assetteihin kirjaamatta (estää FBX-/työkalumyynnin)
 
 ---
 
@@ -156,7 +176,21 @@ Kaikki esittelymateriaali on kansiossa [`Docs/Esittely`](Docs/Esittely):
 
 ## 📸 Kuvia
 
-*(Kuvakaappaukset ja GIF lisätään pian.)*
+![Ajo Satamassa](Docs/Esittely/ajo.gif)
+
+| Päävalikko | Halli: paketti | Halli: rata |
+|:---:|:---:|:---:|
+| ![Päävalikko](Docs/Esittely/paavalikko.png) | ![Paketti](Docs/Esittely/halli_1_paketti.png) | ![Rata](Docs/Esittely/halli_2_rata.png) |
+
+| Halli: auto | Ajo | Maali |
+|:---:|:---:|:---:|
+| ![Auto](Docs/Esittely/halli_3_auto.png) | ![Ajo](Docs/Esittely/ajo.png) | ![Maali](Docs/Esittely/maali.png) |
+
+| Pesu |
+|:---:|
+| ![Pesu](Docs/Esittely/wash.png) |
+
+*(Kuvat otettu Unityn Simulatorilla, Galaxy S10e, 24.11.2026. Ajo-GIF on aiemmalta ajolta.)*
 
 ---
 

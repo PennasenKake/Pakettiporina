@@ -104,6 +104,9 @@ namespace Pakettiporina
             data.darkMode = darkMode;
             data.dirtMeter = gm.DirtMeter;
             data.dentMeter = gm.DentMeter;
+            data.runStarsTotal = gm.RunStars;
+            data.selectedTrack = gm.SelectedTrack ?? "";
+            foreach (var kv in gm.BestStars) { data.trackBestNames.Add(kv.Key); data.trackBestStars.Add(kv.Value); }
 
             try
             {
@@ -132,6 +135,8 @@ namespace Pakettiporina
             catch (System.Exception e)
             {
                 Debug.LogWarning("[Save] Tallennuksen lukeminen epaonnistui: " + e.Message);
+                // 24.11.2026: rikkinainen tiedosto talteen ennen kuin seuraava tallennus ylikirjoittaa sen (edistys ei katoa hiljaa).
+                try { File.Copy(SavePath, SavePath + ".rikki.bak", true); } catch { }
                 return;
             }
             if (data == null) return;
@@ -159,6 +164,7 @@ namespace Pakettiporina
             gm.ApplyLoadedSelection(pkg, parts);
             gm.ApplyLoadedStickers(data.unlockedStickerNames);
             gm.ApplyLoadedDamage(data.dirtMeter, data.dentMeter);
+            gm.ApplyLoadedProgress(data.runStarsTotal, data.trackBestNames, data.trackBestStars, data.selectedTrack);
 
             var audio = AudioManager.Instance;
             if (audio != null)
@@ -201,6 +207,7 @@ namespace Pakettiporina
                 // vaikka kaikki muu pelietenemys nollautui - auto olisi jaanyt
                 // likaiseksi/kolhuiseksi taysin tyhjan tallennuksen kanssa.
                 gm.ApplyLoadedDamage(0, 0);
+                gm.ApplyLoadedProgress(0, null, null, "");
             }
         }
 

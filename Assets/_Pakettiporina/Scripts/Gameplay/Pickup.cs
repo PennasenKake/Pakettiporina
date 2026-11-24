@@ -17,6 +17,7 @@ namespace Pakettiporina
 
             if (RaceManager.Instance != null) RaceManager.Instance.AddStar();
             Debug.Log("[Pickup] Tahti kerätty!");
+            Juice.Sparkle(transform.position); // kimallus (mehukkuus 23.11.2026)
             gameObject.SetActive(false); // piilota kerätty tahti
         }
     }

@@ -1,27 +1,35 @@
 # Julkaisu
 
-_(Kaikki mitä tarvitaan pelin viemiseen kauppaan.)_
+Päivitetty 24.11.2026. Tila: **ei vielä julkaisuvalmis** (laitetesti, lisenssit, vanhempainportti ja allekirjoitus puuttuvat).
 
 ## Julkaisua edeltävä tarkistuslista
-_(Rastitettava: build toimii laitteella, ei kaatumisia, suorituskyky ok, asetukset tallentuvat, lokit pois tuotannosta.)_
+- [x] Tarkistus/01–08 ajettu ilman ongelmia (viimeksi 24.11.2026)
+- [x] Android: IL2CPP, vain ARM64, minSdk 31
+- [x] Muistivuotoa ei havaittu editorimittauksessa; Maatila raskain (257 piirtokutsua ka)
+- [x] Offline, ei mainoksia, ei datankeruuta, ei ostoksia
+- [ ] **Laitetesti oikealla puhelimella** (FPS, lämpö, akku 10 min, kosketusalueet, tekstien koko)
+- [ ] Debug-lokit ja Development Build -overlay pois tuotantobuildista
+- [ ] HDR pois URP-Balancedista tai todettu laitteella ok
+- [ ] Tallennuksen siirtymälogiikka (`saveVersion`) ennen ensimmäistä julkaisua, jotta päivitykset eivät riko tallennuksia
+- [ ] Pelitestaus lapsilla (tähti- ja lukitusrytmi)
 
 ## Kauppasivun materiaalit
-_(Ikoni, kuvakaappaukset, lyhyt ja pitkä kuvaus, mahdollinen video. Sanat vanhemmalle: mitä opettaa, ei mainoksia/ostoksia.)_
+Kuvakaappaukset: `Docs/Esittely` (päävalikko, halli 3 vaihetta, ajo, maali, pesu; Simulator Galaxy S10e, 24.11.2026). Puuttuu: ikoni, kuvakaappaukset oikealta laitteelta, lyhyt ja pitkä kuvaus, mahdollinen video. Vanhemmalle: ei mainoksia, ei ostoksia, ei datankeruuta, toimii offline.
 
 ## Ikäluokitus
-_(Hae sopiva luokitus (esim. PEGI 3 / ESRB Everyone) kun sisältö on vakaa.)_
+Kohderyhmä 6–10 v. Sisältö: ei väkivaltaa, ei tekstichattia. Haetaan sopiva luokitus (PEGI 3 / ESRB Everyone) kun sisältö on vakaa.
 
 ## Lapsiturvallisuus ja yksityisyys
-_(Ei mainoksia, ei henkilötietojen keräystä, offline-toiminta, vanhempainportti. Google Play Families -vaatimukset, GDPR/COPPA. Tarkista voimassa olevat käytännöt.)_
+Offline, ei mainoksia, ei analytiikkaa. Aikuisille-osio (tietoja pelistä, tietosuoja, edistymisen nollaus kahdella painalluksella). Puuttuu: varsinainen vanhempainportti, tietosuojaseloste verkossa, Google Play Families -ilmoitukset. Tarkista voimassa olevat käytännöt (GDPR/COPPA).
 
 ## Lokalisointi
-_(Kielet (fi/en), kauppatekstien käännökset.)_
+Tekstit ovat koodissa suomeksi (~300 merkkijonoa). Englanti vaatisi tekstien siirron avaintauluun; ei vielä aloitettu.
 
 ## Versiointi
-_(Versionumero ja build-numero. Muutosloki.)_
+`bundleVersion` 0.1.0. Muutosloki: [07_DEVLOG.md](07_DEVLOG.md).
 
 ## Build ja allekirjoitus
-_(Keystore, AAB-paketointi, lataus Play Consoleen.)_
+Keystore luomatta. AAB-paketointi ja lataus Play Consoleen tekemättä. Ks. [01_SETUP_JA_BUILD.md](01_SETUP_JA_BUILD.md).
 
 ## Julkaisun jälkeen
-_(Palautteen seuranta, kaatumisraportit, päivityssuunnitelma.)_
+Palautteen seuranta, kaatumisraportit (ei analytiikkaa → Play Console), päivityssuunnitelma: Kylä-rata ja uudet paketit.

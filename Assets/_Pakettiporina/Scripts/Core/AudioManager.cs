@@ -68,7 +68,7 @@ namespace Pakettiporina
         // uusi rata jai aiemmin listan ulkopuolelle, jolloin musiikki ei olisi vaihtunut
         // sielle (hiljainen puute, ei virhe - mutta turha silti korjata nyt kun rata on jo
         // olemassa, vaikka koristelu onkin viela kesken).
-        static readonly string[] RaceScenes = { "Game", "Game2", "Puisto", "Satama", "Huvipuisto", "Maatila", "Kyla" };
+        static string[] RaceScenes { get { return Progress.RaceScenes; } }   // yksi ratalista: Progress.cs
 
         AudioSource sfxSource;
         AudioSource musicSource;

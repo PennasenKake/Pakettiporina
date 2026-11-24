@@ -43,6 +43,7 @@ namespace Pakettiporina
 
             car.ApplyGripPenalty(effectiveMultiplier, duration);
             if (AudioManager.Instance != null) AudioManager.Instance.PlaySplash();
+            Juice.Splash(car.transform.position); // roiske (mehukkuus 23.11.2026)
             // M5: roiske jattaa likatahran autoon - pestaan Pesu-scenessa ennen Hallia.
             if (GameManager.Instance != null) GameManager.Instance.AddDirtHit();
             Debug.Log($"[Puddle] Liukastus! kerroin={effectiveMultiplier:F2} (pito={pito01 * 100f:F0})");

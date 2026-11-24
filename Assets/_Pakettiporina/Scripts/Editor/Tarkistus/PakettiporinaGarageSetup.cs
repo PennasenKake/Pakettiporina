@@ -31,7 +31,14 @@ namespace Pakettiporina.EditorTools
         const string MAINMENU_SCENE = "MainMenu";
 
         [MenuItem("Pakettiporina/Tarkistus/02 - Tarkista halli")]
-        public static void Diagnose() { Run(false); }
+        public static void Diagnose()
+        {
+            Run(false);
+            // 24.11.2026: halli on nyt kolmivaiheinen wizard + Progress-lukitukset -> tarkistetaan ne samalla.
+            int pp = PakettiporinaProgressCheck.RunQuiet();
+            if (pp == 0) Debug.Log("[Halli] Edistys/wizard-tarkistus (Tarkistus/08): OK. Raportti Docs/Edistys_tarkistus_viimeisin.md");
+            else Debug.LogWarning("[Halli] Edistys/wizard-tarkistus (Tarkistus/08): " + pp + " ongelmaa, ks. Docs/Edistys_tarkistus_viimeisin.md");
+        }
 
         [MenuItem("Pakettiporina/Korjaus/02 - KORJAA halli")]
         public static void FixAll() { Run(true); }

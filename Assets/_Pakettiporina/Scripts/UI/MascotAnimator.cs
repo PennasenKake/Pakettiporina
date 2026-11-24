@@ -58,6 +58,17 @@ namespace Pakettiporina
             speechTimer = 1.2f; // pieni viive ennen ensimmaista puhekuplaa, ei heti scenen alussa
             if (speechBubbleRoot != null) speechBubbleRoot.SetActive(false);
 
+            // LISATTY 23.11.2026 (Play-testi: "Pakettipörinää/n!" katkesi keskelta sanaa):
+            // kupla sovittaa tekstin kokoon eika katkaise sanoja.
+            if (speechBubbleText != null)
+            {
+                speechBubbleText.enableWordWrapping = true;
+                speechBubbleText.overflowMode = TextOverflowModes.Truncate;
+                speechBubbleText.fontSizeMax = Mathf.Max(speechBubbleText.fontSize, 12f);
+                speechBubbleText.fontSizeMin = 8f;
+                speechBubbleText.enableAutoSizing = true;
+            }
+
             cg = GetComponent<CanvasGroup>();
             if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
         }

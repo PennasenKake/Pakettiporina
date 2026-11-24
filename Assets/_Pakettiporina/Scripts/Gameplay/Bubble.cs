@@ -107,6 +107,7 @@ namespace Pakettiporina
 
             if (AudioManager.Instance != null) AudioManager.Instance.PlayBubblePop();
             if (WashScreen.Instance != null) WashScreen.Instance.OnBubblePopped();
+            Juice.UIBurst(transform as RectTransform, new Color(0.6f, 0.85f, 1f), 10); // poksahdus (mehukkuus 23.11.2026)
             Debug.Log("[Bubble] Poks!");
 
             StartCoroutine(PopCooldownAnim());

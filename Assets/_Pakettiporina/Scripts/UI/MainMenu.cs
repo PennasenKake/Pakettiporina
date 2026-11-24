@@ -13,6 +13,8 @@ namespace Pakettiporina
         void Start()
         {
             Debug.Log("[MainMenu] Aloitusnakyma valmis.");
+            // LISATTY 23.11.2026: elava tausta (pilvet, auto) ja Vilkun tervehdys.
+            if (GetComponent<MainMenuLife>() == null) gameObject.AddComponent<MainMenuLife>();
         }
 
         // Kytke tama "Pelaa"-napin OnClickiin.

@@ -76,9 +76,118 @@ namespace Pakettiporina
             BuildLookups();
             LoadSavedOrDefaults();                 // <- lataa tallennettu auto TAI oletusosat
             RestorePackage();                      // <- lataa tallennettu paketti jos on
+            EnsureWorkingCar();                    // <- varmista etta "Aja" toimii heti
+            BuildTracks();                         // <- radat (vapaa valinta) + tallennettu/ehdotettu rata
             SetCategory((int)PartCategory.Kori);
             UpdateStats();
+            GrowSmallTexts();
+            if (useWizard && GetComponent<GarageWizard>() == null) gameObject.AddComponent<GarageWizard>();
             Debug.Log("[Garage] Halli valmis.");
+        }
+
+        // LISATTY 23.11.2026: pienet tekstit (kategoriapainikkeet, mittarien nimet, Vilkun kupla) olivat
+        // liian pienia (~20-30 px 1080x1920-canvasilla). Sallitaan kasvu tekstilaatikon sisalla:
+        // alaraja = nykyinen koko, ylaraja = 1.7x (vahintaan 44). Autosize sovittaa tekstin laatikkoon.
+        void GrowSmallTexts()
+        {
+            foreach (var t in FindObjectsOfType<TMP_Text>(true))
+            {
+                if (t == null || t.enableAutoSizing || t.fontSize >= 44f) continue;
+                float baseSize = t.fontSize;
+                t.enableAutoSizing = true;
+                t.fontSizeMin = baseSize;
+                t.fontSizeMax = Mathf.Max(44f, baseSize * 1.7f);
+                t.overflowMode = TextOverflowModes.Ellipsis;
+            }
+        }
+
+        // ---- LISATTY 23.11.2026: halli elavammaksi + valmis auto ----------------------------
+
+        // Esivalinta: jos nykyinen auto ei sovi nykyiselle paketille (tai paketti on lukossa),
+        // valitaan avoin paketti jolle auto sopii, tai lisataan puuttuva vaadittu osa.
+        // Pelaaja voi siis painaa heti "Aja".
+        void EnsureWorkingCar()
+        {
+            if (allPackages.Count == 0 || builder == null) return;
+
+            var cur = CurrentPackage;
+            if (!IsPackageLocked(cur) && FitChecker.Check(builder, cur).fits) return;
+
+            // 1) Etsi avoin paketti jolle nykyinen auto jo sopii.
+            for (int i = 0; i < allPackages.Count; i++)
+            {
+                var p = allPackages[i];
+                if (p == null || IsPackageLocked(p)) continue;
+                if (FitChecker.Check(builder, p).fits) { packageIndex = i; ShowPackage(); return; }
+            }
+
+            // 2) Muuten lisaa avoimen paketin vaatima osa autoon.
+            for (int i = 0; i < allPackages.Count; i++)
+            {
+                var p = allPackages[i];
+                if (p == null || IsPackageLocked(p) || p.requiredPart == null) continue;
+                var req = p.requiredPart;
+                if (IsLocked(req) || !byCat.ContainsKey(req.category)) continue;
+                int idx = byCat[req.category].IndexOf(req);
+                if (idx < 0) continue;
+                indexByCat[req.category] = idx;
+                ApplyPart(req);
+                packageIndex = i;
+                ShowPackage();
+                Debug.Log($"[Garage] Esivalittu toimiva auto: {req.displayName} -> {p.displayName}");
+                return;
+            }
+        }
+
+        // Pomppu/puristus auton esikatselulle osan vaihtuessa.
+        Vector3 previewBaseScale = Vector3.one;
+        bool previewScaleKnown;
+        Coroutine bumpRoutine;
+
+        void BumpPreview()
+        {
+            if (carPreview == null || !isActiveAndEnabled) return;
+            var rt = carPreview.rectTransform;
+            if (!previewScaleKnown) { previewBaseScale = rt.localScale; previewScaleKnown = true; }
+            if (bumpRoutine != null) StopCoroutine(bumpRoutine);
+            bumpRoutine = StartCoroutine(BumpRoutine(rt));
+        }
+
+        IEnumerator BumpRoutine(RectTransform rt)
+        {
+            const float dur = 0.32f;
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / dur);
+                // vaimeneva heilahdus: puristuu leveaksi, venyy korkeaksi, asettuu
+                float w = Mathf.Sin(k * Mathf.PI * 3f) * (1f - k) * 0.12f;
+                rt.localScale = new Vector3(previewBaseScale.x * (1f + w), previewBaseScale.y * (1f - w), previewBaseScale.z);
+                yield return null;
+            }
+            rt.localScale = previewBaseScale;
+            bumpRoutine = null;
+        }
+
+        // Mittarit liukuvat kohdearvoon.
+        Image[] barImages;
+        float[] barTargets;
+
+        void Update()
+        {
+            if (barImages == null) return;
+            float step = Time.unscaledDeltaTime * 2.2f;
+            for (int i = 0; i < barImages.Length; i++)
+            {
+                var b = barImages[i];
+                if (b != null) b.fillAmount = Mathf.MoveTowards(b.fillAmount, barTargets[i], step);
+            }
+        }
+
+        static string StarsLeft(int need)
+        {
+            return need == 1 ? "Vielä 1 tähti" : $"Vielä {need} tähteä";
         }
 
         // "Tiedot"/"i"-napin OnClick: avaa/sulkee tilastopaneelin.
@@ -103,7 +212,8 @@ namespace Pakettiporina
                 // ei siis pelkkaa "lukossa"-tekstia, vaan osa puuttuu listasta kokonaan.
                 // Kun pelaaja on kerannyt tarpeeksi pisteita, osa ilmestyy yllatyksena seuraavalla
                 // hallikaynnilla (BuildLookups ajetaan Start():ssa).
-                if (p.secret && pts < p.unlockPoints) continue;
+                // 24.11.2026: salaisuus aukeaa ajotahdilla (Progress), ei kolikoilla: kolikot kuluvat tarroihin eivatka saa lukita osaa uudelleen.
+                if (p.secret && Progress.PartLocked(p)) continue;
                 byCat[p.category].Add(p);
             }
         }
@@ -122,7 +232,8 @@ namespace Pakettiporina
                     if (part == null) continue;
                     var list = byCat[part.category];
                     int idx = list.IndexOf(part);
-                    if (idx >= 0)
+                    // 24.11.2026: lukittua osaa ei oteta tallennuksesta (vanha tallennus ennen ajotahtilukituksia)
+                    if (idx >= 0 && !IsLocked(part))
                     {
                         indexByCat[part.category] = idx;
                         ApplyPart(part);
@@ -132,12 +243,14 @@ namespace Pakettiporina
                 Debug.Log($"[Garage] Ladattu tallennettu auto ({loaded.Count} osaa).");
             }
 
-            // Kategoriat joita ei ladattu -> oletusosa (index 0)
+            // Kategoriat joita ei ladattu -> ensimmainen AVOIN osa (lukittu osa ei saa olla oletus)
             foreach (var kv in byCat)
                 if (kv.Value.Count > 0 && !loaded.Contains(kv.Key))
                 {
-                    indexByCat[kv.Key] = 0;
-                    ApplyPart(kv.Value[0]);
+                    int di = 0;
+                    for (int k = 0; k < kv.Value.Count; k++) if (!IsLocked(kv.Value[k])) { di = k; break; }
+                    indexByCat[kv.Key] = di;
+                    ApplyPart(kv.Value[di]);
                 }
         }
 
@@ -156,7 +269,7 @@ namespace Pakettiporina
         {
             builder.SelectPart(part);
             if (part.category == PartCategory.Maali && carPreview != null)
-                carPreview.color = part.color;
+                CarColor.Paint(carPreview, part.color); // oikea uudelleenvarjays (ei kertovaa sointua)
         }
 
         public void SetCategory(int catIndex)
@@ -193,7 +306,10 @@ namespace Pakettiporina
 
             var part = list[i];
             if (!IsLocked(part))
+            {
                 ApplyPart(part);
+                BumpPreview();
+            }
             // Jos osa on lukossa: autoon jaa edellinen valittu osa, mutta selain nayttaa
             // silti lukitun osan nimen + lockTextin ("tarvitset X pistetta").
 
@@ -214,15 +330,13 @@ namespace Pakettiporina
             var part = list[indexByCat[currentCat]];
             if (partNameText != null) partNameText.text = part.displayName;
             if (lockText != null)
-                lockText.text = IsLocked(part) ? $"Lukossa - tarvitset {part.unlockPoints} pistetta" : "";
+                lockText.text = IsLocked(part) ? StarsLeft(Progress.PartLeft(part)) : "";
         }
 
-        // Onko osa viela lukossa? unlockPoints=0 (oletus) tarkoittaa aina auki.
+        // Onko osa viela lukossa? Ensisijaisesti ajon tahdet (Progress-taulukko), muuten vanha unlockPoints-saanto.
         bool IsLocked(PartData part)
         {
-            if (part == null || part.unlockPoints <= 0) return false;
-            int pts = GameManager.Instance != null ? GameManager.Instance.Points : 0;
-            return pts < part.unlockPoints;
+            return Progress.PartLocked(part);
         }
 
         public void NextPackage() { StepPackage(+1); }
@@ -235,6 +349,7 @@ namespace Pakettiporina
             if (packageIndex < 0) packageIndex = allPackages.Count - 1;
             if (packageIndex >= allPackages.Count) packageIndex = 0;
             ShowPackage();
+            trackIndex = SuggestedTrackIndex();   // uusi paketti -> rata palaa ehdotukseen
         }
 
         void ShowPackage()
@@ -247,7 +362,7 @@ namespace Pakettiporina
                 packageImage.enabled = pkg.icon != null; // piilota jos kuva puuttuu, ei nayta harmaata laatikkoa
             }
             if (packageLockText != null)
-                packageLockText.text = IsPackageLocked(pkg) ? $"Lukossa - tarvitset {pkg.unlockPoints} pistetta" : "";
+                packageLockText.text = IsPackageLocked(pkg) ? StarsLeft(Progress.PackageLeft(pkg)) : "";
             UpdateFit();
             Debug.Log($"[Garage] Paketti: {pkg.displayName}");
         }
@@ -255,9 +370,7 @@ namespace Pakettiporina
         // Onko paketti (ja sita kautta sen rata) viela lukossa? unlockPoints=0 (oletus) = aina auki.
         bool IsPackageLocked(PackageData pkg)
         {
-            if (pkg == null || pkg.unlockPoints <= 0) return false;
-            int pts = GameManager.Instance != null ? GameManager.Instance.Points : 0;
-            return pts < pkg.unlockPoints;
+            return Progress.PackageLocked(pkg);
         }
 
         PackageData CurrentPackage => allPackages.Count > 0 ? allPackages[packageIndex] : null;
@@ -271,14 +384,26 @@ namespace Pakettiporina
         // kerta kun UpdateFit ajetaan (esim. joka osa-askeleella), muuten aani spammaisi.
         bool wasFitting;
 
+        static int CurrentPoints() { return GameManager.Instance != null ? GameManager.Instance.Points : 0; }
+
         void UpdateStats()
         {
             CarStats s = builder.Current;
-            if (barVoima) barVoima.fillAmount = s.voima / 100f;
-            if (barPito) barPito.fillAmount = s.pito / 100f;
-            if (barKeveys) barKeveys.fillAmount = s.keveys / 100f;
-            if (barKestavyys) barKestavyys.fillAmount = s.kestavyys / 100f;
-            if (barKylmyys) barKylmyys.fillAmount = s.kylmyys / 100f;
+            bool first = barImages == null;
+            if (first)
+            {
+                barImages = new[] { barVoima, barPito, barKeveys, barKestavyys, barKylmyys };
+                barTargets = new float[5];
+            }
+            barTargets[0] = s.voima / 100f;
+            barTargets[1] = s.pito / 100f;
+            barTargets[2] = s.keveys / 100f;
+            barTargets[3] = s.kestavyys / 100f;
+            barTargets[4] = s.kylmyys / 100f;
+            // Ensimmainen paivitys asetetaan heti (ei animoida nollasta), myohemmat liukuvat Update():ssa.
+            if (first)
+                for (int i = 0; i < barImages.Length; i++)
+                    if (barImages[i] != null) barImages[i].fillAmount = barTargets[i];
         }
 
         void UpdateFit()
@@ -305,19 +430,24 @@ namespace Pakettiporina
             var pkgToCheck = CurrentPackage;
             if (IsPackageLocked(pkgToCheck))
             {
-                Debug.Log($"[Garage] '{pkgToCheck.displayName}' on viela lukossa (tarvitset {pkgToCheck.unlockPoints} pistetta) - ei lahdeta ajoon.");
+                Debug.Log($"[Garage] '{pkgToCheck.displayName}' on viela lukossa (puuttuu {Progress.PackageLeft(pkgToCheck)} tahtea) - ei lahdeta ajoon.");
                 if (packageLockText != null) StartCoroutine(FlashLock(packageLockText));
                 return;
             }
+            if (IsTrackLocked(trackIndex))
+            {
+                Debug.Log($"[Garage] Rata '{CurrentTrackScene}' on viela lukossa - ei lahdeta ajoon.");
+                return;
+            }
 
+            // Rata: Hallissa vapaasti valittu (oletus = paketin ehdotus).
+            string scene = CurrentTrackScene;
             if (GameManager.Instance != null)
+            {
                 GameManager.Instance.SetSelection(CurrentPackage, builder.Current, builder.GetSelectedList());
-            SaveManager.Instance?.Save();   // tallenna auto+paketti heti kun keikka lahtee
-
-            string scene = gameSceneName;
-            var pkg = CurrentPackage;
-            if (pkg != null && !string.IsNullOrEmpty(pkg.trackScene))
-                scene = pkg.trackScene;
+                GameManager.Instance.SelectedTrack = scene;
+            }
+            SaveManager.Instance?.Save();   // tallenna auto+paketti+rata heti kun keikka lahtee
 
             Debug.Log("[Garage] Aja keikka -> " + scene);
             SceneFader.LoadScene(scene); // KORJATTU 20.8.2026: haivytetty scenevaihto
@@ -330,6 +460,97 @@ namespace Pakettiporina
             yield return new WaitForSeconds(0.4f);
             if (t != null) t.color = original;
         }
+
+        // ---- LISATTY 23.11.2026: julkinen API kolmivaiheiselle Hallille (GarageWizard) ----------
+        [Header("Kolmivaiheinen halli")]
+        [Tooltip("Rakentaa Paketti -> Rata -> Auto -nakymat koodilla vanhan kaikki-yhdessa-nakyman paalle.")]
+        public bool useWizard = true;
+
+        public static string StarsLeftPublic(int need) { return StarsLeft(need); }
+        public int PackageCount => allPackages.Count;
+        public PackageData CurrentPackageData => CurrentPackage;
+        public bool IsCurrentPackageLocked => IsPackageLocked(CurrentPackage);
+        public int PackageStarsNeeded => CurrentPackage == null ? 0 : Progress.PackageLeft(CurrentPackage);
+
+        // ---- LISATTY 23.11.2026: radan vapaa valinta (selaus). Paketti ehdottaa rataa (trackScene), mutta pelaaja voi vaihtaa. ----
+        readonly List<string> trackScenes = new List<string>();
+        int trackIndex;
+
+        void BuildTracks()
+        {
+            trackScenes.Clear();
+            trackScenes.Add(gameSceneName);
+            foreach (var n in new[] { "Satama", "Puisto", "Huvipuisto", "Maatila", "Kyla" })
+                if (Application.CanStreamedLevelBeLoaded(n)) trackScenes.Add(n);
+
+            // tallennettu valinta jos se on edelleen avoin, muuten paketin ehdotus
+            var gm = GameManager.Instance;
+            trackIndex = SuggestedTrackIndex();
+            if (gm != null && !string.IsNullOrEmpty(gm.SelectedTrack))
+            {
+                int i = trackScenes.IndexOf(gm.SelectedTrack);
+                if (i >= 0 && !IsTrackLocked(i)) trackIndex = i;
+            }
+        }
+
+        public int TrackCount => trackScenes.Count;
+        public int TrackIndex => trackIndex;
+        public string CurrentTrackScene => trackScenes.Count > 0 ? trackScenes[Mathf.Clamp(trackIndex, 0, trackScenes.Count - 1)] : gameSceneName;
+        public string TrackSceneAt(int i) { return i >= 0 && i < trackScenes.Count ? trackScenes[i] : gameSceneName; }
+        public bool IsTrackLocked(int i) { return Progress.TrackLocked(TrackSceneAt(i)); }
+        public int TrackStarsNeeded(int i) { return Progress.TrackLeft(TrackSceneAt(i)); }
+        public bool IsCurrentTrackLocked => IsTrackLocked(trackIndex);
+
+        // Paketin ehdottama rata; jos se on lukossa tai puuttuu, ensimmainen avoin rata (kotirata on aina auki).
+        public int SuggestedTrackIndex()
+        {
+            var pkg = CurrentPackage;
+            string want = pkg != null && !string.IsNullOrEmpty(pkg.trackScene) ? pkg.trackScene : gameSceneName;
+            int i = trackScenes.IndexOf(want);
+            if (i < 0 || IsTrackLocked(i)) return 0;
+            return i;
+        }
+        public bool IsSuggestedTrack(int i) { return pkgSuggestsTrack(i); }
+        bool pkgSuggestsTrack(int i)
+        {
+            var pkg = CurrentPackage;
+            string want = pkg != null && !string.IsNullOrEmpty(pkg.trackScene) ? pkg.trackScene : gameSceneName;
+            return TrackSceneAt(i) == want;
+        }
+
+        public void NextTrack() { if (trackScenes.Count > 0) trackIndex = (trackIndex + 1) % trackScenes.Count; }
+        public void PrevTrack() { if (trackScenes.Count > 0) trackIndex = (trackIndex - 1 + trackScenes.Count) % trackScenes.Count; }
+        public int PackageIndex => packageIndex;
+        public int Points => CurrentPoints();
+        public PartCategory CurrentCategory => currentCat;
+
+        public IList<PartData> PartsIn(PartCategory c) { return byCat.ContainsKey(c) ? byCat[c] : new List<PartData>(); }
+        public int PartIndexIn(PartCategory c) { return indexByCat.ContainsKey(c) ? indexByCat[c] : 0; }
+        public bool IsPartLocked(PartData p) { return IsLocked(p); }
+        public int PartStarsNeeded(PartData p) { return p == null ? 0 : Progress.PartLeft(p); }
+
+        // Valitsee osan suoraan (swatch/chip-napit). Lukittu osa vain selataan -> nayttaa lukon.
+        public void SelectPartIndex(PartCategory c, int idx)
+        {
+            var list = PartsIn(c);
+            if (idx < 0 || idx >= list.Count) return;
+            currentCat = c;
+            indexByCat[c] = idx;
+            var part = list[idx];
+            if (!IsLocked(part)) { ApplyPart(part); BumpPreview(); }
+            ShowPart();
+            UpdateStats();
+            UpdateFit();
+        }
+
+        // Valitun osan lukitustila: onko selattu osa lukossa (autossa on silloin edellinen osa).
+        public bool BrowsedPartLocked(PartCategory c)
+        {
+            var list = PartsIn(c);
+            return list.Count > 0 && IsLocked(list[Mathf.Clamp(indexByCat[c], 0, list.Count - 1)]);
+        }
+
+        public bool CanDrive => !IsPackageLocked(CurrentPackage) && !IsCurrentTrackLocked;
 
         // "Koti"-napin OnClick -> paavalikkoon.
         public void OnMainMenuButton()

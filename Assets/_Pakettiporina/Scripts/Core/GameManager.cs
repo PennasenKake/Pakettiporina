@@ -59,6 +59,48 @@ namespace Pakettiporina
         public int DirtMeter { get; private set; }
         public int DentMeter { get; private set; }
 
+        // LISATTY 23.11.2026: ajon arvosana (1-3 tahtea) ja edistys.
+        //  RaceDentHits: tassa ajossa osutut kolhuesteet (nollataan ajon alussa; itse DentMeter on pysyva).
+        //  RunStars: kaikkien ajojen tahdet yhteensa - avaa sisaltoa (ks. Progress).
+        //  BestStars: paras arvosana radoittain (scene-nimi -> 1-3), nayttoa varten.
+        //  SelectedTrack: Hallissa valittu rata (scene-nimi), tyhja = paketin ehdotus.
+        public int RaceDentHits { get; private set; }
+        public int RunStars { get; private set; }
+        public string SelectedTrack { get; set; } = "";
+        public Dictionary<string, int> BestStars { get; private set; } = new Dictionary<string, int>();
+        public event System.Action<int> OnRunStarsChanged;
+
+        public void ResetRaceDentHits() { RaceDentHits = 0; }
+
+        public int BestFor(string scene)
+        {
+            int b; return !string.IsNullOrEmpty(scene) && BestStars.TryGetValue(scene, out b) ? b : 0;
+        }
+
+        // Kirjaa ajon tahdet. Palauttaa lista uusista avautuneista asioista (teksteina).
+        public List<string> AwardRun(string scene, int stars)
+        {
+            int before = RunStars;
+            RunStars += Mathf.Max(0, stars);
+            if (!string.IsNullOrEmpty(scene) && stars > BestFor(scene)) BestStars[scene] = stars;
+            var unlocked = Progress.NewlyUnlocked(before, RunStars);
+            Debug.Log($"[GameManager] Ajon tahdet {stars} ({scene}). Tahdet yhteensa {before} -> {RunStars}. Uutta: {unlocked.Count}");
+            SaveManager.Instance?.Save();
+            OnRunStarsChanged?.Invoke(RunStars);
+            return unlocked;
+        }
+
+        public void ApplyLoadedProgress(int runStars, List<string> bestNames, List<int> bestStars, string track)
+        {
+            RunStars = Mathf.Max(0, runStars);
+            BestStars = new Dictionary<string, int>();
+            if (bestNames != null && bestStars != null)
+                for (int i = 0; i < bestNames.Count && i < bestStars.Count; i++)
+                    if (!string.IsNullOrEmpty(bestNames[i])) BestStars[bestNames[i]] = Mathf.Clamp(bestStars[i], 0, 3);
+            SelectedTrack = track ?? "";
+            OnRunStarsChanged?.Invoke(RunStars);
+        }
+
         // RaceHUD tilaa nama paivittaakseen palkit reaaliaikaisesti heti kun osuma
         // tapahtuu, ilman pollausta joka ruudulla. (nykyinen, max).
         public event System.Action<int, int> OnDirtMeterChanged;
@@ -171,6 +213,7 @@ namespace Pakettiporina
         // Kutsutaan Cone.cs/Laatikko.cs:sta kun auto osuu esteeseen.
         public void AddDent()
         {
+            RaceDentHits++;
             DentMeter = Mathf.Min(DentMeter + HIT_MULTIPLIER, DENT_MAX);
             OnDentMeterChanged?.Invoke(DentMeter, DENT_MAX);
             Debug.Log($"[GameManager] Kolhu! Mittari: {DentMeter}/{DENT_MAX}");

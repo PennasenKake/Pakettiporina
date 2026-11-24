@@ -24,6 +24,14 @@ namespace Pakettiporina
 
         float nextHitTime;
 
+        // Play-testi 23.11.2026 (Puisto): auto jai pysyvasti kiinni laatikkoon, koska este oli
+        // kiinteä tormayskappale ja lapsi ei tiedä miten vapautua. Nyt este on liipaisin:
+        // osuma hidastaa ja kolhii (Bump), mutta auto paasee jatkamaan.
+        void Awake()
+        {
+            foreach (var c in GetComponentsInChildren<Collider>(true)) c.isTrigger = true;
+        }
+
         void OnCollisionEnter(Collision collision) { TryHit(collision.collider); }
         void OnTriggerEnter(Collider other) { TryHit(other); }
 

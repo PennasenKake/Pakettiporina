@@ -67,7 +67,7 @@ namespace Pakettiporina
         public void Refresh()
         {
             int pts = GameManager.Instance != null ? GameManager.Instance.Points : 0;
-            if (pointsText != null) pointsText.text = $"Pisteet: {pts}";
+            if (pointsText != null) pointsText.text = $"Kolikot: {pts}";
 
             foreach (var s in slots)
             {
@@ -79,7 +79,7 @@ namespace Pakettiporina
 
                 if (s.lockOverlay != null) s.lockOverlay.SetActive(!unlocked);
                 if (s.lockText != null)
-                    s.lockText.text = unlocked ? "" : $"{s.sticker.unlockPoints} p";
+                    s.lockText.text = unlocked ? "" : $"{s.sticker.unlockPoints}";
             }
             Debug.Log($"[Stickers] Paivitetty ({slots.Count} tarraa, pisteet={pts}).");
         }

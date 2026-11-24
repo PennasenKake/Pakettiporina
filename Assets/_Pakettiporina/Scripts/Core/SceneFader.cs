@@ -59,6 +59,37 @@ namespace Pakettiporina
             img = imgGo.AddComponent<Image>();
             img.color = new Color(0f, 0f, 0f, 0f);
             img.raycastTarget = false;
+
+            // LISATTY 23.11.2026: "Ladataan..." raskaille sceneille (hidas lataus ei nayta jumilta).
+            var txtGo = new GameObject("LoadingText", typeof(RectTransform));
+            txtGo.transform.SetParent(canvasGo.transform, false);
+            var trt = (RectTransform)txtGo.transform;
+            trt.anchorMin = new Vector2(0f, 0.5f);
+            trt.anchorMax = new Vector2(1f, 0.5f);
+            trt.pivot = new Vector2(0.5f, 0.5f);
+            trt.sizeDelta = new Vector2(0f, 120f);
+            loadingText = txtGo.AddComponent<Text>();
+            loadingText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            loadingText.fontSize = 56;
+            loadingText.alignment = TextAnchor.MiddleCenter;
+            loadingText.color = Color.white;
+            loadingText.raycastTarget = false;
+            loadingText.text = "Ladataan...";
+            loadingText.enabled = false;
+        }
+
+        [Tooltip("Scenet joille naytetaan 'Ladataan...' (isot/raskaat scenet).")]
+        public string[] heavyScenes = { "Huvipuisto", "Maatila" };
+        [Tooltip("Muille sceneille teksti naytetaan vain jos lataus kestaa yli taman (sekuntia).")]
+        public float showLoadingAfter = 0.6f;
+
+        Text loadingText;
+
+        bool IsHeavy(string sceneName)
+        {
+            if (heavyScenes == null) return false;
+            foreach (var s in heavyScenes) if (s == sceneName) return true;
+            return false;
         }
 
         // Kutsu tama SceneManager.LoadScene(x):n SIJAAN kaikkialla pelissa.
@@ -84,15 +115,33 @@ namespace Pakettiporina
 
             yield return Fade(0f, 1f);
 
+            bool heavy = IsHeavy(sceneName);
+            if (loadingText != null && heavy) loadingText.enabled = true;
+
             var op = SceneManager.LoadSceneAsync(sceneName);
             if (op == null)
             {
                 Debug.LogError("[SceneFader] SceneManager.LoadSceneAsync epaonnistui: " + sceneName);
+                if (loadingText != null) loadingText.enabled = false;
                 isFading = false;
                 img.raycastTarget = false;
                 yield break;
             }
-            while (!op.isDone) yield return null;
+            float waited = 0f;
+            float pulse = 0f;
+            while (!op.isDone)
+            {
+                waited += Time.unscaledDeltaTime;
+                pulse += Time.unscaledDeltaTime;
+                if (loadingText != null)
+                {
+                    if (!loadingText.enabled && waited > showLoadingAfter) loadingText.enabled = true;
+                    int dots = 1 + (int)(pulse * 2f) % 3;
+                    loadingText.text = "Ladataan" + new string('.', dots);
+                }
+                yield return null;
+            }
+            if (loadingText != null) loadingText.enabled = false;
 
             // Pieni hengähdystauko ennen paljastusta, jotta uuden scenen Awake/Start-
             // ketju (GameManager/SaveManager/AudioManager jne.) ehtii asettua ennen

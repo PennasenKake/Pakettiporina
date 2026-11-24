@@ -201,6 +201,9 @@ namespace Pakettiporina
             boostMultiplier = Mathf.Max(boostMultiplier, multiplier);
             boostEndTime = Mathf.Max(boostEndTime, Time.time + duration);
             if (impulse > 0f) rb.AddForce(transform.forward * impulse, ForceMode.VelocityChange);
+            Juice.BoostTrail(transform, duration); // nopeusviivat (mehukkuus 23.11.2026)
+            Juice.Flash(new Color(0.6f, 0.85f, 1f), 0.18f, 0.3f);
+            Juice.Play("whoosh");
         }
 
         // Kutsutaan Puddle-objektista: heikentaa pitoa hetkeksi (auto liukuu enemman
@@ -218,6 +221,31 @@ namespace Pakettiporina
             if (rb.isKinematic) return; // ei osumia kesken lahdon jaadytyksen
             rb.velocity *= Mathf.Clamp01(1f - speedCutFraction);
             VibrationManager.Vibrate(); // Asetukset: "Varahtely" - tuntuva kuittaus kolhusta
+            // LISATTY 23.11.2026 (mehukkuus): kipinat + auton visuaalin puristus (ei fysiikkaa)
+            Juice.Sparks(transform.position);
+            Juice.Flash(new Color(1f, 0.15f, 0.1f), 0.28f, 0.22f);   // punainen valahdys kolhusta
+            Juice.Squash(GetSquashTarget());
+        }
+
+        Transform squashTarget;
+        bool squashSearched;
+
+        // Isoin visuaalinen lapsi (auton kori) - puristetaan se, ei rigidbody-juurta.
+        Transform GetSquashTarget()
+        {
+            if (squashSearched) return squashTarget;
+            squashSearched = true;
+            float best = 0f;
+            foreach (var r in GetComponentsInChildren<Renderer>())
+            {
+                if (r is ParticleSystemRenderer) continue;
+                var t = r.transform;
+                while (t != null && t.parent != transform) t = t.parent;
+                if (t == null) continue;
+                float vol = r.bounds.size.x * r.bounds.size.y * r.bounds.size.z;
+                if (vol > best) { best = vol; squashTarget = t; }
+            }
+            return squashTarget;
         }
     }
 }

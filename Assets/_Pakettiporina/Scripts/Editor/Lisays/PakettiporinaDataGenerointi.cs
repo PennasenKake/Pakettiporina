@@ -17,19 +17,22 @@ namespace Pakettiporina.EditorTools
         [MenuItem("Pakettiporina/Lisays/06 - Generoi 5 uutta pakettia")]
         public static void GeneratePackages()
         {
-            var parts = LoadParts().Where(p => !p.cosmeticOnly).ToList();
+            // 24.11.2026: salaiset osat (Kulta-) EIVAT saa olla paketin vaatima osa: ne ovat lukossa ajotahtien takana,
+            // joten paketti olisi mahdoton. Aiemmin paras tilasto voitti, ja kultaosilla on aina paras tilasto.
+            var parts = LoadParts().Where(p => !p.cosmeticOnly && !p.secret).ToList();
             if (parts.Count == 0) { Debug.LogWarning("Ei osia — luo osia ensin."); return; }
 
             System.IO.Directory.CreateDirectory(PKG_DIR);
 
             // (nimi, teema-tagi, massa, palkkio, vaadittu ominaisuus)
-            var recipes = new (string name, string tag, int mass, int reward, PartCategory needCat, string needStat)[]
+            // (24.11.2026: trackScene lisatty, vastaa nykyisia assetteja; tyhja = Hallin oletusrata)
+            var recipes = new (string name, string tag, int mass, int reward, PartCategory needCat, string needStat, string track)[]
             {
-                ("Kukkaruukku",  "herkka",  12, 45, PartCategory.Jouset,  "pito"),
-                ("Tiiliskivet",  "painava", 24, 70, PartCategory.Moottori,"voima"),
-                ("Lumiukko",     "kylma",   14, 55, PartCategory.Lisat,   "kylmyys"),
-                ("Kirjapino",    "painava", 20, 60, PartCategory.Kori,    "kesto"),
-                ("Saippuakuplat","herkka",   6, 40, PartCategory.Renkaat, "pito"),
+                ("Kukkaruukku",  "herkka",  12, 45, PartCategory.Jouset,  "pito",    "Maatila"),
+                ("Tiiliskivet",  "painava", 24, 70, PartCategory.Moottori,"voima",   "Maatila"),
+                ("Lumiukko",     "kylma",   14, 55, PartCategory.Lisat,   "kylmyys", "Maatila"),
+                ("Kirjapino",    "painava", 20, 60, PartCategory.Kori,    "kesto",   ""),
+                ("Saippuakuplat","herkka",   6, 40, PartCategory.Renkaat, "pito",    "Puisto"),
             };
 
             int created = 0;
@@ -54,6 +57,7 @@ namespace Pakettiporina.EditorTools
                 pkg.mass = r.mass;
                 pkg.rewardPoints = r.reward;
                 pkg.requiredPart = req;
+                pkg.trackScene = r.track;
                 if (r.tag == "kylma") pkg.meltTime = 40f;
 
                 AssetDatabase.CreateAsset(pkg, path);
@@ -65,6 +69,7 @@ namespace Pakettiporina.EditorTools
             AssetDatabase.Refresh();
             log.AppendLine($"\nValmis. Luotu {created} uutta pakettia kansioon {PKG_DIR}.");
             log.AppendLine("MUISTA: aja 'Pakettiporina/Korjaus/02 - KORJAA halli', niin uudet paketit tulevat mukaan hallin listaan.");
+            log.AppendLine("HUOM: avautumisraja (ajotahdet) on Progress.cs:n taulukossa (Core/Progress.cs). Paketti, jota taulukossa ei ole, on heti auki. Aja lopuksi 'Tarkistus/08 - Tarkista edistys'.");
             Debug.Log(log.ToString());
         }
 

@@ -112,7 +112,7 @@ namespace Pakettiporina.EditorTools
                     {
                         EditorUtility.SetDirty(existing);
                         updated++;
-                        log.AppendLine($"   Paivitetty {r.name}: pisteraja={r.points}, kuva={(hasSprite ? "kytketty" : "PUUTTUU")}");
+                        log.AppendLine($"   Paivitetty {r.name}: hinta={r.points} kolikkoa, kuva={(hasSprite ? "kytketty" : "PUUTTUU")}");
                     }
                     continue;
                 }
@@ -123,7 +123,7 @@ namespace Pakettiporina.EditorTools
                 sd.unlockPoints = r.points;
                 AssetDatabase.CreateAsset(sd, path);
                 created++;
-                log.AppendLine($"   Luotu {r.name}: pisteraja={r.points}, kuva={(hasSprite ? "kytketty" : "PUUTTUU")}");
+                log.AppendLine($"   Luotu {r.name}: hinta={r.points} kolikkoa, kuva={(hasSprite ? "kytketty" : "PUUTTUU")}");
             }
 
             AssetDatabase.SaveAssets();

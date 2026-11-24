@@ -6,9 +6,10 @@ using UnityEditor;
 namespace Pakettiporina.EditorTools
 {
     // Luo 6 SALAISTA osaa (yksi per kategoria). Nama eivat nay osaselaimessa
-    // ollenkaan ennen kuin PartData.unlockPoints tayttyy (katso GarageScreen.
-    // BuildLookups) - pelaaja ei siis edes tieda niista etukateen, ne vain
-    // ilmestyvat listaan yllatyksena kun on kerannyt tarpeeksi pisteita.
+    // ollenkaan ennen kuin avautumisraja tayttyy (katso GarageScreen.BuildLookups) -
+    // pelaaja ei siis edes tieda niista etukateen, ne vain ilmestyvat listaan yllatyksena.
+    // MUUTETTU 24.11.2026: raja on nyt AJOTAHTIA (Progress.cs:n taulukko: kultaosat 45-70, sateenkaari 30),
+    // ei kolikoita. PartData.unlockPoints tallennetaan edelleen (varalle, vanha saanto), mutta taulukko ohittaa sen.
     //
     // Arvot on laskettu niin etta KAIKKI 5 mittaria (voima/pito/keveys/kestavyys/
     // kylmyys) osuvat tasan 100:aan kun kaikki 6 salaista osaa on valittuna
@@ -62,7 +63,9 @@ namespace Pakettiporina.EditorTools
                 if (isNew) { AssetDatabase.CreateAsset(part, path); created++; }
                 else { EditorUtility.SetDirty(part); updated++; }
 
-                log.AppendLine($"   {r.displayName} ({r.category}): tarvitsee {r.unlockPoints} pistetta " +
+                int starNeed = Progress.PartNeeded(part);
+                log.AppendLine($"   {r.displayName} ({r.category}): tarvitsee " +
+                                (starNeed >= 0 ? $"{starNeed} ajotahtea (Progress.cs)" : $"{r.unlockPoints} kolikkoa (EI taulukossa: lisaa Progress.cs:aan)") + " " +
                                 $"[voima {r.voima:+0;-0;0} pito {r.pito:+0;-0;0} keveys {r.keveys:+0;-0;0} " +
                                 $"kesto {r.kestavyys:+0;-0;0} kylmyys {r.kylmyys:+0;-0;0}]");
             }
@@ -83,7 +86,8 @@ namespace Pakettiporina.EditorTools
                 part.secret = true;
                 if (isNew) { AssetDatabase.CreateAsset(part, path); created++; }
                 else { EditorUtility.SetDirty(part); updated++; }
-                log.AppendLine($"   Sateenkaarimaali (Maali): tarvitsee 150 pistetta [vain kosmeettinen]");
+                int rbNeed = Progress.PartNeeded(part);
+                log.AppendLine($"   Sateenkaarimaali (Maali): tarvitsee {(rbNeed >= 0 ? rbNeed + " ajotahtea (Progress.cs)" : "150 kolikkoa (EI taulukossa)")} [vain kosmeettinen]");
             }
 
             AssetDatabase.SaveAssets();

@@ -35,6 +35,9 @@ namespace Pakettiporina
             // Androidin takaisin-nappi = tauko/jatka
             if (Input.GetKeyDown(KeyCode.Escape))
                 Toggle();
+            // Piilota "Koti uudelleen" -vihje (Invoke ei toimi timeScale 0:lla)
+            if (homeHint != null && homeHint.gameObject.activeSelf && Time.realtimeSinceStartup > homeArmedUntil)
+                HideHomeHint();
         }
 
         // Kytke tauko-nappiin.
@@ -47,6 +50,7 @@ namespace Pakettiporina
         public void Pause()
         {
             IsPaused = true;
+            Juice.Play("whoosh", 0.02f);
             Time.timeScale = 0f;
             if (pausePanel != null) pausePanel.SetActive(true);
             if (controls != null) controls.SetActive(false);   // napit piiloon
@@ -66,8 +70,19 @@ namespace Pakettiporina
             Debug.Log("[Pause] Jatketaan.");
         }
 
+        float homeArmedUntil;
+        Text homeHint;
+
         public void GoToMainMenu()
         {
+            // LISATTY 23.11.2026: "Koti" ei saa poistua ajosta vahingossa -> kaksi painallusta (2,5 s sisalla).
+            // Ajastus kayttaa realtimea, koska Time.timeScale on 0 tauolla.
+            if (IsPaused && Time.realtimeSinceStartup > homeArmedUntil)
+            {
+                homeArmedUntil = Time.realtimeSinceStartup + 2.5f;
+                ShowHomeHint();
+                return;
+            }
             Time.timeScale = 1f;
             Debug.Log("[Pause] Paavalikkoon: " + mainMenuScene);
             SceneFader.LoadScene(mainMenuScene); // KORJATTU 20.8.2026: haivytetty scenevaihto
@@ -79,6 +94,39 @@ namespace Pakettiporina
             Time.timeScale = 1f;
             Debug.Log("[Pause] Halliin: " + garageScene);
             SceneFader.LoadScene(garageScene); // KORJATTU 20.8.2026: haivytetty scenevaihto
+        }
+
+        void ShowHomeHint()
+        {
+            if (pausePanel == null) return;
+            if (homeHint == null)
+            {
+                var go = new GameObject("HomeHint", typeof(RectTransform), typeof(Text));
+                var rt = (RectTransform)go.transform;
+                rt.SetParent(pausePanel.transform, false);
+                rt.anchorMin = new Vector2(0.05f, 0.62f); rt.anchorMax = new Vector2(0.95f, 0.72f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                homeHint = go.GetComponent<Text>();
+                homeHint.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                homeHint.fontSize = 60;
+                homeHint.resizeTextForBestFit = true;   // canvasin skaala on suuri: pieni fontti jai lukukelvottomaksi
+                homeHint.resizeTextMinSize = 30;
+                homeHint.resizeTextMaxSize = 80;
+                homeHint.fontStyle = FontStyle.Bold;
+                homeHint.alignment = TextAnchor.MiddleCenter;
+                homeHint.color = Color.yellow;
+                homeHint.raycastTarget = false;
+                homeHint.horizontalOverflow = HorizontalWrapMode.Wrap;
+                go.AddComponent<Outline>().effectColor = Color.black;
+            }
+            homeHint.text = "Poistutaanko ajosta? Paina Koti uudelleen.";
+            homeHint.gameObject.SetActive(true);
+            homeHint.transform.SetAsLastSibling();
+        }
+
+        void HideHomeHint()
+        {
+            if (homeHint != null) homeHint.gameObject.SetActive(false);
         }
 
         void SetIcon(bool paused)

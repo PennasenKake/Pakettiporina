@@ -46,5 +46,12 @@ namespace Pakettiporina
         // vanhatkin tallennukset automaattisesti uuteen kattoon, ei vaadi migraatiota).
         public int dirtMeter = 0;
         public int dentMeter = 0;
+
+        // LISATTY 23.11.2026: ajon tahdet (1-3), parhaat radoittain ja Hallissa valittu rata.
+        // Oletukset 0/tyhja: vanhat tallennukset lataavat ilman tahtia ja radan ehdotuksella.
+        public int runStarsTotal = 0;
+        public List<string> trackBestNames = new List<string>();
+        public List<int> trackBestStars = new List<int>();
+        public string selectedTrack = "";
     }
 }
